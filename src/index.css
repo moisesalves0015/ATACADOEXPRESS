@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-yellow: #FFD700;
+  --color-brand-blue: #A0D2EB;
+  --color-brand-bg: #F8F9FB;
+  
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 3rem;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-gray-900 bg-[#F8F9FB] antialiased;
+  }
+}
+
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg;
+}
+
+/* LiquidGlass CSS Variables */
+:root {
+  --c-glass: #bbbbbc;
+  --c-light: #fff;
+  --c-dark: #000;
+  --c-content: #224;
+  --c-action: #F72585;
+  --c-bg: #F8F9FB;
+  --glass-reflex-dark: 1;
+  --glass-reflex-light: 1;
+  --saturation: 150%;
+}
+
+.glass-liquid {
+  background-color: color-mix(in srgb, var(--c-glass) 12%, transparent);
+  backdrop-filter: blur(8px) saturate(var(--saturation));
+  -webkit-backdrop-filter: blur(8px) saturate(var(--saturation));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 1.8px 3px 0px -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent),
+    inset -2px -2px 0px -2px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 80%), transparent),
+    inset -3px -8px 1px -6px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 60%), transparent),
+    inset -0.3px -1px 4px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 12%), transparent),
+    inset -1.5px 2.5px 0px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent),
+    inset 0px 3px 4px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent),
+    inset 2px -6.5px 1px -4px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 10%), transparent),
+    0px 1px 5px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 10%), transparent),
+    0px 6px 16px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 8%), transparent);
+  transition: background-color 400ms cubic-bezier(1, 0, 0.4, 1), box-shadow 400ms cubic-bezier(1, 0, 0.4, 1);
+  position: relative;
+}
+
+/* Nav item — perfect circle button */
+.nav-item {
+  --c: color-mix(in srgb, var(--c-content) 70%, transparent);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Perfect circle: equal width and height */
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  opacity: 1;
+  transition: all 160ms;
+  cursor: pointer;
+  color: var(--c);
+}
+
+.nav-item:hover {
+  --c: var(--c-action);
+  cursor: pointer;
+}
+
+.nav-item:hover .nav-icon {
+  scale: 1.2;
+}
+
+/* Liquid indicator — perfect circle */
+.nav-indicator {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  right: 4px;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--c-glass) 36%, transparent);
+  z-index: -1;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 2px 1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 90%), transparent),
+    inset -1.5px -1px 0px -1px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 80%), transparent),
+    inset -2px -6px 1px -5px color-mix(in srgb, var(--c-light) calc(var(--glass-reflex-light) * 60%), transparent),
+    inset -1px 2px 3px -1px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 20%), transparent),
+    inset 0px -4px 1px -2px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 10%), transparent),
+    0px 3px 6px 0px color-mix(in srgb, var(--c-dark) calc(var(--glass-reflex-dark) * 8%), transparent);
+}
+
+/* Icon transition */
+.nav-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  transition: scale 200ms cubic-bezier(0.5, 0, 0, 1);
+  color: var(--c);
+}
+
+.product-card-rounded {
+  @apply bg-white rounded-[2.5rem] p-4 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-50;
+}
+
+.search-bar-rounded {
+  @apply bg-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm border border-gray-50;
+}
+
+.brand-logo-card {
+  @apply bg-white rounded-2xl w-20 h-20 flex items-center justify-center shadow-sm border border-gray-50 hover:scale-105 transition-transform;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* LiquidGlass navigation — floating pill, all corners rounded */
+.nav-dock {
+  position: fixed;
+  z-index: 100;
+
+  /* Mobile: floating above the bottom edge, centered horizontally */
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  height: 70px;
+  box-sizing: border-box;
+  padding: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 2px;
+
+  /* All corners rounded — pill shape */
+  border-radius: 99em;
+}
+
+@media (min-width: 768px) {
+  .nav-dock {
+    /* Desktop: floating on the left, vertically centered */
+    bottom: unset;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 70px;
+    height: fit-content;
+    padding: 4px;
+
+    flex-direction: column;
+    gap: 2px;
+
+    /* All corners rounded — vertical pill shape */
+    border-radius: 99em;
+  }
+}
+
+
+/* ─── scaleToggle animations (horizontal — mobile) ────────── */
+@keyframes navScaleToggleH {
+  0%   { scale: 1 1; }
+  50%  { scale: 1.3 1; }
+  100% { scale: 1 1; }
+}
+
+/* Going forward (active > previous): stretch right */
+.nav-dock[data-active]:not([data-active="-1"]) .nav-indicator {
+  animation: navScaleToggleH 440ms ease;
+  transform-origin: left;
+}
+
+/* Going backward (active < previous): stretch left */
+.nav-dock[data-previous]:not([data-previous="-1"]) .nav-indicator {
+  transform-origin: right;
+}
+
+/* ─── scaleToggle animations (vertical — desktop) ────────── */
+@media (min-width: 768px) {
+  @keyframes navScaleToggleV {
+    0%   { scale: 1 1; }
+    50%  { scale: 1 1.3; }
+    100% { scale: 1 1; }
+  }
+
+  .nav-dock[data-active]:not([data-active="-1"]) .nav-indicator {
+    animation: navScaleToggleV 440ms ease;
+    transform-origin: top;
+  }
+
+  .nav-dock[data-previous]:not([data-previous="-1"]) .nav-indicator {
+    transform-origin: bottom;
+  }
+}
+
+

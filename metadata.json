@@ -1,0 +1,9 @@
+{
+  "name": "Atacado Express Boutique",
+  "description": "Vibrant and modern fashion boutique platform for wholesale and retail.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

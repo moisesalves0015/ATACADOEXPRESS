@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users (admins and clients)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "client"] },
+        "address": { "type": "string" },
+        "cpf": { "type": "string" },
+        "totalPurchases": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Wholesale products",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "stockType": { "type": "string", "enum": ["pronta_entrega", "previsao_meta"] },
+        "availableQuantity": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "requiredGoal": { "type": "number" },
+        "currentGoalProgress": { "type": "number" },
+        "estimatedArrivalDate": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "goalReached": { "type": "boolean" }
+      },
+      "required": ["name", "stockType", "unitPrice", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer orders",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "orderDate": { "type": "string", "format": "date-time" },
+        "totalValue": { "type": "number" },
+        "status": { "type": "string", "enum": ["aguardando_pagamento", "pagamento_confirmado", "separacao", "enviado", "entregue", "cancelado"] },
+        "paymentProofUrl": { "type": "string" },
+        "observations": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["clientId", "orderDate", "totalValue", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Product catalog"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
+    }
+  }
+}

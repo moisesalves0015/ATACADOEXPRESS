@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, name, email, phone, role, address, cpf, totalPurchases, createdAt
+    //
+    // Collection: products
+    // Fields: name, description, category, stockType, availableQuantity, unitPrice, requiredGoal, currentGoalProgress, estimatedArrivalDate, imageUrl, status, goalReached
+    //
+    // Collection: orders
+    // Fields: clientId, clientName, orderDate, totalValue, status, paymentProofUrl, observations, items
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "moises.app.thoth@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isOrderOwner(orderData) {
+      return isAuthenticated() && request.auth.uid == orderData.clientId;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'role']) &&
+             data.role in ['admin', 'client'] &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.email is string && data.email.size() > 0;
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'stockType', 'unitPrice', 'status']) &&
+             data.stockType in ['pronta_entrega', 'previsao_meta'] &&
+             data.status in ['active', 'inactive'] &&
+             data.unitPrice is number && data.unitPrice >= 0 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['clientId', 'orderDate', 'totalValue', 'status']) &&
+             data.status in ['aguardando_pagamento', 'pagamento_confirmado', 'separacao', 'enviado', 'entregue', 'cancelado'] &&
+             data.totalValue is number && data.totalValue >= 0 &&
+             data.clientId is string && data.clientId.size() > 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(uid) || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isAdmin() || (isOwner(uid) && request.resource.data.role == resource.data.role));
+      allow delete: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true; // Public vitrine
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidOrder(request.resource.data) && request.resource.data.clientId == request.auth.uid;
+      allow update: if isAdmin() || 
+                    (isAuthenticated() && resource.data.clientId == request.auth.uid && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentProofUrl', 'observations']) &&
+                     resource.data.status == 'aguardando_pagamento');
+      allow delete: if isAdmin();
+    }
+  }
+}
