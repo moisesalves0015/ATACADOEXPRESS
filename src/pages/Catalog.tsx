@@ -128,9 +128,9 @@ export default function Catalog() {
                 onClick={() => navigate(`/product/${product.id}`)}
               >
                 <div className="relative aspect-square mb-4 overflow-hidden rounded-xl bg-gray-50">
-                  {product.imageUrl ? (
+                  {product.imageUrls?.length || product.imageUrl ? (
                     <img
-                      src={product.imageUrl}
+                      src={product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       referrerPolicy="no-referrer"

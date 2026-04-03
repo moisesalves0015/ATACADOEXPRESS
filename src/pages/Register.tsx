@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { Mail, Lock, User, AlertCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Sparkles, Eye, EyeOff, Phone } from 'lucide-react';
 import { UserProfile } from '../types';
 
 function getFirebaseErrorMessage(code: string): string {
@@ -17,7 +17,7 @@ function getFirebaseErrorMessage(code: string): string {
     case 'auth/network-request-failed':
       return 'Erro de conexão. Verifique sua internet e tente novamente.';
     default:
-      return 'Erro ao criar conta. Verifique os dados e tente novamente.';
+      return `Erro desconhecido (${code}). Verifique os dados e tente novamente.`;
   }
 }
 
@@ -25,6 +25,7 @@ export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -52,6 +53,12 @@ export default function Register() {
       return;
     }
 
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setError('Telefone inválido. Digite o DDD + Número.');
+      return;
+    }
+
     setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email.trim(), formData.password);
@@ -62,14 +69,20 @@ export default function Register() {
         uid: user.uid,
         name: formData.name.trim(),
         email: formData.email.trim(),
+        phone: cleanPhone,
         role: 'client',
         totalPurchases: 0,
         createdAt: new Date().toISOString(),
       };
 
       await setDoc(doc(db, 'users', user.uid), userProfile);
+      
+      // Save phone map for login
+      await setDoc(doc(db, 'phoneMappings', cleanPhone), { email: formData.email.trim() });
+      
       navigate('/');
     } catch (err) {
+      console.error("ERRO NO CADASTRO:", err);
       const authError = err as AuthError;
       setError(getFirebaseErrorMessage(authError.code));
     } finally {
@@ -144,6 +157,25 @@ export default function Register() {
                   className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
                   style={{ fontSize: '16px' }}
                   placeholder="Seu nome completo"
+                />
+              </div>
+            </div>
+
+            {/* Telefone */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">Telefone (WhatsApp)</label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" strokeWidth={1.5} />
+                <input
+                  id="register-phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
+                  style={{ fontSize: '16px' }}
+                  placeholder="(00) 00000-0000"
                 />
               </div>
             </div>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, getDocs } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage, handleFirestoreError, OperationType } from '../../firebase';
 import { Product, StockType, Order } from '../../types';
 import {
-  Package, Plus, Search, Edit2, Trash2, X, Image as ImageIcon,
+  Package, Plus, Search, Edit2, Trash2, X, Image as ImageIcon, Upload,
   BarChart2, TrendingUp, ShoppingBag, Users, DollarSign, User, ShieldCheck, Filter
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -46,8 +47,11 @@ export default function AdminProducts() {
     requiredGoal: 0,
     estimatedArrivalDate: '',
     imageUrl: '',
+    imageUrls: [] as string[],
     status: 'active' as 'active' | 'inactive'
   });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -72,6 +76,7 @@ export default function AdminProducts() {
         requiredGoal: product.requiredGoal || 0,
         estimatedArrivalDate: product.estimatedArrivalDate || '',
         imageUrl: product.imageUrl || '',
+        imageUrls: product.imageUrls || (product.imageUrl ? [product.imageUrl] : []),
         status: product.status
       });
     } else {
@@ -79,7 +84,7 @@ export default function AdminProducts() {
       setFormData({
         name: '', description: '', category: '', stockType: 'pronta_entrega',
         availableQuantity: 0, unitPrice: 0, requiredGoal: 0,
-        estimatedArrivalDate: '', imageUrl: '', status: 'active'
+        estimatedArrivalDate: '', imageUrl: '', imageUrls: [], status: 'active'
       });
     }
     setIsModalOpen(true);
@@ -111,6 +116,56 @@ export default function AdminProducts() {
         alert('Erro ao excluir produto.');
       }
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[];
+    if (!files.length) return;
+    
+    if (formData.imageUrls.length + files.length > 10) {
+      alert('Você pode enviar no máximo 10 fotos por produto.');
+      return;
+    }
+    
+    setUploadingImage(true);
+    
+    try {
+      const newUrls: string[] = [];
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `products/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const storageRef = ref(storage, fileName);
+        
+        await uploadBytes(storageRef, file);
+        const downloadUrl = await getDownloadURL(storageRef);
+        newUrls.push(downloadUrl);
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: prev.imageUrls.length === 0 && newUrls.length > 0 ? newUrls[0] : prev.imageUrl,
+        imageUrls: [...prev.imageUrls, ...newUrls]
+      }));
+      
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('Erro ao enviar imagem. Seu banco de dados Firebase Storage pode não estar configurado corretamente.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => {
+      const updatedUrls = [...prev.imageUrls];
+      updatedUrls.splice(index, 1);
+      return {
+        ...prev,
+        imageUrls: updatedUrls,
+        imageUrl: updatedUrls.length > 0 ? updatedUrls[0] : ''
+      };
+    });
   };
 
   // Open product report
@@ -213,9 +268,9 @@ export default function AdminProducts() {
                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 flex-shrink-0">
-                        {product.imageUrl ? (
-                          <img src={product.imageUrl} alt="" className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 flex-shrink-0 overflow-hidden">
+                        {product.imageUrls?.length || product.imageUrl ? (
+                          <img src={product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
                           <Package className="w-5 h-5" />
                         )}
@@ -299,8 +354,8 @@ export default function AdminProducts() {
             {/* Header */}
             <div className="p-6 border-b border-gray-100 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
               <div className="flex items-center gap-4">
-                {reportProduct.imageUrl ? (
-                  <img src={reportProduct.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
+                {reportProduct.imageUrls?.length || reportProduct.imageUrl ? (
+                  <img src={reportProduct.imageUrls?.length ? reportProduct.imageUrls[0] : reportProduct.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                     <Package className="w-6 h-6 text-gray-400" />
@@ -585,18 +640,44 @@ export default function AdminProducts() {
                 )}
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">URL da Imagem</label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-grow">
-                      <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text" value={formData.imageUrl}
-                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://exemplo.com/imagem.jpg"
-                      />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Fotos do Produto (Até 10)</label>
+                  
+                  {/* Previews Grid */}
+                  {formData.imageUrls.length > 0 && (
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      {formData.imageUrls.map((url, idx) => (
+                        <div key={idx} className="relative w-24 h-24 rounded-xl border border-gray-200 overflow-hidden group shadow-sm bg-gray-50 flex-shrink-0">
+                          <img src={url} alt={`preview ${idx}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(idx)}
+                            className="absolute top-1.5 right-1.5 bg-white/90 p-1.5 rounded-full text-gray-600 hover:text-red-600 hover:bg-white shadow-sm transition-all"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  )}
+
+                  {/* Upload Button */}
+                  {formData.imageUrls.length < 10 && (
+                    <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 hover:border-blue-400 transition-colors">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={uploadingImage}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                      <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                      <p className="text-sm font-semibold text-gray-700">
+                        {uploadingImage ? 'Enviando imagens...' : 'Clique ou arraste para adicionar fotos'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG até 5MB</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -21,6 +21,7 @@ import AdminProducts from './pages/admin/Products';
 import AdminOrders from './pages/admin/Orders';
 import AdminReports from './pages/admin/Reports';
 import AdminNewOrder from './pages/admin/NewOrder';
+import AdminClients from './pages/admin/AdminClients';
 
 // Components
 import Layout from './components/Layout';
@@ -86,6 +87,7 @@ export default function App() {
                 <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/new-order" element={<AdminNewOrder />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
+                <Route path="/admin/clients" element={<AdminClients />} />
               </Route>
             </Route>
           </Routes>

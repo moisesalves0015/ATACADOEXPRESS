@@ -118,5 +118,11 @@ service cloud.firestore {
 
       allow delete: if isAdmin();
     }
+
+    // Phone Mappings collection - used for login lookups
+    match /phoneMappings/{phone} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
   }
 }

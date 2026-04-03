@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
-import { Mail, Lock, AlertCircle, ShoppingBag, Eye, EyeOff } from 'lucide-react';
+import { auth, db } from '../firebase';
+import { Mail, Lock, AlertCircle, ShoppingBag, Eye, EyeOff, Phone } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+
 
 function getFirebaseErrorMessage(code: string): string {
   switch (code) {
@@ -24,7 +26,7 @@ function getFirebaseErrorMessage(code: string): string {
 }
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // E-mail or Phone
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +39,24 @@ export default function Login() {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      let loginEmail = identifier.trim();
+
+      // Check if it looks like a phone number (only digits or digits with formatting)
+      const isPhone = /^[0-9()\-\s]+$/.test(identifier) && !identifier.includes('@');
+      
+      if (isPhone) {
+        const cleanPhone = identifier.replace(/\D/g, '');
+        const phoneDoc = await getDoc(doc(db, 'phoneMappings', cleanPhone));
+        if (phoneDoc.exists()) {
+          loginEmail = phoneDoc.data().email;
+        } else {
+          setError('Telefone não cadastrado.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      await signInWithEmailAndPassword(auth, loginEmail, password);
       navigate('/');
     } catch (err) {
       const authError = err as AuthError;
@@ -102,19 +121,22 @@ export default function Login() {
             )}
 
             <div className="space-y-1">
-              <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">E-mail</label>
+              <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">E-mail ou Telefone</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" strokeWidth={1.5} />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                  <Mail className="h-4 w-4 text-gray-300" strokeWidth={1.5} />
+                  <span className="h-4 w-px bg-gray-100" />
+                  <Phone className="h-4 w-4 text-gray-300" strokeWidth={1.5} />
+                </div>
                 <input
-                  id="login-email"
-                  type="email"
+                  id="login-identifier"
+                  type="text"
                   required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className="block w-full pl-20 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
                   style={{ fontSize: '16px' }}
-                  placeholder="seu@email.com"
+                  placeholder="seu@email.com ou (00) 00000-0000"
                 />
               </div>
             </div>

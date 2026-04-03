@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, Home, ClipboardList, LayoutDashboard, Package, BarChart3 } from 'lucide-react';
+import { ShoppingCart, User, Home, ClipboardList, LayoutDashboard, Package, BarChart3, Users } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { UserProfile } from '../types';
@@ -17,6 +17,7 @@ export default function GlobalNav({ user }: GlobalNavProps) {
     { to: '/admin', label: 'Home', icon: LayoutDashboard },
     { to: '/admin/products', label: 'Produtos', icon: Package },
     { to: '/admin/orders', label: 'Pedidos', icon: ClipboardList },
+    { to: '/admin/clients', label: 'Clientes', icon: Users },
     { to: '/admin/reports', label: 'Relatórios', icon: BarChart3 },
   ] : [
     { to: '/', label: 'Início', icon: Home },

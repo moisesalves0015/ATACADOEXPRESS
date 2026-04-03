@@ -26,6 +26,7 @@ export interface Product {
   currentGoalProgress?: number;
   estimatedArrivalDate?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   status: 'active' | 'inactive';
   goalReached?: boolean;
 }
@@ -44,6 +45,7 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   imageUrl?: string;
+  imageUrls?: string[];
 }
 
 export type OrderOrigin = 'cliente' | 'admin';

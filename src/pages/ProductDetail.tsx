@@ -16,6 +16,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   // Check how many of this product are already in the cart
   const inCartItem = items.find(i => i.productId === id);
@@ -72,7 +73,7 @@ export default function ProductDetail() {
       productName: product.name,
       quantity,
       unitPrice: product.unitPrice,
-      imageUrl: product.imageUrl,
+      imageUrl: product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl,
     });
     
     // Optional: visual feedback
@@ -94,33 +95,53 @@ export default function ProductDetail() {
 
       <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Image */}
-          <div className="relative aspect-square md:aspect-auto md:h-full bg-gray-50">
-            {product.imageUrl ? (
-              <img 
-                src={product.imageUrl} 
-                alt={product.name} 
-                className="w-full h-full object-cover" 
-                referrerPolicy="no-referrer" 
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-300">
-                <Package className="w-20 h-20" />
-              </div>
-            )}
-            <div className="absolute top-4 left-4">
-              <span className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-bold uppercase",
-                product.stockType === 'pronta_entrega' ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
-              )}>
-                {product.stockType === 'pronta_entrega' ? 'Pronta Entrega' : 'Previsão Meta'}
-              </span>
-            </div>
-            {outOfStock && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-10">
-                <div className="bg-red-500 text-white font-bold px-6 py-2 rounded-full transform -rotate-12 shadow-lg">
-                  ESGOTADO
+          {/* Images */}
+          <div className="flex flex-col gap-4 p-4 md:p-6 bg-gray-50/50">
+            <div className="relative aspect-square w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+              {product.imageUrls?.length || product.imageUrl ? (
+                <img 
+                  src={product.imageUrls?.length ? product.imageUrls[selectedImage] : product.imageUrl} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover" 
+                  referrerPolicy="no-referrer" 
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-300">
+                  <Package className="w-20 h-20" />
                 </div>
+              )}
+              <div className="absolute top-4 left-4">
+                <span className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-bold uppercase shadow-sm",
+                  product.stockType === 'pronta_entrega' ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
+                )}>
+                  {product.stockType === 'pronta_entrega' ? 'Pronta Entrega' : 'Previsão Meta'}
+                </span>
+              </div>
+              {outOfStock && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-10">
+                  <div className="bg-red-500 text-white font-bold px-6 py-2 rounded-full transform -rotate-12 shadow-lg">
+                    ESGOTADO
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnails */}
+            {product.imageUrls && product.imageUrls.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-1">
+                {product.imageUrls.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={cn(
+                      "w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all shadow-sm",
+                      selectedImage === idx ? "border-brand-pink opacity-100 scale-105" : "border-transparent opacity-60 hover:opacity-100"
+                    )}
+                  >
+                    <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             )}
           </div>
