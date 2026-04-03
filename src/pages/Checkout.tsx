@@ -25,7 +25,7 @@ export default function Checkout() {
         clientEmail: userData?.email || auth.currentUser.email || '',
         clientPhone: userData?.phone || '',
         orderDate: new Date().toISOString(),
-        totalValue,
+        totalValue: totalValue + 15,
         status: 'aguardando_pagamento',
         items,
         observations: '',
@@ -90,7 +90,7 @@ export default function Checkout() {
   return (
     <div className="max-w-3xl mx-auto">
       {!orderId ? (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xl overflow-hidden">
           <div className="p-8 border-b border-gray-50 bg-gray-50/50">
             <h1 className="text-2xl font-bold text-gray-900">Finalizar Pedido</h1>
             <p className="text-gray-500 mt-1">Confira os itens e confirme sua compra.</p>
@@ -101,8 +101,12 @@ export default function Checkout() {
               {items.map((item) => (
                 <div key={item.productId} className="flex justify-between items-center py-2">
                   <div className="flex items-center gap-3">
-                    <div className="bg-gray-100 p-2 rounded-lg">
-                      <Package className="w-4 h-4 text-gray-400" />
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                      ) : (
+                        <Package className="w-4 h-4 text-gray-400" />
+                      )}
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{item.productName}</p>
@@ -119,8 +123,8 @@ export default function Checkout() {
             <div className="border-t border-gray-100 pt-6">
               <div className="flex justify-between items-end">
                 <span className="text-gray-500 font-medium">Total a pagar</span>
-                <span className="text-3xl font-black text-blue-600">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)}
+                <span className="text-3xl font-bold text-blue-600">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue + 15)}
                 </span>
               </div>
             </div>
@@ -136,7 +140,7 @@ export default function Checkout() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-100 rounded-3xl p-8 text-center">
+          <div className="bg-green-50 border border-green-100 rounded-xl p-8 text-center">
             <div className="bg-green-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-100">
               <CheckCircle2 className="w-10 h-10 text-white" />
             </div>
@@ -144,7 +148,7 @@ export default function Checkout() {
             <p className="text-green-700 mt-2">Seu pedido #{orderId.slice(-6).toUpperCase()} foi registrado com sucesso.</p>
           </div>
 
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-8">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xl p-8">
             <div className="flex flex-col md:flex-row gap-8 items-center">
               <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200">
                 <QrCode className="w-48 h-48 text-gray-900" />

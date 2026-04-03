@@ -182,7 +182,7 @@ export default function AdminProducts() {
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -195,7 +195,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -240,7 +240,7 @@ export default function AdminProducts() {
                       {product.stockType === 'pronta_entrega' ? 'Pronta' : 'Meta'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">
                     {fmt(product.unitPrice)}
                   </td>
                   <td className="px-6 py-4">
@@ -295,9 +295,9 @@ export default function AdminProducts() {
       ============================================================ */}
       {reportProduct && (
         <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-3xl w-full max-w-4xl my-8 shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-4xl my-8 shadow-xl">
             {/* Header */}
-            <div className="p-6 border-b border-gray-100 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-3xl">
+            <div className="p-6 border-b border-gray-100 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
               <div className="flex items-center gap-4">
                 {reportProduct.imageUrl ? (
                   <img src={reportProduct.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
@@ -311,7 +311,7 @@ export default function AdminProducts() {
                     <BarChart2 className="w-4 h-4 text-emerald-600" />
                     <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Relatório do Produto</span>
                   </div>
-                  <h2 className="text-xl font-black text-gray-900">{reportProduct.name}</h2>
+                  <h2 className="text-xl font-bold text-gray-900">{reportProduct.name}</h2>
                   <p className="text-sm text-gray-400">{reportProduct.category} · {fmt(reportProduct.unitPrice)}</p>
                 </div>
               </div>
@@ -329,33 +329,33 @@ export default function AdminProducts() {
                 <>
                   {/* KPI cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <ShoppingBag className="w-4 h-4 text-emerald-600" />
                         <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Pedidos</span>
                       </div>
-                      <p className="text-2xl font-black text-gray-900">{kpiOrders.length}</p>
+                      <p className="text-2xl font-bold text-gray-900">{kpiOrders.length}</p>
                     </div>
-                    <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <TrendingUp className="w-4 h-4 text-blue-600" />
                         <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Unidades</span>
                       </div>
-                      <p className="text-2xl font-black text-gray-900">{totalUnits}</p>
+                      <p className="text-2xl font-bold text-gray-900">{totalUnits}</p>
                     </div>
-                    <div className="bg-pink-50 border border-pink-100 rounded-2xl p-4">
+                    <div className="bg-pink-50 border border-pink-100 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <DollarSign className="w-4 h-4 text-pink-600" />
                         <span className="text-xs font-bold text-pink-600 uppercase tracking-widest">Receita</span>
                       </div>
-                      <p className="text-xl font-black text-gray-900">{fmt(totalRevenue)}</p>
+                      <p className="text-xl font-bold text-gray-900">{fmt(totalRevenue)}</p>
                     </div>
-                    <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4">
+                    <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Users className="w-4 h-4 text-purple-600" />
                         <span className="text-xs font-bold text-purple-600 uppercase tracking-widest">Clientes</span>
                       </div>
-                      <p className="text-2xl font-black text-gray-900">{uniqueClients}</p>
+                      <p className="text-2xl font-bold text-gray-900">{uniqueClients}</p>
                     </div>
                   </div>
 
@@ -439,7 +439,7 @@ export default function AdminProducts() {
                                     </span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 font-black text-gray-900">{order.itemQty} un</td>
+                                <td className="px-4 py-3 font-bold text-gray-900">{order.itemQty} un</td>
                                 <td className="px-4 py-3 font-bold text-gray-900">{fmt(order.itemTotal)}</td>
                                 <td className="px-4 py-3">
                                   <span className={cn(
@@ -455,12 +455,12 @@ export default function AdminProducts() {
                         </tbody>
                         {/* Totals footer */}
                         <tfoot>
-                          <tr className="bg-gray-50 border-t-2 border-gray-200">
-                            <td colSpan={3} className="px-4 py-3 text-xs font-black text-gray-400 uppercase">Total (filtrado)</td>
-                            <td className="px-4 py-3 font-black text-gray-900">
+                          <tr className="bg-gray-50 border-t border-gray-100">
+                            <td colSpan={3} className="px-4 py-3 text-xs font-bold text-gray-400 uppercase">Total (filtrado)</td>
+                            <td className="px-4 py-3 font-bold text-gray-900">
                               {filteredReportOrders.reduce((s, o) => s + o.itemQty, 0)} un
                             </td>
-                            <td className="px-4 py-3 font-black text-pink-600">
+                            <td className="px-4 py-3 font-bold text-pink-600">
                               {fmt(filteredReportOrders.reduce((s, o) => s + o.itemTotal, 0))}
                             </td>
                             <td />
@@ -481,7 +481,7 @@ export default function AdminProducts() {
       ============================================================ */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-xl">
             <div className="p-6 border-b border-gray-50 flex items-center justify-between sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-gray-900">
                 {editingProduct ? 'Editar Produto' : 'Novo Produto'}

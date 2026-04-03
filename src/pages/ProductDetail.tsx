@@ -72,6 +72,7 @@ export default function ProductDetail() {
       productName: product.name,
       quantity,
       unitPrice: product.unitPrice,
+      imageUrl: product.imageUrl,
     });
     
     // Optional: visual feedback
@@ -91,7 +92,7 @@ export default function ProductDetail() {
         <ArrowLeft className="w-5 h-5" />
       </button>
 
-      <div className="bg-white rounded-[32px] overflow-hidden shadow-xl border border-gray-100">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Image */}
           <div className="relative aspect-square md:aspect-auto md:h-full bg-gray-50">
@@ -117,7 +118,7 @@ export default function ProductDetail() {
             </div>
             {outOfStock && (
               <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-10">
-                <div className="bg-red-500 text-white font-black px-6 py-2 rounded-full transform -rotate-12 shadow-lg">
+                <div className="bg-red-500 text-white font-bold px-6 py-2 rounded-full transform -rotate-12 shadow-lg">
                   ESGOTADO
                 </div>
               </div>
@@ -129,8 +130,8 @@ export default function ProductDetail() {
             <div className="space-y-6">
               <div>
                 <p className="text-brand-pink font-bold text-sm tracking-wider uppercase mb-1">{product.category}</p>
-                <h1 className="text-3xl font-black text-gray-900">{product.name}</h1>
-                <p className="text-4xl font-black text-gray-900 mt-4">
+                <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+                <p className="text-4xl font-bold text-gray-900 mt-4">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
                 </p>
               </div>
@@ -170,7 +171,7 @@ export default function ProductDetail() {
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="w-6 text-center font-black text-lg">{quantity}</span>
+                  <span className="w-6 text-center font-bold text-lg">{quantity}</span>
                   <button 
                     disabled={!canIncrease || outOfStock}
                     onClick={() => setQuantity(q => q + 1)}
@@ -190,7 +191,7 @@ export default function ProductDetail() {
               <button
                 disabled={outOfStock || quantity > maxCanAdd}
                 onClick={handleAddToCart}
-                className="w-full py-5 rounded-2xl font-black text-white transition-all shadow-xl shadow-pink-500/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-3"
+                className="w-full py-5 rounded-xl font-bold text-white transition-all shadow-xl shadow-pink-500/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-3"
                 style={{ background: 'linear-gradient(135deg, #F72585 0%, #b5179e 100%)' }}
               >
                 {outOfStock ? 'ESGOTADO' : <><ShoppingCart className="w-5 h-5" /> ADICIONAR AO CARRINHO</>}

@@ -66,7 +66,7 @@ export default function OrderDetails() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xl overflow-hidden">
         {/* Status Banner */}
         <div className={cn("p-6 flex items-center justify-between border-b", config.bg, config.border)}>
           <div className="flex items-center gap-4">
@@ -75,7 +75,7 @@ export default function OrderDetails() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest opacity-60">Status Atual</p>
-              <h2 className={cn("text-xl font-black", config.color)}>{config.label}</h2>
+              <h2 className={cn("text-xl font-bold", config.color)}>{config.label}</h2>
             </div>
           </div>
           {order.paymentProofUrl && (
@@ -114,7 +114,7 @@ export default function OrderDetails() {
             </div>
             <div className="pt-6 border-t border-gray-50 flex justify-between items-end">
               <span className="text-gray-500 font-medium">Valor Total</span>
-              <span className="text-2xl font-black text-blue-600">
+              <span className="text-2xl font-bold text-blue-600">
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
               </span>
             </div>

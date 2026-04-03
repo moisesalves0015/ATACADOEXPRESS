@@ -50,10 +50,10 @@ export default function AdminDashboard() {
   const todayRevenue = todayOrders.reduce((sum, o) => sum + o.totalValue, 0);
 
   const stats = [
-    { label: 'Vendas Totais', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue), icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Vendas Hoje', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(todayRevenue), icon: BarChart3, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Clientes Ativos', value: users.length, icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Produtos Ativos', value: products.filter(p => p.status === 'active').length, icon: Package, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Vendas Totais', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue), icon: TrendingUp, color: 'text-pink-600', bg: 'bg-pink-50' },
+    { label: 'Vendas Hoje', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(todayRevenue), icon: BarChart3, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Clientes Ativos', value: users.length, icon: Users, color: 'text-gray-600', bg: 'bg-gray-100' },
+    { label: 'Produtos Ativos', value: products.filter(p => p.status === 'active').length, icon: Package, color: 'text-gray-600', bg: 'bg-gray-100' },
   ];
 
   const pendingOrders = orders.filter(o => o.status === 'aguardando_pagamento');
@@ -81,29 +81,31 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-3 rounded-2xl", stat.bg)}>
-                <stat.icon className={cn("w-6 h-6", stat.color)} />
+          <div key={idx} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <div className={cn("p-2 rounded-lg", stat.bg)}>
+                <stat.icon className={cn("w-4 h-4", stat.color)} />
               </div>
-              <span className="flex items-center text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+              <span className="flex items-center text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
                 <ArrowUpRight className="w-3 h-3 mr-1" /> +12%
               </span>
             </div>
-            <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-            <h3 className="text-2xl font-black text-gray-900 mt-1">{stat.value}</h3>
+            <div>
+              <p className="text-xs font-medium text-gray-500">{stat.label}</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-0.5">{stat.value}</h3>
+            </div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Orders */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-blue-600" /> Pedidos Recentes
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-50 flex items-center justify-between">
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-blue-600" /> Pedidos Recentes
             </h2>
             <Link to="/admin/orders" className="text-sm font-bold text-blue-600 hover:underline">Ver todos</Link>
           </div>
@@ -120,7 +122,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black text-gray-900">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}</p>
+                  <p className="text-sm font-bold text-gray-900">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}</p>
                   <span className={cn(
                     "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full",
                     order.status === 'aguardando_pagamento' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'
@@ -137,7 +139,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Goal Tracking */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-orange-600" /> Metas de Produtos
@@ -178,10 +180,10 @@ export default function AdminDashboard() {
 
       {/* Alerts / Pending Actions */}
       {pendingOrders.length > 0 && (
-        <div className="bg-orange-50 border border-orange-100 rounded-3xl p-6 flex items-center justify-between">
+        <div className="bg-orange-50 border border-orange-100 rounded-xl p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="bg-orange-500 p-3 rounded-2xl shadow-lg shadow-orange-100">
-              <AlertCircle className="w-6 h-6 text-white" />
+            <div className="bg-orange-500 p-2 rounded-lg shadow-sm shadow-orange-100/50">
+              <AlertCircle className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-orange-900">Atenção!</h3>

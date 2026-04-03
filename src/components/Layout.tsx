@@ -53,7 +53,7 @@ export default function Layout({ user }: LayoutProps) {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {user ? (
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-xl shadow-gray-200/50">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white shadow-xl shadow-gray-200/50">
                 <img 
                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
                   alt={user.name} 
@@ -74,14 +74,14 @@ export default function Layout({ user }: LayoutProps) {
 
           <div className="flex items-center gap-3">
             {!isAdmin && (
-              <Link to="/cart" className="p-3 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-white hover:scale-105 transition-transform">
+              <Link to="/cart" className="p-3 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white hover:scale-105 transition-transform">
                 <ShoppingCart className="w-5 h-5 text-gray-700" strokeWidth={1.5} />
               </Link>
             )}
             {user && (
               <button 
                 onClick={handleLogout}
-                className="p-3 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-white hover:text-red-500 hover:scale-105 transition-all"
+                className="p-3 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white hover:text-red-500 hover:scale-105 transition-all"
               >
                 <LogOut className="w-5 h-5" strokeWidth={1.5} />
               </button>

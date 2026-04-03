@@ -62,7 +62,7 @@ export default function MyOrders() {
       </div>
 
       {orders.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
           <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <ClipboardList className="w-8 h-8 text-gray-300" />
           </div>
@@ -83,7 +83,7 @@ export default function MyOrders() {
               <Link
                 key={order.id}
                 to={`/orders/${order.id}`}
-                className="block bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg transition-all group"
+                className="block bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg transition-all group"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-start gap-4">

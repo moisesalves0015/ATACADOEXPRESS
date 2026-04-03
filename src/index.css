@@ -7,6 +7,7 @@
   
   --color-brand-yellow: #FFD700;
   --color-brand-blue: #A0D2EB;
+  --color-brand-pink: #F72585;
   --color-brand-bg: #F8F9FB;
   
   --radius-xl: 1.5rem;
@@ -118,11 +119,11 @@
 }
 
 .search-bar-rounded {
-  @apply bg-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm border border-gray-50;
+  @apply bg-white rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm border border-gray-50;
 }
 
-.brand-logo-card {
-  @apply bg-white rounded-2xl w-20 h-20 flex items-center justify-center shadow-sm border border-gray-50 hover:scale-105 transition-transform;
+.category-badge-card {
+  @apply bg-white rounded-xl h-12 px-6 flex items-center justify-center shadow-sm border border-gray-50 hover:scale-105 transition-transform cursor-pointer;
 }
 
 .no-scrollbar::-webkit-scrollbar {

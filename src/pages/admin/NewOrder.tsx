@@ -150,7 +150,7 @@ export default function AdminNewOrder() {
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-10 h-10 text-green-500" />
         </div>
-        <h2 className="text-2xl font-black text-gray-900">Pedido Registrado!</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Pedido Registrado!</h2>
         <p className="text-gray-500">
           Pedido <span className="font-bold text-gray-900">#{success.slice(-6).toUpperCase()}</span> criado para{' '}
           <span className="font-bold text-gray-900">{selectedClient?.name}</span>.
@@ -191,7 +191,7 @@ export default function AdminNewOrder() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
             <ShoppingBag className="w-7 h-7 text-pink-500" />
             Novo Pedido
           </h1>
@@ -353,8 +353,8 @@ export default function AdminNewOrder() {
 
         {/* RIGHT — Order Summary */}
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-5 sticky top-24">
-            <h2 className="text-sm font-black text-gray-900 uppercase tracking-wider">Resumo do Pedido</h2>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5 sticky top-24">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Resumo do Pedido</h2>
 
             {cartItems.length === 0 ? (
               <div className="py-10 text-center">
@@ -372,7 +372,7 @@ export default function AdminNewOrder() {
                     <span className="font-bold text-gray-900 flex-shrink-0 ml-4">{fmt(item.quantity * item.unitPrice)}</span>
                   </div>
                 ))}
-                <div className="pt-4 border-t border-gray-100 flex justify-between text-lg font-black">
+                <div className="pt-4 border-t border-gray-100 flex justify-between text-lg font-bold">
                   <span className="text-gray-500">Total</span>
                   <span className="text-pink-600">{fmt(totalValue)}</span>
                 </div>
@@ -396,7 +396,7 @@ export default function AdminNewOrder() {
             <button
               type="submit"
               disabled={submitting || cartItems.length === 0 || !selectedClient}
-              className="w-full py-4 rounded-2xl font-black text-white text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+              className="w-full py-4 rounded-xl font-bold text-white text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
               style={{ background: 'linear-gradient(135deg, #F72585 0%, #b5179e 100%)', boxShadow: '0 8px 24px #F7258530' }}
             >
               {submitting ? (

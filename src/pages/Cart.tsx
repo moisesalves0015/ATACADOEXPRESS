@@ -7,7 +7,7 @@ export default function Cart() {
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+      <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
         <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
           <ShoppingBag className="w-10 h-10 text-gray-300" />
         </div>
@@ -33,51 +33,62 @@ export default function Cart() {
         </h1>
         
         {items.map((item) => (
-          <div key={item.productId} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-20 h-20 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 flex-shrink-0">
-              <Package className="w-8 h-8" />
+          <div key={item.productId} className="bg-white p-4 rounded-xl border border-gray-100 flex gap-4 shadow-sm hover:shadow-md transition-shadow relative">
+            <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300 flex-shrink-0 border border-gray-100 overflow-hidden">
+              {item.imageUrl ? (
+                <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+              ) : (
+                <Package className="w-8 h-8" />
+              )}
             </div>
             
-            <div className="flex-grow">
-              <h3 className="font-bold text-gray-900">{item.productName}</h3>
-              <p className="text-blue-600 font-bold text-sm">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}
-              </p>
-            </div>
+            <div className="flex flex-col justify-between flex-grow min-w-0">
+              {/* Header: Title + Delete Button */}
+              <div className="flex justify-between items-start gap-4">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-gray-900 truncate pr-2">{item.productName}</h3>
+                  <p className="text-pink-600 font-semibold text-xs mt-1">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => removeFromCart(item.productId)}
+                  className="text-gray-300 hover:text-red-500 p-2 -mr-2 -mt-2 transition-colors flex-shrink-0"
+                  aria-label="Remover"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
 
-            <div className="flex items-center gap-3 bg-gray-50 p-1 rounded-lg">
-              <button
-                onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="w-8 text-center font-bold text-gray-700">{item.quantity}</span>
-              <button
-                onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                className="p-1 hover:bg-white rounded-md transition-colors text-gray-500"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+              {/* Footer: Controls + Total */}
+              <div className="flex justify-between items-end mt-2">
+                <div className="flex items-center bg-gray-50/80 border border-gray-100 rounded-lg p-0.5">
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                    className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-500"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-8 text-center font-bold text-sm text-gray-900">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-500"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
 
-            <div className="text-right min-w-[100px]">
-              <p className="font-black text-gray-900">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice * item.quantity)}
-              </p>
-              <button
-                onClick={() => removeFromCart(item.productId)}
-                className="text-red-400 hover:text-red-600 p-1 transition-colors mt-1"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                <p className="font-bold text-gray-900">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice * item.quantity)}
+                </p>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       <div className="lg:col-span-1">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl shadow-gray-100 sticky top-24">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl shadow-gray-100 sticky top-24">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Resumo do Pedido</h2>
           
           <div className="space-y-4 mb-8">
@@ -92,20 +103,20 @@ export default function Cart() {
               </span>
             </div>
             <div className="flex justify-between text-gray-500">
-              <span>Frete</span>
-              <span className="text-green-600 font-bold">Grátis</span>
+              <span>Separação</span>
+              <span className="font-bold text-gray-900">R$ 15,00</span>
             </div>
             <div className="border-t border-gray-100 pt-4 flex justify-between items-end">
               <span className="text-lg font-bold text-gray-900">Total</span>
-              <span className="text-2xl font-black text-blue-600">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)}
+              <span className="text-2xl font-bold text-blue-600">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue + 15)}
               </span>
             </div>
           </div>
 
           <Link
             to="/checkout"
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
           >
             Finalizar Compra <ArrowRight className="w-5 h-5" />
           </Link>

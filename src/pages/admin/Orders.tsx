@@ -78,7 +78,7 @@ export default function AdminOrders() {
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -104,7 +104,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -128,7 +128,7 @@ export default function AdminOrders() {
                       <p className="text-[10px] text-gray-400">{format(new Date(order.orderDate), 'dd/MM/yyyy HH:mm')}</p>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-700">{order.clientName}</td>
-                    <td className="px-6 py-4 text-sm font-black text-gray-900">
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
                     </td>
                     <td className="px-6 py-4">
@@ -183,7 +183,7 @@ export default function AdminOrders() {
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-xl">
             <div className="p-6 border-b border-gray-50 flex items-center justify-between sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-gray-900">Detalhes do Pedido #{selectedOrder.id.slice(-6).toUpperCase()}</h2>
               <button onClick={() => setSelectedOrder(null)} className="p-2 text-gray-400 hover:text-gray-600">
@@ -219,7 +219,7 @@ export default function AdminOrders() {
                   <User className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <p className={cn('text-xs font-black uppercase tracking-widest', selectedOrder.orderOrigin === 'admin' ? 'text-purple-700' : 'text-blue-700')}>
+                  <p className={cn('text-xs font-bold uppercase tracking-widest', selectedOrder.orderOrigin === 'admin' ? 'text-purple-700' : 'text-blue-700')}>
                     {selectedOrder.orderOrigin === 'admin' ? 'Pedido registrado pela vendedora' : 'Pedido feito pelo cliente'}
                   </p>
                   {selectedOrder.orderOrigin === 'admin' && selectedOrder.registeredByAdminName && (
@@ -239,7 +239,7 @@ export default function AdminOrders() {
                   ))}
                   <div className="pt-3 border-t border-gray-50 flex justify-between items-end">
                     <span className="text-gray-500 font-bold">Total</span>
-                    <span className="text-xl font-black text-blue-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalValue)}</span>
+                    <span className="text-xl font-bold text-blue-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalValue)}</span>
                   </div>
                 </div>
               </div>

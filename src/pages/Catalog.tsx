@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, Package, Info, AlertCircle, CheckCircle2, Search, Filter } from 'lucide-react';
+import { ShoppingCart, Package, Search, Filter, Grid, Shirt, Crown, Gem, ShoppingBag, Palette } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -36,7 +36,21 @@ export default function Catalog() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ['all', ...new Set(products.map(p => p.category))];
+  const dbCategories = products.map(p => p.category);
+  const defaultCategories = ['all', 'Vestidos', 'Blusas', 'Conjuntos', 'Acessórios', 'Bolsas'];
+  const categories = [...new Set([...defaultCategories, ...dbCategories])];
+
+  const getCategoryConfig = (categoryName: string) => {
+    switch (categoryName.toLowerCase()) {
+      case 'all': return { label: 'Ver Tudo', Icon: Grid };
+      case 'vestidos': return { label: 'Vestidos', Icon: Crown };
+      case 'blusas': return { label: 'Blusas', Icon: Shirt };
+      case 'conjuntos': return { label: 'Conjuntos', Icon: Package };
+      case 'acessórios': return { label: 'Acessórios', Icon: Gem };
+      case 'bolsas': return { label: 'Bolsas', Icon: ShoppingBag };
+      default: return { label: categoryName, Icon: Palette };
+    }
+  };
 
 
   return (
@@ -46,7 +60,7 @@ export default function Catalog() {
         <Search className="w-5 h-5 text-gray-400 group-focus-within:text-brand-blue transition-colors" />
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Buscar produtos..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full bg-transparent border-none focus:ring-0 text-sm font-medium"
@@ -56,31 +70,45 @@ export default function Catalog() {
 
       {/* Popular Brand */}
       <section>
-        <h2 className="text-lg font-bold mb-4">Popular Brand</h2>
+        <h2 className="text-lg font-bold mb-4">Categorias</h2>
         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-          {['Adidas', 'Nike', 'Zara', 'Gucci'].map((brand) => (
-            <div key={brand} className="brand-logo-card flex-shrink-0">
-              {brand === 'Adidas' && <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg" className="w-10 h-10" alt="Adidas" />}
-              {brand === 'Nike' && <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg" className="w-10 h-10" alt="Nike" />}
-              {brand === 'Zara' && <span className="font-serif font-bold text-xl">ZARA</span>}
-              {brand === 'Gucci' && <span className="font-serif font-bold text-xl">GUCCI</span>}
-            </div>
-          ))}
+          {categories.map((category) => {
+            const { label, Icon } = getCategoryConfig(category);
+            const isActive = categoryFilter === category;
+            
+            return (
+              <button
+                key={category}
+                onClick={() => setCategoryFilter(category)}
+                className={cn(
+                  "category-badge-card flex-shrink-0 flex items-center gap-2",
+                  isActive 
+                    ? "border-pink-500 text-pink-600 bg-pink-50/20 shadow-md" 
+                    : "text-gray-600 hover:border-pink-200 hover:text-pink-600"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="font-bold text-xs uppercase tracking-wider">
+                  {label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
       {/* Suggest for you */}
       <section>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold">Suggest for you</h2>
-          <button className="text-xs text-gray-400 font-medium">See all</button>
+          <h2 className="text-lg font-bold">Destaques para você</h2>
+          <button className="text-xs text-brand-blue font-bold hover:underline">Ver tudo</button>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-2 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="product-card-rounded">
-                <div className="relative aspect-square mb-4 overflow-hidden rounded-3xl bg-gray-100 animate-pulse" />
+                <div className="relative aspect-square mb-4 overflow-hidden rounded-xl bg-gray-100 animate-pulse" />
                 <div className="space-y-2">
                   <div className="h-3 bg-gray-100 rounded-full animate-pulse w-3/4" />
                   <div className="h-4 bg-gray-100 rounded-full animate-pulse w-1/2" />
@@ -99,7 +127,7 @@ export default function Catalog() {
                 className="product-card-rounded group cursor-pointer"
                 onClick={() => navigate(`/product/${product.id}`)}
               >
-                <div className="relative aspect-square mb-4 overflow-hidden rounded-3xl bg-gray-50">
+                <div className="relative aspect-square mb-4 overflow-hidden rounded-xl bg-gray-50">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
@@ -126,7 +154,7 @@ export default function Catalog() {
 
                 <div className="space-y-1">
                   <h3 className="text-xs font-bold text-gray-900 truncate">{product.name}</h3>
-                  <p className="text-sm font-black text-gray-900">
+                  <p className="text-sm font-bold text-gray-900">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
                   </p>
                 </div>
@@ -138,7 +166,7 @@ export default function Catalog() {
 
       {filteredProducts.length === 0 && !loading && (
         <div className="text-center py-20">
-          <p className="text-sm text-gray-400">No items found in this collection</p>
+          <p className="text-sm text-gray-400">Nenhum produto encontrado nesta busca.</p>
         </div>
       )}
     </div>

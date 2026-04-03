@@ -88,10 +88,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Products collection — public read, admin-only write
+    // Products collection — public read, admin-only write for metadata, client update for stock
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isAuthenticated() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['availableQuantity', 'currentGoalProgress', 'goalReached'])
+      );
     }
 
     // Orders collection
