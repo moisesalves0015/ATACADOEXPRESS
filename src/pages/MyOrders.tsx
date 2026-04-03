@@ -26,12 +26,13 @@ export default function MyOrders() {
 
     const q = query(
       collection(db, 'orders'),
-      where('clientId', '==', auth.currentUser.uid),
-      orderBy('orderDate', 'desc')
+      where('clientId', '==', auth.currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const ordersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+      // Sort client-side to avoid missing index errors
+      ordersData.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
       setOrders(ordersData);
       setLoading(false);
     }, (error) => {

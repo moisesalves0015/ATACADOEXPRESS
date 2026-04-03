@@ -9,6 +9,7 @@ import { UserProfile } from './types';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Catalog from './pages/Catalog';
+import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
@@ -19,6 +20,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
 import AdminOrders from './pages/admin/Orders';
 import AdminReports from './pages/admin/Reports';
+import AdminNewOrder from './pages/admin/NewOrder';
 
 // Components
 import Layout from './components/Layout';
@@ -31,73 +33,64 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Check for demo user
-    const demoUser = localStorage.getItem('demo_user');
-    if (demoUser) {
-      setUser(JSON.parse(demoUser));
-      setLoading(false);
-      return;
-    }
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as UserProfile);
-        } else {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            setUser(userDoc.data() as UserProfile);
+          } else {
+            // Auth account exists but no Firestore profile — treat as logged out
+            setUser(null);
+          }
+        } catch {
           setUser(null);
         }
       } else {
         setUser(null);
       }
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-      <ErrorBoundary>
-        <CartProvider>
-          <BrowserRouter>
-            <GlobalNav user={user} />
-            <Routes>
-              <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
-              <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
+    <ErrorBoundary>
+      <CartProvider>
+        <BrowserRouter>
+          <GlobalNav user={authLoading ? null : user} />
+          <Routes>
+            <Route path="/login" element={!authLoading && user ? <Navigate to="/" /> : <Login />} />
+            <Route path="/register" element={!authLoading && user ? <Navigate to="/" /> : <Register />} />
 
-              <Route element={<Layout user={user} />}>
-                <Route path="/" element={<Catalog />} />
-                
-                {/* Client Routes */}
-                <Route element={<AuthGuard user={user} requiredRole="client" />}>
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/my-orders" element={<MyOrders />} />
-                  <Route path="/orders/:id" element={<OrderDetails />} />
-                </Route>
+            <Route element={<Layout user={authLoading ? null : user} />}>
+              <Route path="/" element={<Catalog />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
 
-                {/* Admin Routes */}
-                <Route element={<AuthGuard user={user} requiredRole="admin" />}>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/products" element={<AdminProducts />} />
-                  <Route path="/admin/orders" element={<AdminOrders />} />
-                  <Route path="/admin/reports" element={<AdminReports />} />
-                </Route>
+              {/* Client Routes */}
+              <Route element={<AuthGuard user={authLoading ? null : user} requiredRole="client" />}>
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/my-orders" element={<MyOrders />} />
+                <Route path="/orders/:id" element={<OrderDetails />} />
               </Route>
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
-      </ErrorBoundary>
+
+              {/* Admin Routes */}
+              <Route element={<AuthGuard user={authLoading ? null : user} requiredRole="admin" />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/new-order" element={<AdminNewOrder />} />
+                <Route path="/admin/reports" element={<AdminReports />} />
+              </Route>
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </ErrorBoundary>
   );
 }

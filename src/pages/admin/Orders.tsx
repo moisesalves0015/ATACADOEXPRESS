@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Order, OrderStatus } from '../../types';
-import { ClipboardList, Search, Filter, Eye, CheckCircle2, Truck, Package, XCircle, Clock, FileText, ExternalLink } from 'lucide-react';
+import { ClipboardList, Search, Filter, Eye, CheckCircle2, Truck, Package, XCircle, Clock, FileText, ExternalLink, Plus, User, ShieldCheck } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 const statusConfig = {
   aguardando_pagamento: { label: 'Aguardando Pagamento', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
@@ -17,6 +18,7 @@ const statusConfig = {
 };
 
 export default function AdminOrders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +69,13 @@ export default function AdminOrders() {
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <ClipboardList className="w-7 h-7 text-blue-600" /> Gestão de Pedidos
         </h1>
+        <button
+          onClick={() => navigate('/admin/new-order')}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm transition-all shadow-md"
+          style={{ background: 'linear-gradient(135deg, #F72585 0%, #b5179e 100%)' }}
+        >
+          <Plus className="w-4 h-4" /> Novo Pedido
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
@@ -104,6 +113,7 @@ export default function AdminOrders() {
                 <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cliente</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Total</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Origem</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Comprovante</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Ações</th>
               </tr>
@@ -128,6 +138,17 @@ export default function AdminOrders() {
                       )}>
                         {config.label}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {order.orderOrigin === 'admin' ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full w-fit">
+                          <ShieldCheck className="w-3 h-3" /> Admin
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full w-fit">
+                          <User className="w-3 h-3" /> Cliente
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       {order.paymentProofUrl ? (
@@ -175,12 +196,35 @@ export default function AdminOrders() {
                 <div>
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Cliente</h3>
                   <p className="font-bold text-gray-900">{selectedOrder.clientName}</p>
-                  <p className="text-sm text-gray-500">ID: {selectedOrder.clientId}</p>
+                  {selectedOrder.clientEmail && <p className="text-sm text-gray-500">{selectedOrder.clientEmail}</p>}
+                  {selectedOrder.clientPhone && <p className="text-sm text-gray-500">{selectedOrder.clientPhone}</p>}
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Data do Pedido</h3>
                   <p className="font-bold text-gray-900">{format(new Date(selectedOrder.orderDate), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                   <p className="text-sm text-gray-500">{format(new Date(selectedOrder.orderDate), "HH:mm")}</p>
+                </div>
+              </div>
+
+              {/* Origin info */}
+              <div className={cn(
+                'rounded-2xl px-5 py-4 flex items-start gap-3 border',
+                selectedOrder.orderOrigin === 'admin'
+                  ? 'bg-purple-50 border-purple-100'
+                  : 'bg-blue-50 border-blue-100'
+              )}>
+                {selectedOrder.orderOrigin === 'admin' ? (
+                  <ShieldCheck className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <User className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <p className={cn('text-xs font-black uppercase tracking-widest', selectedOrder.orderOrigin === 'admin' ? 'text-purple-700' : 'text-blue-700')}>
+                    {selectedOrder.orderOrigin === 'admin' ? 'Pedido registrado pela vendedora' : 'Pedido feito pelo cliente'}
+                  </p>
+                  {selectedOrder.orderOrigin === 'admin' && selectedOrder.registeredByAdminName && (
+                    <p className="text-sm text-purple-600 mt-0.5">Responsável: <strong>{selectedOrder.registeredByAdminName}</strong></p>
+                  )}
                 </div>
               </div>
 

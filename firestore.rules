@@ -2,39 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // ===============================================================
-    // Assumed Data Model
+    // Data Model
     // ===============================================================
     //
     // Collection: users
     // Fields: uid, name, email, phone, role, address, cpf, totalPurchases, createdAt
+    // NOTE: role is set to 'client' on registration.
+    //       To grant admin access, manually set role: "admin" in Firebase Console.
     //
     // Collection: products
-    // Fields: name, description, category, stockType, availableQuantity, unitPrice, requiredGoal, currentGoalProgress, estimatedArrivalDate, imageUrl, status, goalReached
+    // Fields: name, description, category, stockType, availableQuantity, unitPrice,
+    //         requiredGoal, currentGoalProgress, estimatedArrivalDate, imageUrl, status, goalReached
     //
     // Collection: orders
-    // Fields: clientId, clientName, orderDate, totalValue, status, paymentProofUrl, observations, items
+    // Fields: clientId, clientName, orderDate, totalValue, status,
+    //         paymentProofUrl, observations, items
     //
     // ===============================================================
 
     // ===============================================================
     // Helper Functions
     // ===============================================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    // Admin is determined ONLY by the role field in the Firestore user document.
+    // Never rely on email. Set role: "admin" manually in Firebase Console.
     function isAdmin() {
-      return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "moises.app.thoth@gmail.com" && request.auth.token.email_verified == true));
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isOrderOwner(orderData) {
-      return isAuthenticated() && request.auth.uid == orderData.clientId;
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
     }
 
     function isValidUser(data) {
@@ -63,26 +65,53 @@ service cloud.firestore {
     // Rules
     // ===============================================================
 
+    // Users collection
     match /users/{uid} {
+      // Users can read their own profile; admins can read all
       allow read: if isOwner(uid) || isAdmin();
-      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(uid) || isAdmin());
-      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
-                    (isAdmin() || (isOwner(uid) && request.resource.data.role == resource.data.role));
+
+      // On register: authenticated user can create their own doc.
+      // The role field cannot be 'admin' — only admins can create admin accounts.
+      allow create: if isAuthenticated() &&
+                       isOwner(uid) &&
+                       isValidUser(request.resource.data) &&
+                       request.resource.data.role == 'client';
+
+      // User can update their own profile but CANNOT change their own role.
+      // Admin can update any profile including role changes.
+      allow update: if isValidUser(request.resource.data) &&
+                    (
+                      isAdmin() ||
+                      (isOwner(uid) && request.resource.data.role == resource.data.role)
+                    );
+
       allow delete: if isAdmin();
     }
 
+    // Products collection — public read, admin-only write
     match /products/{productId} {
-      allow read: if true; // Public vitrine
+      allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Orders collection
     match /orders/{orderId} {
+      // Admin sees all; client sees only their own
       allow read: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidOrder(request.resource.data) && request.resource.data.clientId == request.auth.uid;
-      allow update: if isAdmin() || 
-                    (isAuthenticated() && resource.data.clientId == request.auth.uid && 
+
+      // Client can create orders for themselves only; admin can create for any client
+      allow create: if isAuthenticated() &&
+                       isValidOrder(request.resource.data) &&
+                       (isAdmin() || request.resource.data.clientId == request.auth.uid);
+
+      // Client can only update paymentProofUrl/observations while status is aguardando_pagamento
+      // Admin can update any field
+      allow update: if isAdmin() ||
+                    (isAuthenticated() &&
+                     resource.data.clientId == request.auth.uid &&
                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentProofUrl', 'observations']) &&
                      resource.data.status == 'aguardando_pagamento');
+
       allow delete: if isAdmin();
     }
   }

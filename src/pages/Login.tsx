@@ -1,12 +1,32 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-import { Mail, Lock, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Mail, Lock, AlertCircle, ShoppingBag, Eye, EyeOff } from 'lucide-react';
+
+function getFirebaseErrorMessage(code: string): string {
+  switch (code) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'E-mail ou senha incorretos. Verifique e tente novamente.';
+    case 'auth/invalid-email':
+      return 'O e-mail informado não é válido.';
+    case 'auth/user-disabled':
+      return 'Esta conta foi desativada. Entre em contato com o suporte.';
+    case 'auth/too-many-requests':
+      return 'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.';
+    case 'auth/network-request-failed':
+      return 'Erro de conexão. Verifique sua internet e tente novamente.';
+    default:
+      return 'Ocorreu um erro inesperado. Tente novamente.';
+  }
+}
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -16,32 +36,19 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    if (email.trim() === 'adm' && password.trim() === '123') {
-      const demoUser = {
-        uid: 'demo-admin',
-        name: 'Administrador Demo',
-        email: 'adm@demo.com',
-        role: 'admin' as const,
-        createdAt: new Date().toISOString()
-      };
-      localStorage.setItem('demo_user', JSON.stringify(demoUser));
-      window.location.href = '/admin';
-      return;
-    }
-
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       navigate('/');
-    } catch (err: any) {
-      setError('E-mail ou senha incorretos. Tente novamente.');
-      console.error(err);
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(getFirebaseErrorMessage(authError.code));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#F8F9FB' }}>
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ background: '#F8F9FB' }}>
       {/* Left decorative panel — hidden on mobile */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16 relative overflow-hidden"
@@ -81,7 +88,7 @@ export default function Login() {
             <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#F72585' }}>Express</span>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-8 text-center lg:text-left">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">Bem-vindo de volta</h1>
             <p className="text-gray-400 font-medium mt-1 text-sm">Entre na sua conta para continuar</p>
           </div>
@@ -99,8 +106,10 @@ export default function Login() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" strokeWidth={1.5} />
                 <input
-                  type="text"
+                  id="login-email"
+                  type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
@@ -115,19 +124,30 @@ export default function Login() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" strokeWidth={1.5} />
                 <input
-                  type="password"
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
+                  className="block w-full pl-10 pr-10 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
                   style={{ fontSize: '16px' }}
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" strokeWidth={1.5} /> : <Eye className="h-4 w-4" strokeWidth={1.5} />}
+                </button>
               </div>
             </div>
 
             <div className="pt-1">
               <button
+                id="login-submit"
                 type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 py-3.5 px-6 text-white text-sm font-black rounded-xl transition-all disabled:opacity-50 shadow-lg"

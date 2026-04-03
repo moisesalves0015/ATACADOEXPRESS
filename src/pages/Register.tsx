@@ -1,20 +1,35 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { Mail, Lock, User, Phone, MapPin, AlertCircle, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { UserProfile } from '../types';
+
+function getFirebaseErrorMessage(code: string): string {
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'Este e-mail já está cadastrado. Tente fazer login.';
+    case 'auth/invalid-email':
+      return 'O e-mail informado não é válido.';
+    case 'auth/weak-password':
+      return 'A senha é muito fraca. Use pelo menos 6 caracteres.';
+    case 'auth/network-request-failed':
+      return 'Erro de conexão. Verifique sua internet e tente novamente.';
+    default:
+      return 'Erro ao criar conta. Verifique os dados e tente novamente.';
+  }
+}
 
 export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    phone: '',
-    address: '',
-    cpf: '',
+    confirmPassword: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -25,40 +40,45 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (formData.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem. Verifique e tente novamente.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email.trim(), formData.password);
       const { user } = userCredential;
 
-      const role = formData.email === 'moises.app.thoth@gmail.com' ? 'admin' : 'client';
-
+      // Role is always 'client' — admin must be set manually in Firebase Console
       const userProfile: UserProfile = {
         uid: user.uid,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        role: role as any,
-        address: formData.address,
-        cpf: formData.cpf,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        role: 'client',
         totalPurchases: 0,
         createdAt: new Date().toISOString(),
       };
 
       await setDoc(doc(db, 'users', user.uid), userProfile);
       navigate('/');
-    } catch (err: any) {
-      setError('Erro ao criar conta. Verifique os dados e tente novamente.');
-      console.error(err);
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(getFirebaseErrorMessage(authError.code));
     } finally {
       setLoading(false);
     }
   };
 
-  const inputClass = "block w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 text-sm font-medium transition-all shadow-sm";
-
   return (
-    <div className="min-h-screen flex" style={{ background: '#F8F9FB' }}>
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ background: '#F8F9FB' }}>
       {/* Left decorative panel */}
       <div
         className="hidden lg:flex lg:w-2/5 flex-col justify-between p-16 relative overflow-hidden"
@@ -95,7 +115,7 @@ export default function Register() {
             <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#F72585' }}>Express</span>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 text-center lg:text-left">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">Criar conta</h1>
             <p className="text-gray-400 font-medium mt-1 text-sm">Preencha os dados abaixo para se cadastrar</p>
           </div>
@@ -113,9 +133,18 @@ export default function Register() {
               <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">Nome completo</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" strokeWidth={1.5} />
-                <input name="name" type="text" required value={formData.name} onChange={handleChange}
+                <input
+                  id="register-name"
+                  name="name"
+                  type="text"
+                  required
+                  autoComplete="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
-                  style={{ fontSize: '16px' }} placeholder="Seu nome completo" />
+                  style={{ fontSize: '16px' }}
+                  placeholder="Seu nome completo"
+                />
               </div>
             </div>
 
@@ -124,9 +153,18 @@ export default function Register() {
               <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">E-mail</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" strokeWidth={1.5} />
-                <input name="email" type="email" required value={formData.email} onChange={handleChange}
+                <input
+                  id="register-email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
-                  style={{ fontSize: '16px' }} placeholder="seu@email.com" />
+                  style={{ fontSize: '16px' }}
+                  placeholder="seu@email.com"
+                />
               </div>
             </div>
 
@@ -135,44 +173,60 @@ export default function Register() {
               <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">Senha</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" strokeWidth={1.5} />
-                <input name="password" type="password" required value={formData.password} onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
-                  style={{ fontSize: '16px' }} placeholder="Mínimo 6 caracteres" />
+                <input
+                  id="register-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="new-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="block w-full pl-12 pr-10 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
+                  style={{ fontSize: '16px' }}
+                  placeholder="Mínimo 6 caracteres"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" strokeWidth={1.5} /> : <Eye className="h-4 w-4" strokeWidth={1.5} />}
+                </button>
               </div>
             </div>
 
-            {/* Telefone + CPF */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">Telefone</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" strokeWidth={1.5} />
-                  <input name="phone" type="text" required value={formData.phone} onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm" style={{ fontSize: '16px' }}
-                    placeholder="(00) 00000-0000" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">CPF</label>
-                <input name="cpf" type="text" required value={formData.cpf} onChange={handleChange}
-                  className="block w-full px-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm" style={{ fontSize: '16px' }}
-                  placeholder="000.000.000-00" />
-              </div>
-            </div>
-
-            {/* Endereço */}
+            {/* Confirmar Senha */}
             <div className="space-y-1">
-              <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">Endereço</label>
+              <label className="block text-xs font-bold text-gray-400 ml-1 uppercase tracking-widest">Confirmar Senha</label>
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" strokeWidth={1.5} />
-                <input name="address" type="text" required value={formData.address} onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
-                  style={{ fontSize: '16px' }} placeholder="Rua, Número, Bairro" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" strokeWidth={1.5} />
+                <input
+                  id="register-confirm-password"
+                  name="confirmPassword"
+                  type={showConfirm ? 'text' : 'password'}
+                  required
+                  autoComplete="new-password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="block w-full pl-12 pr-10 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 font-medium transition-all shadow-sm"
+                  style={{ fontSize: '16px' }}
+                  placeholder="Repita a senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirm ? <EyeOff className="h-4 w-4" strokeWidth={1.5} /> : <Eye className="h-4 w-4" strokeWidth={1.5} />}
+                </button>
               </div>
             </div>
 
             <div className="pt-1">
               <button
+                id="register-submit"
                 type="submit"
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-3 py-3.5 px-6 text-white text-sm font-black rounded-xl transition-all disabled:opacity-50 shadow-lg"

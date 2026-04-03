@@ -38,13 +38,6 @@ export default function Catalog() {
 
   const categories = ['all', ...new Set(products.map(p => p.category))];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-10 pb-24">
@@ -84,8 +77,16 @@ export default function Catalog() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <div className="w-8 h-8 border-2 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+          <div className="grid grid-cols-2 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="product-card-rounded">
+                <div className="relative aspect-square mb-4 overflow-hidden rounded-3xl bg-gray-100 animate-pulse" />
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-100 rounded-full animate-pulse w-3/4" />
+                  <div className="h-4 bg-gray-100 rounded-full animate-pulse w-1/2" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6">

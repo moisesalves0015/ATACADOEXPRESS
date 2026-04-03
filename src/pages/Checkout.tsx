@@ -22,16 +22,19 @@ export default function Checkout() {
       const orderData = {
         clientId: auth.currentUser.uid,
         clientName: userData?.name || 'Cliente',
+        clientEmail: userData?.email || auth.currentUser.email || '',
+        clientPhone: userData?.phone || '',
         orderDate: new Date().toISOString(),
         totalValue,
         status: 'aguardando_pagamento',
         items,
         observations: '',
+        orderOrigin: 'cliente' as const,
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
-      
-      // Update product goal progress if applicable
+
+      // Update product stock/goal progress
       for (const item of items) {
         const productRef = doc(db, 'products', item.productId);
         const productSnap = await getDoc(productRef);
@@ -41,7 +44,11 @@ export default function Checkout() {
             const newProgress = (pData.currentGoalProgress || 0) + item.quantity;
             await updateDoc(productRef, {
               currentGoalProgress: increment(item.quantity),
-              goalReached: newProgress >= (pData.requiredGoal || 0)
+              goalReached: newProgress >= (pData.requiredGoal || 0),
+            });
+          } else if (pData.stockType === 'pronta_entrega') {
+            await updateDoc(productRef, {
+              availableQuantity: increment(-item.quantity),
             });
           }
         }

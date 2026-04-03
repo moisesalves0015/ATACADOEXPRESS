@@ -45,14 +45,22 @@ export interface OrderItem {
   unitPrice: number;
 }
 
+export type OrderOrigin = 'cliente' | 'admin';
+
 export interface Order {
   id: string;
   clientId: string;
   clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
   orderDate: string;
   totalValue: number;
   status: OrderStatus;
   paymentProofUrl?: string;
   observations?: string;
   items: OrderItem[];
+  orderOrigin: OrderOrigin;
+  /** Filled only when orderOrigin === 'admin' */
+  registeredByAdminId?: string;
+  registeredByAdminName?: string;
 }
