@@ -33,11 +33,20 @@ export interface Product {
 
 export type OrderStatus = 
   | 'aguardando_pagamento' 
+  | 'aguardando_comprovante'
+  | 'confirmando_pagamento'
   | 'pagamento_confirmado' 
   | 'separacao' 
-  | 'enviado' 
   | 'entregue' 
   | 'cancelado';
+
+export interface StatusUpdate {
+  status: OrderStatus;
+  comment?: string;
+  isInternal: boolean;
+  updatedAt: string;
+  updatedBy: string;
+}
 
 export interface OrderItem {
   productId: string;
@@ -59,11 +68,12 @@ export interface Order {
   orderDate: string;
   totalValue: number;
   status: OrderStatus;
+  items: OrderItem[];
   paymentProofUrl?: string;
   observations?: string;
-  items: OrderItem[];
   orderOrigin: OrderOrigin;
-  /** Filled only when orderOrigin === 'admin' */
-  registeredByAdminId?: string;
   registeredByAdminName?: string;
+  statusHistory?: StatusUpdate[];
 }
+
+export interface CartItem extends OrderItem {}

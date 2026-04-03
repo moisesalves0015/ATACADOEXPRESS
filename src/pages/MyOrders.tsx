@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { Order } from '../types';
 import { Link } from 'react-router-dom';
-import { ClipboardList, Clock, CheckCircle2, Truck, Package, XCircle, ChevronRight, Search } from 'lucide-react';
+import { ClipboardList, Clock, CheckCircle2, Package, XCircle, ChevronRight, Upload, Search } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const statusConfig = {
   aguardando_pagamento: { label: 'Aguardando Pagamento', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
-  pagamento_confirmado: { label: 'Pagamento Confirmado', icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+  aguardando_comprovante: { label: 'Aguardando Comprovante', icon: Upload, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+  confirmando_pagamento: { label: 'Confirmando Pagamento', icon: Search, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+  pagamento_confirmado: { label: 'Pagamento Confirmado', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
   separacao: { label: 'Em Separação', icon: Package, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100' },
-  enviado: { label: 'Enviado', icon: Truck, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
   entregue: { label: 'Entregue', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' },
   cancelado: { label: 'Cancelado', icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' },
 };
@@ -78,7 +79,7 @@ export default function MyOrders() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const config = statusConfig[order.status];
+            const config = statusConfig[order.status] || statusConfig.aguardando_pagamento;
             return (
               <Link
                 key={order.id}

@@ -211,4 +211,13 @@
   }
 }
 
+.btn-action-premium {
+  @apply flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm transition-all shadow-md active:scale-95 cursor-pointer border-none;
+  background: linear-gradient(135deg, #F72585 0%, #b5179e 100%);
+  box-shadow: 0 4px 12px rgba(247, 37, 133, 0.25);
+}
 
+.btn-action-premium:hover {
+  @apply shadow-lg brightness-110;
+  transform: translateY(-1px);
+}

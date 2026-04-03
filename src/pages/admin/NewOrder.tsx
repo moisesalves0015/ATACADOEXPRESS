@@ -7,13 +7,15 @@ import { db, auth } from '../../firebase';
 import { Product, UserProfile, OrderItem } from '../../types';
 import {
   UserSearch, Package, Plus, Minus, ArrowLeft, CheckCircle2,
-  X, Search, ShoppingBag, AlertCircle
+  X, Search, ShoppingBag, AlertCircle, Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+const SEPARATION_FEE = 15;
 
 export default function AdminNewOrder() {
   const navigate = useNavigate();
@@ -85,7 +87,8 @@ export default function AdminNewOrder() {
     }
   };
 
-  const totalValue = cartItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  const subtotalValue = cartItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  const totalValue = subtotalValue > 0 ? subtotalValue + SEPARATION_FEE : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -372,9 +375,23 @@ export default function AdminNewOrder() {
                     <span className="font-bold text-gray-900 flex-shrink-0 ml-4">{fmt(item.quantity * item.unitPrice)}</span>
                   </div>
                 ))}
-                <div className="pt-4 border-t border-gray-100 flex justify-between text-lg font-bold">
-                  <span className="text-gray-500">Total</span>
-                  <span className="text-pink-600">{fmt(totalValue)}</span>
+                
+                <div className="pt-4 border-t border-gray-100 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Subtotal</span>
+                    <span className="font-semibold text-gray-900">{fmt(subtotalValue)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 flex items-center gap-1.5">
+                      Cobrança por Separação
+                      <Info className="w-3.5 h-3.5 text-blue-400" />
+                    </span>
+                    <span className="font-semibold text-blue-600">+{fmt(SEPARATION_FEE)}</span>
+                  </div>
+                  <div className="pt-2 flex justify-between text-lg font-bold">
+                    <span className="text-gray-900">Total</span>
+                    <span className="text-pink-600">{fmt(totalValue)}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -410,7 +427,7 @@ export default function AdminNewOrder() {
             </button>
 
             <p className="text-[11px] text-gray-400 text-center">
-              Pedido será registrado com origem <strong>Admin</strong> e vinculado ao seu nome.
+              Pedido será registrado com origem <strong>Admin</strong> e vinculado ao seu nome com taxa de separação de {fmt(SEPARATION_FEE)}.
             </p>
           </div>
         </div>

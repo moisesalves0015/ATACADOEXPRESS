@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { QrCode, Copy, CheckCircle2, Upload, AlertCircle, ArrowLeft, Package, Info } from 'lucide-react';
+import { QrCode, Copy, CheckCircle2, Upload, AlertCircle, ArrowLeft, Package, Info, Search } from 'lucide-react';
 
 export default function Checkout() {
   const { items, totalValue, clearCart } = useCart();
@@ -13,7 +13,7 @@ export default function Checkout() {
   const navigate = useNavigate();
 
   const handleFinalizeOrder = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser || loading) return;
     setLoading(true);
     try {
       const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
@@ -68,11 +68,11 @@ export default function Checkout() {
     if (!orderId) return;
     setLoading(true);
     try {
-      // In a real app, we would upload to Firebase Storage
-      // For this demo, we'll just save the URL (mocked)
       await updateDoc(doc(db, 'orders', orderId), {
-        paymentProofUrl: paymentProofUrl || 'https://via.placeholder.com/150?text=Comprovante+Enviado'
+        paymentProofUrl: paymentProofUrl || 'https://via.placeholder.com/150?text=Comprovante+Enviado',
+        status: 'confirmando_pagamento'
       });
+      alert('Comprovante enviado! O status foi alterado para Confirmando Pagamento.');
       navigate('/my-orders');
     } catch (err) {
       console.error(err);
