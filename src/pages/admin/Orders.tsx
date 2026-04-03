@@ -375,24 +375,43 @@ export default function AdminOrders() {
                         )}
                         
                         {(order.status === 'aguardando_comprovante' || order.status === 'aguardando_pagamento' || !order.paymentProofUrl) && (
-                          <label className="cursor-pointer p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Fazer Upload">
-                            {isUploading ? (
-                              <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                            ) : (
-                              <Upload className="w-4 h-4" />
-                            )}
-                            <input
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files?.[0]) {
-                                  handleFileUpload(order.id, e.target.files[0]);
+                          <div className="flex items-center gap-1">
+                            <label className="cursor-pointer p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Fazer Upload">
+                              {isUploading ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                              ) : (
+                                <Upload className="w-4 h-4" />
+                              )}
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) {
+                                    handleFileUpload(order.id, e.target.files[0]);
+                                  }
+                                }}
+                                disabled={isUploading}
+                              />
+                            </label>
+                            
+                            {/* WhatsApp Button */}
+                            <button
+                              onClick={() => {
+                                const msg = `Olá ${order.clientName}! Sou da Atacado Express. Identificamos que o Pedido #${order.id.slice(-6).toUpperCase()} (Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}) está aguardando o comprovante de pagamento. Por favor, anexe o arquivo no portal ou envie aqui para agilizarmos a sua separação. Obrigado!`;
+                                const phone = order.clientPhone ? `55${order.clientPhone.replace(/\D/g, '')}` : '';
+                                if(phone) {
+                                  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                } else {
+                                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                                 }
                               }}
-                              disabled={isUploading}
-                            />
-                          </label>
+                              className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                              title="Solicitar via WhatsApp"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </td>
@@ -424,9 +443,9 @@ export default function AdminOrders() {
 
       {/* Confirmation Modal for Status Update */}
       {showStatusModal && pendingStatusUpdate && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-full animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-50 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Atualizar Status</h3>
               <button 
                 onClick={() => { setShowStatusModal(false); setPendingStatusUpdate(null); }}
@@ -436,8 +455,8 @@ export default function AdminOrders() {
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between">
+            <div className="p-6 space-y-6 overflow-y-auto">
+              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between shrink-0">
                 <div>
                   <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Novo Status</p>
                   <p className="text-sm font-bold text-blue-900">{statusConfig[pendingStatusUpdate.newStatus]?.label}</p>
@@ -521,9 +540,9 @@ export default function AdminOrders() {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white z-10">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-full">
+            <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white z-10 shrink-0 rounded-t-3xl">
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-bold text-gray-900">Pedido #{selectedOrder.id.slice(-6).toUpperCase()}</h2>
                 <div className={cn(

@@ -385,10 +385,10 @@ export default function AdminProducts() {
           PRODUCT REPORT MODAL
       ============================================================ */}
       {reportProduct && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-4xl my-8 shadow-xl">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl flex flex-col max-h-full">
             {/* Header */}
-            <div className="p-6 border-b border-gray-100 flex items-start justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
+            <div className="p-6 border-b border-gray-100 flex items-start justify-between bg-white z-10 shrink-0 rounded-t-2xl">
               <div className="flex items-center gap-4">
                 {reportProduct.imageUrls?.length || reportProduct.imageUrl ? (
                   <img src={reportProduct.imageUrls?.length ? reportProduct.imageUrls[0] : reportProduct.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
@@ -419,7 +419,7 @@ export default function AdminProducts() {
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 overflow-y-auto">
               {reportLoading ? (
                 <div className="flex items-center justify-center py-16">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
@@ -532,15 +532,15 @@ export default function AdminProducts() {
 
       {/* PRODUCT FORM MODAL (Add/Edit) SAME AS BEFORE */}
       {isModalOpen && currentProduct && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-2xl my-8 shadow-xl">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl flex flex-col max-h-full">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold">{currentProduct.id ? 'Editar Produto' : 'Novo Produto'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <form onSubmit={handleSave} className="p-6 space-y-6">
+            <form onSubmit={handleSave} className="p-6 space-y-6 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>

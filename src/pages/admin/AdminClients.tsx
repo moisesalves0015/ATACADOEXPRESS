@@ -312,9 +312,9 @@ export default function AdminClients() {
 
       {/* Register Modal */}
       {isRegisterModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
-             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
+             <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Plus className="w-5 h-5 text-brand-pink" /> Novo Cadastro
               </h2>
@@ -323,7 +323,7 @@ export default function AdminClients() {
               </button>
             </div>
             
-            <form onSubmit={handleRegisterClient} className="p-6 space-y-4">
+            <form onSubmit={handleRegisterClient} className="p-6 space-y-4 overflow-y-auto">
               {error && (
                 <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
                   <AlertCircle className="w-4 h-4" /> {error}
@@ -406,9 +406,9 @@ export default function AdminClients() {
 
       {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
-             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
+             <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-blue-600" /> Editar Perfil
               </h2>
@@ -417,7 +417,7 @@ export default function AdminClients() {
               </button>
             </div>
             
-            <form onSubmit={handleUpdateUser} className="p-6 space-y-4">
+            <form onSubmit={handleUpdateUser} className="p-6 space-y-4 overflow-y-auto">
                <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Nome Completo</label>
                 <input

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage, handleFirestoreError, OperationType } from '../firebase';
 import { Order, OrderStatus, StatusUpdate } from '../types';
-import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, FileText, ExternalLink, MapPin, User, Upload, Search, History, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, FileText, ExternalLink, MapPin, User, Upload, Search, History, MessageSquare, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -22,7 +23,6 @@ export default function OrderDetails() {
   const { id } = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [proofUrl, setProofUrl] = useState('');
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -38,10 +38,15 @@ export default function OrderDetails() {
     return () => unsubscribe();
   }, [id]);
 
-  const handleUploadProof = async () => {
-    if (!order || !proofUrl) return;
+  const handleFileUpload = async (file: File) => {
+    if (!order) return;
     setUploading(true);
     try {
+      const extension = file.name.split('.').pop();
+      const storageRef = ref(storage, `payment_proofs/${order.id}_${Date.now()}.${extension}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
       const updateEntry: StatusUpdate = {
         status: 'confirmando_pagamento',
         comment: 'Comprovante enviado pelo cliente.',
@@ -51,11 +56,10 @@ export default function OrderDetails() {
       };
 
       await updateDoc(doc(db, 'orders', order.id), {
-        paymentProofUrl: proofUrl,
+        paymentProofUrl: url,
         status: 'confirmando_pagamento',
         statusHistory: arrayUnion(updateEntry)
       });
-      setProofUrl('');
       alert('Comprovante enviado com sucesso! Nosso time irá validar o pagamento.');
     } catch (err) {
       console.error(err);
@@ -186,20 +190,34 @@ export default function OrderDetails() {
                   </div>
                   
                   <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Link do comprovante ou anexo..."
-                      value={proofUrl}
-                      onChange={(e) => setProofUrl(e.target.value)}
-                      className="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/50 text-white placeholder:text-white/60 font-medium"
-                    />
-                    <button
-                      onClick={handleUploadProof}
-                      disabled={uploading || !proofUrl}
-                      className="w-full bg-white text-blue-600 py-4 rounded-2xl font-black hover:bg-blue-50 transition-all shadow-lg active:scale-95 disabled:opacity-50"
-                    >
-                      {uploading ? 'Enviando Dados...' : 'Confirmar Pagamento'}
-                    </button>
+                    <label className={cn(
+                      "w-full flex-col flex items-center justify-center min-h-[140px] px-6 py-4 bg-white/20 border-2 border-dashed border-white/60 rounded-2xl cursor-pointer hover:bg-white/30 transition-all font-medium",
+                      uploading ? 'opacity-50 pointer-events-none' : ''
+                    )}>
+                      {uploading ? (
+                        <>
+                           <Loader2 className="w-8 h-8 text-white mb-2 animate-spin" />
+                           <span className="text-white font-bold">Enviando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-white mb-2" />
+                          <span className="text-white text-sm font-bold">Clique para anexar arquivo da galeria</span>
+                          <span className="text-blue-100 text-[10px] mt-1">Imagens ou Documentos</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*,.pdf"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            handleFileUpload(e.target.files[0]);
+                          }
+                        }}
+                        disabled={uploading}
+                      />
+                    </label>
                     <p className="text-[10px] text-white/60 text-center uppercase font-black tracking-[0.2em]">
                       Confirmação 100% segura e manual
                     </p>
