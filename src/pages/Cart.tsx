@@ -1,6 +1,7 @@
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Package } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, Package } from 'lucide-react';
+import { ShoppingBagOpen, ShoppingBag, Package as PackageIcon } from '@phosphor-icons/react';
 import { cn } from '../lib/utils';
 
 export default function Cart() {
@@ -10,9 +11,9 @@ export default function Cart() {
     return (
       <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
         <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <ShoppingBag className="w-10 h-10 text-gray-300" />
+          <ShoppingBagOpen className="w-10 h-10 text-gray-300" weight="light" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Seu carrinho está vazio</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Sua sacola está vazia</h2>
         <p className="text-gray-500 mb-8 max-w-md mx-auto">
           Parece que você ainda não adicionou nenhum produto. Explore nosso catálogo e encontre as melhores ofertas!
         </p>
@@ -107,7 +108,7 @@ export default function Cart() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-12">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <ShoppingBag className="w-7 h-7 text-blue-600" /> Seu Carrinho
+          <ShoppingBagOpen className="w-7 h-7 text-blue-600" weight="light" /> Sua Sacola
         </h1>
         
         {readyItems.length > 0 && (

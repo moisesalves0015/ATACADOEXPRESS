@@ -207,7 +207,7 @@ export default function ProductDetail() {
 
               {inCartQty > 0 && (
                 <p className="text-xs font-bold text-blue-600">
-                  Você já tem {inCartQty} un no carrinho.
+                  Você já tem {inCartQty} un na sacola.
                 </p>
               )}
 
@@ -217,7 +217,7 @@ export default function ProductDetail() {
                 className="w-full py-5 rounded-xl font-bold text-white transition-all shadow-xl shadow-pink-500/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-3"
                 style={{ background: 'linear-gradient(135deg, #F72585 0%, #b5179e 100%)' }}
               >
-                {outOfStock ? 'ESGOTADO' : <><ShoppingBagOpen className="w-5 h-5" weight="bold" /> ADICIONAR AO CARRINHO</>}
+                {outOfStock ? 'ESGOTADO' : <><ShoppingBagOpen className="w-5 h-5" weight="bold" /> ADICIONAR À SACOLA</>}
               </button>
             </div>
           </div>

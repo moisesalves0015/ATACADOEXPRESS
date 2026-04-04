@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, LogOut, LayoutDashboard, Package, ClipboardList, BarChart3, Home, Bell } from 'lucide-react';
+import { ShoppingBagOpen } from '@phosphor-icons/react';
 import { useState, useRef, useEffect } from 'react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
@@ -91,7 +92,7 @@ export default function Layout({ user }: LayoutProps) {
                   to="/cart" 
                   className="p-2.5 bg-white/60 hover:bg-white rounded-xl shadow-sm border border-white/80 text-gray-700 hover:text-pink-500 transition-all active:scale-95"
                 >
-                  <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
+                  <ShoppingBagOpen className="w-5 h-5" weight="light" />
                 </Link>
               )}
 

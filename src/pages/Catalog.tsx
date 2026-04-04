@@ -4,7 +4,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart, Package, Search, Filter, Grid, Shirt, Crown, Gem, ShoppingBag, Palette } from 'lucide-react';
-import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle } from '@phosphor-icons/react';
+import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, ShoppingBagOpen } from '@phosphor-icons/react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -38,18 +38,24 @@ export default function Catalog() {
   });
 
   const dbCategories = products.map(p => p.category);
-  const defaultCategories = ['all', 'Vestidos', 'Blusas', 'Conjuntos', 'Acessórios', 'Bolsas'];
+  const defaultCategories = ['all', 'Vestidos', 'Blusas', 'Conjuntos', 'Acessórios', 'Bolsas', 'Calças', 'Saias', 'Casacos', 'Sapatos', 'Shorts'];
   const categories = [...new Set([...defaultCategories, ...dbCategories])];
 
   const getCategoryConfig = (categoryName: string) => {
+    const assetsPath = '/assets/categories/';
     switch (categoryName.toLowerCase()) {
-      case 'all': return { label: 'Ver Tudo', Icon: SquaresFour };
-      case 'vestidos': return { label: 'Vestidos', Icon: Dress };
-      case 'blusas': return { label: 'Blusas', Icon: TShirt };
-      case 'conjuntos': return { label: 'Conjuntos', Icon: Suitcase };
-      case 'acessórios': return { label: 'Acessórios', Icon: Watch };
-      case 'bolsas': return { label: 'Bolsas', Icon: Handbag };
-      default: return { label: categoryName, Icon: Sparkle };
+      case 'all': return { label: 'Ver Tudo', img: `${assetsPath}all.png` };
+      case 'vestidos': return { label: 'Vestidos', img: `${assetsPath}vestidos.png` };
+      case 'blusas': return { label: 'Blusas', img: `${assetsPath}blusas.png` };
+      case 'conjuntos': return { label: 'Conjuntos', img: `${assetsPath}conjuntos.png` };
+      case 'acessórios': return { label: 'Acessórios', img: `${assetsPath}acessorios.png` };
+      case 'bolsas': return { label: 'Bolsas', img: `${assetsPath}bolsas.png` };
+      case 'calças': return { label: 'Calças', img: `${assetsPath}calcas.png` };
+      case 'saias': return { label: 'Saias', img: `${assetsPath}saias.png` };
+      case 'casacos': return { label: 'Casacos', img: `${assetsPath}casacos.png` };
+      case 'sapatos': return { label: 'Sapatos', img: `${assetsPath}sapatos.png` };
+      case 'shorts': return { label: 'Shorts', img: `${assetsPath}shorts.png` };
+      default: return { label: categoryName, img: `${assetsPath}all.png` };
     }
   };
 
@@ -74,7 +80,7 @@ export default function Catalog() {
         <h2 className="text-lg font-bold mb-4">Categorias</h2>
         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
           {categories.map((category) => {
-            const { label, Icon } = getCategoryConfig(category);
+            const { label, img } = getCategoryConfig(category);
             const isActive = categoryFilter === category;
             
             return (
@@ -82,14 +88,16 @@ export default function Catalog() {
                 key={category}
                 onClick={() => setCategoryFilter(category)}
                 className={cn(
-                  "category-badge-card flex-shrink-0 flex items-center gap-2",
+                  "category-badge-card flex-shrink-0 flex items-center gap-3 transition-all transform active:scale-95",
                   isActive 
-                    ? "border-pink-500 text-pink-600 bg-pink-50/20 shadow-md" 
-                    : "text-gray-600 hover:border-pink-200 hover:text-pink-600"
+                    ? "border-pink-500 text-pink-600 bg-pink-50/20 shadow-lg -translate-y-1" 
+                    : "text-gray-600 hover:border-pink-200 hover:text-pink-600 hover:-translate-y-0.5"
                 )}
               >
-                <Icon className="w-5 h-5" weight="light" />
-                <span className="font-bold text-xs uppercase tracking-wider">
+                <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+                  <img src={img} alt={label} className="w-full h-full object-contain" />
+                </div>
+                <span className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">
                   {label}
                 </span>
               </button>
@@ -146,10 +154,19 @@ export default function Catalog() {
                     onClick={(e) => {
                       e.stopPropagation();
                       // Add to favorites logic
+                      const p = product;
+                      addToCart({
+                        productId: p.id,
+                        productName: p.name,
+                        quantity: 1,
+                        unitPrice: p.unitPrice,
+                        imageUrl: (p.imageUrls && p.imageUrls.length > 0) ? p.imageUrls[0] : p.imageUrl,
+                        stockType: p.stockType
+                      });
                     }}
                     className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors"
                   >
-                    <ShoppingCart className="w-3 h-3 text-gray-600" />
+                    <ShoppingBagOpen className="w-3" weight="bold" />
                   </button>
                 </div>
 

@@ -24,14 +24,20 @@ const statusConfig: Record<string, { label: string, color: string, bg: string, b
   cancelado: { label: 'Cancelado', color: 'text-red-600', bg: 'bg-orange-50', border: 'border-red-100' },
 };
 
-const getCategoryIcon = (categoryName: string) => {
+const getCategoryImg = (categoryName: string) => {
+  const assetsPath = '/assets/categories/';
   switch (categoryName?.toLowerCase()) {
-    case 'vestidos': return Dress;
-    case 'blusas': return TShirt;
-    case 'conjuntos': return Suitcase;
-    case 'acessórios': return Watch;
-    case 'bolsas': return Handbag;
-    default: return Sparkle;
+    case 'vestidos': return `${assetsPath}vestidos.png`;
+    case 'blusas': return `${assetsPath}blusas.png`;
+    case 'conjuntos': return `${assetsPath}conjuntos.png`;
+    case 'acessórios': return `${assetsPath}acessorios.png`;
+    case 'bolsas': return `${assetsPath}bolsas.png`;
+    case 'calças': return `${assetsPath}calcas.png`;
+    case 'saias': return `${assetsPath}saias.png`;
+    case 'casacos': return `${assetsPath}casacos.png`;
+    case 'sapatos': return `${assetsPath}sapatos.png`;
+    case 'shorts': return `${assetsPath}shorts.png`;
+    default: return `${assetsPath}all.png`;
   }
 };
 
@@ -425,10 +431,13 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-6 py-4">
                      <div className="flex items-center gap-2">
-                        {(() => {
-                           const Icon = getCategoryIcon(product.category);
-                           return <Icon className="w-4 h-4 text-gray-400" weight="light" />;
-                        })()}
+                        <div className="w-6 h-6 rounded-md overflow-hidden bg-gray-50 flex-shrink-0">
+                           <img 
+                              src={getCategoryImg(product.category)} 
+                              alt={product.category} 
+                              className="w-full h-full object-contain" 
+                           />
+                        </div>
                         <span className="text-sm text-gray-500 font-medium">{product.category}</span>
                      </div>
                    </td>

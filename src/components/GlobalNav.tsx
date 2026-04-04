@@ -23,7 +23,7 @@ export default function GlobalNav({ user }: GlobalNavProps) {
   ] : [
     { to: '/', label: 'Início', icon: HouseLine },
     { to: '/my-orders', label: 'Pedidos', icon: Receipt },
-    { to: '/cart', label: 'Carrinho', icon: ShoppingBagOpen },
+    { to: '/cart', label: 'Sacola', icon: ShoppingBagOpen },
     { to: user ? '/profile' : '/login', label: 'Perfil', icon: UserCircle },
   ];
 
