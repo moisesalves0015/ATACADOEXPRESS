@@ -5,7 +5,7 @@ import { Order, Product, UserProfile } from '../../types';
 import { BarChart3, TrendingUp, Users, Package, ClipboardList, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, subDays, startOfDay, endOfDay, startOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function AdminDashboard() {
@@ -41,19 +41,90 @@ export default function AdminDashboard() {
     };
   }, []);
 
+  const now = new Date();
+
   const todayOrders = orders.filter(o => {
     const date = new Date(o.orderDate);
-    return date >= startOfDay(new Date()) && date <= endOfDay(new Date());
+    return date >= startOfDay(now) && date <= endOfDay(now);
+  });
+  
+  const yesterdayOrders = orders.filter(o => {
+    const date = new Date(o.orderDate);
+    const yesterday = subDays(now, 1);
+    return date >= startOfDay(yesterday) && date <= endOfDay(yesterday);
+  });
+
+  const monthStart = startOfMonth(now);
+  const prevMonthStart = startOfMonth(subMonths(now, 1));
+  
+  const currentMonthOrders = orders.filter(o => new Date(o.orderDate) >= monthStart);
+  const previousMonthOrders = orders.filter(o => {
+    const d = new Date(o.orderDate);
+    return d >= prevMonthStart && d < monthStart;
   });
 
   const totalRevenue = orders.reduce((sum, o) => sum + o.totalValue, 0);
   const todayRevenue = todayOrders.reduce((sum, o) => sum + o.totalValue, 0);
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, o) => sum + o.totalValue, 0);
+  
+  const currentMonthRevenue = currentMonthOrders.reduce((sum, o) => sum + o.totalValue, 0);
+  const previousMonthRevenue = previousMonthOrders.reduce((sum, o) => sum + o.totalValue, 0);
+
+  const todayTrend = yesterdayRevenue === 0 
+    ? (todayRevenue > 0 ? 100 : 0) 
+    : Math.round(((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100);
+
+  const monthTrend = previousMonthRevenue === 0 
+    ? (currentMonthRevenue > 0 ? 100 : 0) 
+    : Math.round(((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100);
+
+  const activeProducts = products.filter(p => p.status === 'active');
+  const outOfStockCount = activeProducts.filter(p => p.stockType === 'pronta_entrega' && (p.availableQuantity || 0) <= 0).length;
+
+  const newUsersThisMonth = users.filter(u => {
+    if (!u.createdAt) return false;
+    const d = new Date(typeof u.createdAt === 'string' ? u.createdAt : (u.createdAt as any).seconds ? (u.createdAt as any).seconds * 1000 : now);
+    return d >= monthStart;
+  }).length;
 
   const stats = [
-    { label: 'Vendas Totais', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue), icon: TrendingUp, color: 'text-pink-600', bg: 'bg-pink-50' },
-    { label: 'Vendas Hoje', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(todayRevenue), icon: BarChart3, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Clientes Ativos', value: users.length, icon: Users, color: 'text-gray-600', bg: 'bg-gray-100' },
-    { label: 'Produtos Ativos', value: products.filter(p => p.status === 'active').length, icon: Package, color: 'text-gray-600', bg: 'bg-gray-100' },
+    { 
+      label: 'Vendas Totais', 
+      value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue), 
+      icon: TrendingUp, 
+      trendValue: monthTrend,
+      trendText: `${monthTrend}% no mês`,
+      isPositive: monthTrend >= 0,
+      isNeutral: monthTrend === 0
+    },
+    { 
+      label: 'Vendas Hoje', 
+      value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(todayRevenue), 
+      icon: BarChart3, 
+      trendValue: todayTrend,
+      trendText: `${todayTrend}% hoje`,
+      isPositive: todayTrend >= 0,
+      isNeutral: todayTrend === 0
+    },
+    { 
+      label: 'Clientes Ativos', 
+      value: users.length, 
+      icon: Users, 
+      trendValue: newUsersThisMonth,
+      trendText: `+${newUsersThisMonth} novos`,
+      isPositive: true,
+      isNeutral: newUsersThisMonth === 0
+    },
+    { 
+      label: 'Produtos Ativos', 
+      value: activeProducts.length, 
+      icon: Package, 
+      trendValue: outOfStockCount,
+      trendText: `${outOfStockCount} sem estoque`,
+      isPositive: outOfStockCount === 0,
+      isNeutral: outOfStockCount === 0,
+      isAlert: outOfStockCount > 0
+    },
   ];
 
   const pendingOrders = orders.filter(o => o.status === 'aguardando_pagamento');
@@ -83,18 +154,24 @@ export default function AdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-3">
-              <div className={cn("p-2 rounded-lg", stat.bg)}>
-                <stat.icon className={cn("w-4 h-4", stat.color)} />
+          <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between hover:border-gray-300 transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                 <stat.icon className="w-4 h-4 text-gray-400" strokeWidth={1.5} />
+                 <p className="text-xs font-medium text-gray-500 uppercase tracking-widest">{stat.label}</p>
               </div>
-              <span className="flex items-center text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                <ArrowUpRight className="w-3 h-3 mr-1" /> +12%
-              </span>
             </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-              <h3 className="text-xl font-bold text-gray-900 mt-0.5">{stat.value}</h3>
+            <div className="flex items-end justify-between mt-1">
+              <h3 className="text-xl font-medium text-gray-800 tracking-tight">{stat.value}</h3>
+              {stat.trendText && (
+                <span className="flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                  {!stat.isNeutral && !stat.isAlert && (
+                    stat.isPositive ? <ArrowUpRight className="w-3 h-3 opacity-70" strokeWidth={1.5} /> : <ArrowDownRight className="w-3 h-3 opacity-70" strokeWidth={1.5} />
+                  )}
+                  {stat.isAlert && <AlertCircle className="w-3 h-3 opacity-70" strokeWidth={1.5} />}
+                  {stat.trendText}
+                </span>
+              )}
             </div>
           </div>
         ))}
