@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { QrCode, Copy, CheckCircle2, Upload, AlertCircle, ArrowLeft, Package, Info, Search } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, auth, storage } from '../firebase';
+import { QrCode, Copy, CheckCircle2, Upload, AlertCircle, ArrowLeft, Package, Info, Search, Loader2 } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 export default function Checkout() {
   const { items, totalValue, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [paymentProofUrl, setPaymentProofUrl] = useState('');
   const navigate = useNavigate();
 
   const handleFinalizeOrder = async () => {
@@ -64,12 +65,17 @@ export default function Checkout() {
     }
   };
 
-  const handleUploadProof = async () => {
+  const handleFileUpload = async (file: File) => {
     if (!orderId) return;
     setLoading(true);
     try {
+      const extension = file.name.split('.').pop();
+      const storageRef = ref(storage, `payment_proofs/${orderId}_${Date.now()}.${extension}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
       await updateDoc(doc(db, 'orders', orderId), {
-        paymentProofUrl: paymentProofUrl || 'https://via.placeholder.com/150?text=Comprovante+Enviado',
+        paymentProofUrl: url,
         status: 'confirmando_pagamento'
       });
       alert('Comprovante enviado! O status foi alterado para Confirmando Pagamento.');
@@ -184,28 +190,41 @@ export default function Checkout() {
                 <Upload className="w-5 h-5 text-blue-600" /> Enviar Comprovante
               </h3>
               <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Cole aqui o link do comprovante ou anexo"
-                  value={paymentProofUrl}
-                  onChange={(e) => setPaymentProofUrl(e.target.value)}
-                  className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleUploadProof}
+                <label className={cn(
+                  "w-full flex-col flex items-center justify-center min-h-[140px] px-6 py-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-all font-medium",
+                  loading ? 'opacity-50 pointer-events-none' : ''
+                )}>
+                  {loading ? (
+                    <>
+                       <Loader2 className="w-8 h-8 text-blue-600 mb-2 animate-spin" />
+                       <span className="text-gray-900 font-bold">Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-blue-600 mb-2" />
+                      <span className="text-gray-900 text-sm font-bold">Clique para anexar arquivo da galeria</span>
+                      <span className="text-gray-500 text-[10px] mt-1">Imagens ou Documentos</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleFileUpload(e.target.files[0]);
+                      }
+                    }}
                     disabled={loading}
-                    className="flex-grow bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
-                  >
-                    Enviar Comprovante
-                  </button>
-                  <button
-                    onClick={() => navigate('/my-orders')}
-                    className="px-6 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
-                  >
-                    Pular por agora
-                  </button>
-                </div>
+                  />
+                </label>
+                <button
+                  onClick={() => navigate('/my-orders')}
+                  disabled={loading}
+                  className="w-full px-6 py-4 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                >
+                  Pular por agora
+                </button>
               </div>
             </div>
           </div>
