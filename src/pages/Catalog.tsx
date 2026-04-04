@@ -77,30 +77,54 @@ export default function Catalog() {
 
       {/* Popular Brand */}
       <section>
-        <h2 className="text-lg font-bold mb-4">Categorias</h2>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+        <h2 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
+          Categorias <div className="h-px bg-gray-100 flex-1 mt-1" />
+        </h2>
+        <div className="grid grid-rows-2 grid-flow-col gap-y-10 gap-x-12 overflow-x-auto no-scrollbar pb-10 px-4">
           {categories.map((category) => {
             const { label, img } = getCategoryConfig(category);
             const isActive = categoryFilter === category;
             
             return (
-              <button
+              <motion.button
                 key={category}
                 onClick={() => setCategoryFilter(category)}
+                title={label}
+                initial={{ y: 0 }}
+                animate={isActive ? { y: -8, scale: 1.15 } : { y: 0, scale: 1 }}
+                whileHover={{ y: -12, scale: 1.25 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className={cn(
-                  "category-badge-card flex-shrink-0 flex items-center gap-3 transition-all transform active:scale-95",
+                  "flex flex-col items-center justify-center transition-all relative group h-32",
                   isActive 
-                    ? "border-pink-500 text-pink-600 bg-pink-50/20 shadow-lg -translate-y-1" 
-                    : "text-gray-600 hover:border-pink-200 hover:text-pink-600 hover:-translate-y-0.5"
+                    ? "z-10" 
+                    : ""
                 )}
               >
-                <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-                  <img src={img} alt={label} className="w-full h-full object-contain" />
+                {/* Floating Item */}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 drop-shadow-[0_20px_20px_rgba(0,0,0,0.15)] group-hover:drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)] transition-all duration-500 transform group-hover:-translate-y-4">
+                  <img 
+                    src={img} 
+                    alt={label} 
+                    className="w-full h-full object-contain" 
+                  />
                 </div>
-                <span className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap">
+                
+                {/* Visual Label (Back again because grid needs context) */}
+                <span className={cn(
+                  "mt-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all",
+                  isActive ? "text-pink-500" : "text-gray-400 group-hover:text-gray-600"
+                )}>
                   {label}
                 </span>
-              </button>
+
+                {isActive && (
+                  <motion.div 
+                    layoutId="activeCategoryDot"
+                    className="absolute -bottom-2 w-10 h-1 bg-pink-500 rounded-full" 
+                  />
+                )}
+              </motion.button>
             );
           })}
         </div>
