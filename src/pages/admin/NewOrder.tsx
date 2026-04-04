@@ -75,6 +75,7 @@ export default function AdminNewOrder() {
         productName: product.name,
         quantity: 1,
         unitPrice: product.unitPrice,
+        stockType: product.stockType,
       }];
     });
   };
@@ -88,7 +89,20 @@ export default function AdminNewOrder() {
   };
 
   const subtotalValue = cartItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const totalValue = subtotalValue > 0 ? subtotalValue + SEPARATION_FEE : 0;
+  
+  const totalReadyValue = cartItems
+    .filter(i => !i.stockType || i.stockType === 'pronta_entrega')
+    .reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  
+  const totalPendingValue = cartItems
+    .filter(i => i.stockType === 'previsao_meta')
+    .reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+
+  const readyItemsCount = cartItems.filter(i => !i.stockType || i.stockType === 'pronta_entrega').length;
+  const deliveryFee = readyItemsCount > 0 ? SEPARATION_FEE : 0;
+  
+  const totalValue = subtotalValue + deliveryFee;
+  const initialPaymentTotal = totalReadyValue + deliveryFee;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +124,9 @@ export default function AdminNewOrder() {
         clientPhone: selectedClient.phone || '',
         orderDate: new Date().toISOString(),
         totalValue,
-        status: 'aguardando_pagamento',
+        totalReady: initialPaymentTotal,
+        totalPending: totalPendingValue,
+        status: initialPaymentTotal > 0 ? 'aguardando_pagamento' : 'confirmando_pagamento',
         items: cartItems,
         observations,
         orderOrigin: 'admin' as const,
@@ -376,21 +392,42 @@ export default function AdminNewOrder() {
                   </div>
                 ))}
                 
-                <div className="pt-4 border-t border-gray-100 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span className="font-semibold text-gray-900">{fmt(subtotalValue)}</span>
+                <div className="pt-4 border-t border-gray-100 space-y-3">
+                  {/* Ready Portion */}
+                  <div className="flex justify-between text-xs font-bold text-blue-600">
+                    <span>Pronta Entrega</span>
+                    <span>{fmt(totalReadyValue)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 flex items-center gap-1.5">
-                      Cobrança por Separação
-                      <Info className="w-3.5 h-3.5 text-blue-400" />
+                  <div className="flex justify-between text-xs font-medium text-gray-400">
+                    <span>Taxa de Separação</span>
+                    <span>+{fmt(deliveryFee)}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-blue-50/50 p-2.5 rounded-xl border border-blue-100/50">
+                    <span className="text-[10px] font-black text-blue-800 uppercase">A Cobrar AGORA</span>
+                    <span className="text-sm font-black text-blue-600">
+                      {fmt(initialPaymentTotal)}
                     </span>
-                    <span className="font-semibold text-blue-600">+{fmt(SEPARATION_FEE)}</span>
                   </div>
-                  <div className="pt-2 flex justify-between text-lg font-bold">
-                    <span className="text-gray-900">Total</span>
-                    <span className="text-pink-600">{fmt(totalValue)}</span>
+
+                  {/* Pending Portion */}
+                  {totalPendingValue > 0 && (
+                    <>
+                      <div className="flex justify-between text-xs font-bold text-orange-600">
+                        <span>Sob Encomenda (Meta)</span>
+                        <span>{fmt(totalPendingValue)}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-orange-50/50 p-2.5 rounded-xl border border-orange-100/50">
+                        <span className="text-[10px] font-black text-orange-800 uppercase">A Cobrar DEPOIS</span>
+                        <span className="text-sm font-black text-orange-600">
+                          {fmt(totalPendingValue)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="pt-2 border-t border-dashed border-gray-200 flex justify-between items-end">
+                    <span className="text-sm font-bold text-gray-400 uppercase">Valor Total</span>
+                    <span className="text-xl font-bold text-gray-900">{fmt(totalValue)}</span>
                   </div>
                 </div>
               </div>

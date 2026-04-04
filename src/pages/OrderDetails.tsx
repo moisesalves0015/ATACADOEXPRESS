@@ -4,7 +4,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../firebase';
 import { Order, OrderStatus, StatusUpdate } from '../types';
-import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, FileText, ExternalLink, MapPin, User, Upload, Search, History, MessageSquare, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, FileText, ExternalLink, MapPin, User, Upload, Search, History, MessageSquare, Loader2, Plus } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -138,15 +138,27 @@ export default function OrderDetails() {
                 {order.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center group">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:scale-105 transition-all">
+                      <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:scale-105 transition-all relative">
                         {item.imageUrl ? (
                           <img src={item.imageUrl} alt="" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" />
                         ) : (
                           <Package className="w-6 h-6 opacity-30" />
                         )}
+                        {item.stockType === 'previsao_meta' && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white" title="Sob Encomenda">
+                            <Clock className="w-2 h-2 text-white" />
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">{item.productName}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-gray-900">{item.productName}</p>
+                          {item.stockType === 'previsao_meta' && (
+                            <span className="text-[8px] bg-orange-50 text-orange-600 border border-orange-100 px-1.5 py-0.5 rounded-full font-black uppercase">
+                              Meta
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500 font-medium">{item.quantity}x {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}</p>
                       </div>
                     </div>
@@ -156,22 +168,47 @@ export default function OrderDetails() {
                   </div>
                 ))}
                 
-                <div className="pt-6 border-t border-gray-200 mt-4 space-y-3">
-                   <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
-                     <span>Subtotal</span>
-                     <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue - 15)}</span>
-                   </div>
-                   <div className="flex justify-between text-xs font-bold text-blue-500 uppercase tracking-widest">
-                     <span>Taxas e Separação</span>
-                     <span>+ R$ 15,00</span>
-                   </div>
-                   <div className="flex justify-between items-center pt-2">
-                     <span className="text-sm font-black text-gray-600 uppercase">Total do Pedido</span>
-                     <span className="text-3xl font-black text-blue-600">
-                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
-                     </span>
-                   </div>
-                </div>
+                 <div className="pt-6 border-t border-gray-200 mt-4 space-y-4">
+                    {/* Breakdown section */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold text-blue-600 uppercase tracking-widest">
+                        <span>Pronta Entrega</span>
+                        <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalReady ? order.totalReady - (order.totalReady > 0 ? 15 : 0) : 0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-bold text-blue-400 uppercase tracking-widest">
+                        <span>Taxas e Separação</span>
+                        <span>+ {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalReady && order.totalReady > 0 ? 15 : 0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-blue-50/50 p-3 rounded-xl border border-blue-100/30">
+                        <span className="text-[10px] font-black text-blue-800 uppercase">Total já cobrado</span>
+                        <span className="text-lg font-black text-blue-600">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalReady || 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {(order.totalPending || 0) > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-bold text-orange-600 uppercase tracking-widest">
+                          <span>Sob Encomenda (Meta)</span>
+                          <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalPending || 0)}</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-orange-50/50 p-3 rounded-xl border border-orange-100/30">
+                          <span className="text-[10px] font-black text-orange-800 uppercase">Pagar após atingir meta</span>
+                          <span className="text-lg font-black text-orange-600">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalPending || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between items-center">
+                      <span className="text-sm font-black text-gray-400 uppercase">Total Geral</span>
+                      <span className="text-xl font-black text-gray-900">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
+                      </span>
+                    </div>
+                 </div>
               </div>
             </div>
 
@@ -312,9 +349,3 @@ export default function OrderDetails() {
   );
 }
 
-// Dummy Plus icon since it was used but not imported
-const Plus = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);

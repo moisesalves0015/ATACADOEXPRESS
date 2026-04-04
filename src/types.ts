@@ -29,6 +29,23 @@ export interface Product {
   imageUrls?: string[];
   status: 'active' | 'inactive';
   goalReached?: boolean;
+  history?: ProductHistoryEntry[];
+  hasVariations?: boolean;
+  variations?: ProductVariation[];
+  variationsRequired?: boolean;
+  allowVariationSelection?: boolean;
+}
+
+export interface ProductVariation {
+  name: string; // e.g., "Cor", "Tamanho"
+  options: string[]; // e.g., ["Preto", "Branco"]
+}
+
+export interface ProductHistoryEntry {
+  type: 'goal_hit' | 'stock_update' | 'meta_reset' | 'price_change';
+  message: string;
+  date: string;
+  user: string;
 }
 
 export type OrderStatus = 
@@ -55,6 +72,8 @@ export interface OrderItem {
   unitPrice: number;
   imageUrl?: string;
   imageUrls?: string[];
+  stockType?: StockType;
+  selectedVariations?: Record<string, string>;
 }
 
 export type OrderOrigin = 'cliente' | 'admin';
@@ -67,6 +86,8 @@ export interface Order {
   clientPhone?: string;
   orderDate: string;
   totalValue: number;
+  totalReady?: number;
+  totalPending?: number;
   status: OrderStatus;
   items: OrderItem[];
   paymentProofUrl?: string;

@@ -4,7 +4,8 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
-import { ArrowLeft, Package, Plus, Minus, ShoppingCart, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Package, Plus, Minus, ShoppingCart as ShoppingCartLucide, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Cube, Plus as PlusIcon, Minus as MinusIcon, ShoppingBagOpen, Bag, SealCheck } from '@phosphor-icons/react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 
@@ -46,7 +47,7 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
-        <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <Cube className="w-16 h-16 text-gray-300 mx-auto mb-4" weight="light" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Produto não encontrado</h2>
         <p className="text-gray-500 mb-6">Este produto pode ter sido removido ou não está mais disponível.</p>
         <button onClick={() => navigate('/')} className="bg-brand-blue text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all">
@@ -74,6 +75,7 @@ export default function ProductDetail() {
       quantity,
       unitPrice: product.unitPrice,
       imageUrl: product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl,
+      stockType: product.stockType,
     });
     
     // Optional: visual feedback
@@ -90,7 +92,7 @@ export default function ProductDetail() {
         onClick={() => navigate(-1)} 
         className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-900 border border-gray-100 hover:bg-gray-50 transition-colors"
       >
-        <ArrowLeft className="w-5 h-5" />
+        <ArrowLeft className="w-5 h-5" weight="bold" />
       </button>
 
       <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100">
@@ -107,7 +109,7 @@ export default function ProductDetail() {
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-gray-300">
-                  <Package className="w-20 h-20" />
+                  <Cube className="w-20 h-20" weight="light" />
                 </div>
               )}
               <div className="absolute top-4 left-4">
@@ -164,7 +166,7 @@ export default function ProductDetail() {
               <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white rounded-xl shadow-sm text-brand-blue">
-                    {product.stockType === 'pronta_entrega' ? <ShoppingBag className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                    {product.stockType === 'pronta_entrega' ? <Bag className="w-5 h-5" weight="light" /> : <SealCheck className="w-5 h-5" weight="light" />}
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-gray-900">
@@ -190,7 +192,7 @@ export default function ProductDetail() {
                     onClick={() => setQuantity(q => q - 1)}
                     className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
-                    <Minus className="w-4 h-4" />
+                    <MinusIcon className="w-4 h-4" weight="bold" />
                   </button>
                   <span className="w-6 text-center font-bold text-lg">{quantity}</span>
                   <button 
@@ -198,7 +200,7 @@ export default function ProductDetail() {
                     onClick={() => setQuantity(q => q + 1)}
                     className="w-10 h-10 rounded-xl bg-brand-pink text-white flex items-center justify-center hover:bg-pink-600 disabled:bg-gray-200 disabled:cursor-not-allowed transition-all"
                   >
-                    <Plus className="w-4 h-4" />
+                    <PlusIcon className="w-4 h-4" weight="bold" />
                   </button>
                 </div>
               </div>
@@ -215,7 +217,7 @@ export default function ProductDetail() {
                 className="w-full py-5 rounded-xl font-bold text-white transition-all shadow-xl shadow-pink-500/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-3"
                 style={{ background: 'linear-gradient(135deg, #F72585 0%, #b5179e 100%)' }}
               >
-                {outOfStock ? 'ESGOTADO' : <><ShoppingCart className="w-5 h-5" /> ADICIONAR AO CARRINHO</>}
+                {outOfStock ? 'ESGOTADO' : <><ShoppingBagOpen className="w-5 h-5" weight="bold" /> ADICIONAR AO CARRINHO</>}
               </button>
             </div>
           </div>

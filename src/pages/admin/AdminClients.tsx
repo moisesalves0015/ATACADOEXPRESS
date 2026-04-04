@@ -312,7 +312,7 @@ export default function AdminClients() {
 
       {/* Register Modal */}
       {isRegisterModalOpen && (
-        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
              <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -406,7 +406,7 @@ export default function AdminClients() {
 
       {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
              <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold flex items-center gap-2">

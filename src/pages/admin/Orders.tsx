@@ -163,33 +163,61 @@ export default function AdminOrders() {
     // Items Table
     autoTable(doc, {
       startY: 75,
-      head: [['Produto', 'Qtd', 'Vlr Unit.', 'Subtotal']],
+      head: [['Produto', 'Tipo', 'Qtd', 'Vlr Unit.', 'Subtotal']],
       body: order.items.map(i => [
         i.productName,
+        i.stockType === 'previsao_meta' ? 'META' : 'PRONTA',
         i.quantity,
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(i.unitPrice),
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(i.unitPrice * i.quantity)
       ]),
       headStyles: { fillColor: [247, 37, 133] },
+      columnStyles: { 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'right' }, 4: { halign: 'right' } }
     });
 
     // Totals logic
-    const subtotal = order.items.reduce((acc, i) => acc + (i.unitPrice * i.quantity), 0);
-    const fee = order.totalValue - subtotal;
-    
     const finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.text(`Subtotal: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}`, pageWidth - 14, finalY, { align: 'right' });
-    if (fee > 0) {
-      doc.text(`Taxa de Separação: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fee)}`, pageWidth - 14, finalY + 5, { align: 'right' });
+    
+    // Breakdown
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
+    let currentY = finalY;
+    
+    const readySubtotal = order.totalReady ? order.totalReady - (order.totalReady > 14 ? 15 : 0) : 0;
+    doc.text(`Subtotal Pronta Entrega: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(readySubtotal)}`, pageWidth - 14, currentY, { align: 'right' });
+    
+    if (order.totalReady && order.totalReady > 0) {
+      currentY += 5;
+      doc.text(`Taxa de Separação: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(15)}`, pageWidth - 14, currentY, { align: 'right' });
+      currentY += 7;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175); // Blue
+      doc.text(`TOTAL A PAGAR AGORA: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalReady)}`, pageWidth - 14, currentY, { align: 'right' });
+      doc.setTextColor(0);
+      doc.setFont('helvetica', 'normal');
     }
-    doc.setFontSize(12);
+
+    if (order.totalPending && order.totalPending > 0) {
+      currentY += 10;
+      doc.text(`Total Sob Encomenda (Meta): ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalPending)}`, pageWidth - 14, currentY, { align: 'right' });
+      currentY += 7;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(194, 65, 12); // Orange
+      doc.text(`TOTAL PENDENTE (PAGAR DEPOIS): ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalPending)}`, pageWidth - 14, currentY, { align: 'right' });
+      doc.setTextColor(0);
+      doc.setFont('helvetica', 'normal');
+    }
+
+    currentY += 12;
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL FINAL: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}`, pageWidth - 14, finalY + 15, { align: 'right' });
+    doc.text(`VALOR TOTAL GERAL: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}`, pageWidth - 14, currentY, { align: 'right' });
 
     // Status History Table
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Histórico de Alterações', 14, finalY + 30);
+    doc.text('Histórico de Alterações', 14, currentY + 20);
     
     const historyBody = (order.statusHistory || []).map(h => [
       format(new Date(h.updatedAt), 'dd/MM/yyyy HH:mm'),
@@ -199,7 +227,7 @@ export default function AdminOrders() {
     ]);
 
     autoTable(doc, {
-      startY: finalY + 35,
+      startY: currentY + 25,
       head: [['Data/Hora', 'Status', 'Responsável', 'Comentário']],
       body: historyBody.length > 0 ? historyBody : [['-', 'Pedido Criado', order.registeredByAdminName || 'Sistema/Cliente', '-']],
       headStyles: { fillColor: [100, 100, 100] },
@@ -327,8 +355,22 @@ export default function AdminOrders() {
                       <p className="text-[10px] text-gray-400">{format(new Date(order.orderDate), 'dd/MM/yyyy HH:mm')}</p>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-700">{order.clientName}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-900">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}
+                        </span>
+                        {(order.totalPending || 0) > 0 && (
+                          <span className="text-[9px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full w-fit mt-1 border border-orange-100">
+                            PENDENTE: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalPending || 0)}
+                          </span>
+                        )}
+                        {(order.totalReady || 0) > 0 && (
+                          <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full w-fit mt-0.5 border border-blue-100">
+                            COBRADO: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalReady || 0)}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <select
@@ -443,7 +485,7 @@ export default function AdminOrders() {
 
       {/* Confirmation Modal for Status Update */}
       {showStatusModal && pendingStatusUpdate && (
-        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-full animate-in fade-in zoom-in duration-200">
             <div className="p-6 border-b border-gray-50 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Atualizar Status</h3>
@@ -540,7 +582,7 @@ export default function AdminOrders() {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[50] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
+        <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
           <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-full">
             <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white z-10 shrink-0 rounded-t-3xl">
               <div className="flex items-center gap-4">
@@ -622,7 +664,16 @@ export default function AdminOrders() {
                         <tbody className="divide-y divide-gray-100">
                           {selectedOrder.items.map((item, idx) => (
                             <tr key={idx} className="bg-white">
-                              <td className="px-4 py-3 font-bold text-gray-900">{item.productName}</td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-gray-900">{item.productName}</span>
+                                  {item.stockType === 'previsao_meta' && (
+                                    <span className="text-[8px] bg-orange-50 text-orange-600 border border-orange-100 px-1.5 py-0.5 rounded-full font-black uppercase">
+                                      Meta
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
                               <td className="px-4 py-3 text-center font-medium text-gray-600">{item.quantity}</td>
                               <td className="px-4 py-3 text-right text-gray-500">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}
@@ -634,18 +685,39 @@ export default function AdminOrders() {
                           ))}
                         </tbody>
                       </table>
-                      <div className="p-4 bg-gray-50 flex flex-col items-end gap-1">
-                         <div className="flex justify-between w-full max-w-[200px] text-xs text-gray-400">
-                           <span>Subtotal:</span>
-                           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalValue - 15)}</span>
+                      <div className="p-4 bg-gray-50 flex flex-col items-end gap-2">
+                         {/* Split Breakdown for Admin */}
+                         <div className="w-full max-w-[280px] space-y-2 border-b border-gray-200 pb-2 mb-1">
+                           <div className="flex justify-between text-[10px] font-black text-blue-600 uppercase">
+                             <span>Cobrado Agora (Pronta):</span>
+                             <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalReady ? selectedOrder.totalReady - (selectedOrder.totalReady > 0 ? 15 : 0) : 0)}</span>
+                           </div>
+                           <div className="flex justify-between text-[10px] font-black text-blue-400 uppercase">
+                             <span>Taxa Separação:</span>
+                             <span>+ {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalReady && selectedOrder.totalReady > 0 ? 15 : 0)}</span>
+                           </div>
+                           <div className="flex justify-between text-xs font-black text-blue-800 bg-blue-100/50 px-2 py-1 rounded-lg">
+                             <span>TOTAL JÁ COBRADO:</span>
+                             <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalReady || 0)}</span>
+                           </div>
                          </div>
-                         <div className="flex justify-between w-full max-w-[200px] text-xs text-blue-500 font-medium">
-                           <span>Taxa Separação:</span>
-                           <span>+ R$ 15,00</span>
-                         </div>
-                         <div className="flex justify-between w-full max-w-[200px] text-lg font-black text-gray-900 mt-1">
-                           <span>TOTAL:</span>
-                           <span className="text-blue-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalValue)}</span>
+
+                         {(selectedOrder.totalPending || 0) > 0 && (
+                           <div className="w-full max-w-[280px] space-y-2 border-b border-gray-200 pb-2 mb-1">
+                             <div className="flex justify-between text-[10px] font-black text-orange-600 uppercase">
+                               <span>Pendente Meta:</span>
+                               <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalPending || 0)}</span>
+                             </div>
+                             <div className="flex justify-between text-xs font-black text-orange-800 bg-orange-100/50 px-2 py-1 rounded-lg">
+                               <span>TOTAL PENDENTE:</span>
+                               <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalPending || 0)}</span>
+                             </div>
+                           </div>
+                         )}
+
+                         <div className="flex justify-between w-full max-w-[280px] text-lg font-black text-gray-900 mt-1 px-2">
+                           <span>VALOR TOTAL:</span>
+                           <span className="text-pink-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedOrder.totalValue)}</span>
                          </div>
                       </div>
                     </div>

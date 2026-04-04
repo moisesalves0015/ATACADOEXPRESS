@@ -8,9 +8,14 @@ import { QrCode, Copy, CheckCircle2, Upload, AlertCircle, ArrowLeft, Package, In
 import { cn } from '../lib/utils';
 
 export default function Checkout() {
-  const { items, totalValue, clearCart } = useCart();
+  const { items, totalValue, totalReadyValue, totalPendingValue, clearCart } = useCart();
+  
+  const readyItemsCount = items.filter(i => !i.stockType || i.stockType === 'pronta_entrega').length;
+  const deliveryFee = readyItemsCount > 0 ? 15 : 0;
+  const initialPaymentTotal = totalReadyValue + deliveryFee;
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [confirmedTotal, setConfirmedTotal] = useState<number>(0);
   const navigate = useNavigate();
 
   const handleFinalizeOrder = async () => {
@@ -26,8 +31,10 @@ export default function Checkout() {
         clientEmail: userData?.email || auth.currentUser.email || '',
         clientPhone: userData?.phone || '',
         orderDate: new Date().toISOString(),
-        totalValue: totalValue + 15,
-        status: 'aguardando_pagamento',
+        totalValue: totalValue + deliveryFee,
+        totalReady: initialPaymentTotal,
+        totalPending: totalPendingValue,
+        status: initialPaymentTotal > 0 ? 'aguardando_pagamento' : 'aguardando_comprovante', // If nothing to pay now, skip payment wait? No, maybe a better status. 
         items,
         observations: '',
         orderOrigin: 'cliente' as const,
@@ -55,6 +62,7 @@ export default function Checkout() {
         }
       }
 
+      setConfirmedTotal(initialPaymentTotal);
       setOrderId(docRef.id);
       clearCart();
     } catch (err) {
@@ -126,11 +134,29 @@ export default function Checkout() {
               ))}
             </div>
 
-            <div className="border-t border-gray-100 pt-6">
-              <div className="flex justify-between items-end">
-                <span className="text-gray-500 font-medium">Total a pagar</span>
+            <div className="border-t border-gray-100 pt-6 space-y-4">
+              {totalPendingValue > 0 && (
+                <div className="flex justify-between items-center bg-orange-50 p-4 rounded-xl border border-orange-100">
+                  <div className="flex items-center gap-3">
+                    <Package className="w-5 h-5 text-orange-600" />
+                    <div>
+                      <p className="text-xs font-black text-orange-800 uppercase tracking-widest">Valor sob Encomenda</p>
+                      <p className="text-[10px] text-orange-600 leading-tight">Será cobrado apenas quando a meta for atingida.</p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-orange-900">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPendingValue)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-end px-2">
+                <div>
+                  <span className="text-gray-500 font-medium block">Total a pagar AGORA</span>
+                  <p className="text-[10px] text-gray-400">Itens em estoque + Taxa de separação</p>
+                </div>
                 <span className="text-3xl font-bold text-blue-600">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue + 15)}
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(initialPaymentTotal)}
                 </span>
               </div>
             </div>
@@ -178,9 +204,14 @@ export default function Checkout() {
 
                 <div className="bg-blue-50 p-4 rounded-xl flex items-start gap-3">
                   <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    Após o pagamento, anexe o comprovante abaixo para agilizarmos a confirmação e separação do seu pedido.
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-blue-700 leading-relaxed font-bold">
+                      Valor a pagar agora: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(confirmedTotal)}
+                    </p>
+                    <p className="text-[10px] text-blue-600 leading-relaxed">
+                      Após o pagamento, anexe o comprovante abaixo para agilizarmos a confirmação e separação do seu pedido.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

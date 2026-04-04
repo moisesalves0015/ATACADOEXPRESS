@@ -9,6 +9,8 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalValue: number;
+  totalReadyValue: number;
+  totalPendingValue: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -55,6 +57,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalValue = items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+  
+  const totalReadyValue = items
+    .filter(i => !i.stockType || i.stockType === 'pronta_entrega')
+    .reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
+  
+  const totalPendingValue = items
+    .filter(i => i.stockType === 'previsao_meta')
+    .reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0);
 
   return (
     <CartContext.Provider value={{ 
@@ -64,7 +74,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateQuantity, 
       clearCart,
       totalItems,
-      totalValue
+      totalValue,
+      totalReadyValue,
+      totalPendingValue
     }}>
       {children}
     </CartContext.Provider>

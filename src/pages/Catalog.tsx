@@ -4,6 +4,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart, Package, Search, Filter, Grid, Shirt, Crown, Gem, ShoppingBag, Palette } from 'lucide-react';
+import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle } from '@phosphor-icons/react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -42,13 +43,13 @@ export default function Catalog() {
 
   const getCategoryConfig = (categoryName: string) => {
     switch (categoryName.toLowerCase()) {
-      case 'all': return { label: 'Ver Tudo', Icon: Grid };
-      case 'vestidos': return { label: 'Vestidos', Icon: Crown };
-      case 'blusas': return { label: 'Blusas', Icon: Shirt };
-      case 'conjuntos': return { label: 'Conjuntos', Icon: Package };
-      case 'acessórios': return { label: 'Acessórios', Icon: Gem };
-      case 'bolsas': return { label: 'Bolsas', Icon: ShoppingBag };
-      default: return { label: categoryName, Icon: Palette };
+      case 'all': return { label: 'Ver Tudo', Icon: SquaresFour };
+      case 'vestidos': return { label: 'Vestidos', Icon: Dress };
+      case 'blusas': return { label: 'Blusas', Icon: TShirt };
+      case 'conjuntos': return { label: 'Conjuntos', Icon: Suitcase };
+      case 'acessórios': return { label: 'Acessórios', Icon: Watch };
+      case 'bolsas': return { label: 'Bolsas', Icon: Handbag };
+      default: return { label: categoryName, Icon: Sparkle };
     }
   };
 
@@ -87,7 +88,7 @@ export default function Catalog() {
                     : "text-gray-600 hover:border-pink-200 hover:text-pink-600"
                 )}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-5 h-5" weight="light" />
                 <span className="font-bold text-xs uppercase tracking-wider">
                   {label}
                 </span>

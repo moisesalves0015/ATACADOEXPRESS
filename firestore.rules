@@ -56,7 +56,7 @@ service cloud.firestore {
 
     function isValidOrder(data) {
       return data.keys().hasAll(['clientId', 'orderDate', 'totalValue', 'status']) &&
-             data.status in ['aguardando_pagamento', 'pagamento_confirmado', 'separacao', 'enviado', 'entregue', 'cancelado'] &&
+             data.status in ['aguardando_pagamento', 'aguardando_comprovante', 'confirmando_pagamento', 'pagamento_confirmado', 'separacao', 'enviado', 'entregue', 'cancelado'] &&
              data.totalValue is number && data.totalValue >= 0 &&
              data.clientId is string && data.clientId.size() > 0;
     }
@@ -108,13 +108,13 @@ service cloud.firestore {
                        isValidOrder(request.resource.data) &&
                        (isAdmin() || request.resource.data.clientId == request.auth.uid);
 
-      // Client can only update paymentProofUrl/observations while status is aguardando_pagamento
+      // Client can update paymentProofUrl/status/statusHistory/observations
       // Admin can update any field
       allow update: if isAdmin() ||
                     (isAuthenticated() &&
                      resource.data.clientId == request.auth.uid &&
-                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentProofUrl', 'observations']) &&
-                     resource.data.status == 'aguardando_pagamento');
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentProofUrl', 'observations', 'status', 'statusHistory']) &&
+                     (resource.data.status == 'aguardando_pagamento' || resource.data.status == 'aguardando_comprovante'));
 
       allow delete: if isAdmin();
     }
