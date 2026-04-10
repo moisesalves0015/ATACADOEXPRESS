@@ -136,7 +136,7 @@ export default function AdminOrders() {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(247, 37, 133); // Pink
-    doc.text('Atacado Express Boutique', 14, 22);
+    doc.text('Saldo da Eguel', 14, 22);
     
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -440,7 +440,7 @@ export default function AdminOrders() {
                             {/* WhatsApp Button */}
                             <button
                               onClick={() => {
-                                const msg = `Olá ${order.clientName}! Sou da Atacado Express. Identificamos que o Pedido #${order.id.slice(-6).toUpperCase()} (Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}) está aguardando o comprovante de pagamento. Por favor, anexe o arquivo no portal ou envie aqui para agilizarmos a sua separação. Obrigado!`;
+                                const msg = `Olá ${order.clientName}! Sou da Saldo da Eguel. Identificamos que o Pedido #${order.id.slice(-6).toUpperCase()} (Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}) está aguardando o comprovante de pagamento. Por favor, anexe o arquivo no portal ou envie aqui para agilizarmos a sua separação. Obrigado!`;
                                 const phone = order.clientPhone ? `55${order.clientPhone.replace(/\D/g, '')}` : '';
                                 if(phone) {
                                   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');

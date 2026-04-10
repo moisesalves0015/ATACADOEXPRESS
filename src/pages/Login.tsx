@@ -79,8 +79,8 @@ export default function Login() {
 
         {/* Logo */}
         <div className="flex flex-col z-10">
-          <span className="text-5xl font-black text-white tracking-tighter">Atacado</span>
-          <span className="text-sm font-black uppercase tracking-[0.4em] -mt-1" style={{ color: '#F72585' }}>Express</span>
+          <span className="text-5xl font-black text-white tracking-tighter">Saldo</span>
+          <span className="text-sm font-black uppercase tracking-[0.4em] -mt-1" style={{ color: '#F72585' }}>da Eguel</span>
         </div>
 
         {/* Center content */}
@@ -94,7 +94,7 @@ export default function Login() {
           </p>
         </div>
 
-        <p className="text-white/30 text-sm z-10">© 2025 Atacado Express Boutique</p>
+        <p className="text-white/30 text-sm z-10">© 2025 Saldo da Eguel</p>
       </div>
 
       {/* Right form panel */}
@@ -102,9 +102,9 @@ export default function Login() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
-            <span className="text-3xl font-black text-gray-900 tracking-tighter">Atacado</span>
+            <span className="text-3xl font-black text-gray-900 tracking-tighter">Saldo</span>
             <br />
-            <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#F72585' }}>Express</span>
+            <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#F72585' }}>da Eguel</span>
           </div>
 
           <div className="mb-8 text-center lg:text-left">

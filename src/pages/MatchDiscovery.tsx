@@ -74,7 +74,7 @@ export default function MatchDiscovery() {
           <ArrowLeft size={24} weight="bold" />
         </Link>
         <div className="text-center">
-          <h1 className="text-xl font-black text-gray-900 leading-none">Match Express</h1>
+          <h1 className="text-xl font-black text-gray-900 leading-none">Match Eguel</h1>
         </div>
         <div className="w-10 h-10 flex items-center justify-center bg-brand-pink/10 text-brand-pink rounded-xl">
           <Sparkle size={24} weight="fill" className="animate-pulse" />
@@ -102,7 +102,7 @@ export default function MatchDiscovery() {
 
           {/* Scroll Hint */}
           <div className="flex flex-col items-center gap-1 text-gray-300 mt-12 mb-20 animate-bounce">
-            <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Role para Detalhes</span>
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Explore o Look</span>
             <CaretDown size={16} weight="bold" className="opacity-30" />
           </div>
 
@@ -121,7 +121,7 @@ export default function MatchDiscovery() {
                 </div>
                 <div>
                   <h3 className="text-gray-900 font-black text-2xl uppercase tracking-tighter">Sobre este Look</h3>
-                  <p className="text-brand-pink font-bold text-[10px] uppercase tracking-[0.2em] opacity-60">Atacado Express Boutique</p>
+                  <p className="text-brand-pink font-bold text-[10px] uppercase tracking-[0.2em] opacity-60">Saldo da Eguel</p>
                 </div>
               </div>
 
@@ -169,7 +169,7 @@ export default function MatchDiscovery() {
           <div className="p-6 bg-white shadow-xl rounded-3xl mb-6">
             <ShoppingCart size={48} weight="duotone" className="text-brand-pink" />
           </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-3">Você viu tudo!</h2>
+          <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">Match<span className="text-brand-pink">Eguel</span></h2>
           <p className="text-gray-400 font-medium mb-8">
             Já mostramos todas as novidades disponíveis por aqui. Que tal dar uma olhada no seu carrinho?
           </p>

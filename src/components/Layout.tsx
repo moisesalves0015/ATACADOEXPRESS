@@ -66,7 +66,7 @@ export default function Layout({ user }: LayoutProps) {
               className="text-[10px] font-black uppercase tracking-[0.25em] -mt-1 ml-0.5" 
               style={{ color: '#F72585' }}
             >
-              Express Boutique
+              Saldo da Eguel
             </span>
           </Link>
 

@@ -35,7 +35,7 @@ export default function SwipeTutorial({ onClose }: SwipeTutorialProps) {
 
         {/* Header */}
         <div className="text-center mb-10 relative z-10">
-          <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">Match<span className="text-brand-pink">Express</span></h2>
+          <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">Match<span className="text-brand-pink">Eguel</span></h2>
         </div>
 
         {/* The Orbit Container */}

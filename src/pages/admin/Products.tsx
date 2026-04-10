@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDo
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../firebase';
 import { Package, Plus, Search, Edit2, Trash2, X, Upload, BarChart2, TrendingUp, ShoppingBag, DollarSign, Users, Filter, ShieldCheck, User, Clock, CheckCircle2, Zap, MessageCircle, Loader2, History, Image as ImageIcon, Layers, Settings, Check, ChevronRight, MousePointer2 } from 'lucide-react';
-import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, Cube, Lightning, ChartLineUp, NotePencil, Trash, Export, SealCheck, UsersThree, ChartBar, Receipt, HouseLine, UserCircle, WhatsappLogo, Gear, Image, Stack, MagnifyingGlass, Plus as PlusIcon, X as XIcon, TrendUp, CurrencyDollar, Clock as ClockIcon, CaretRight } from '@phosphor-icons/react';
+import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, Cube, Lightning, ChartLineUp, NotePencil, Trash, Export, SealCheck, UsersThree, ChartBar, Receipt, HouseLine, UserCircle, WhatsappLogo, Gear, Image, Stack, MagnifyingGlass, Plus as PlusIcon, X as XIcon, TrendUp, CurrencyDollar, Clock as ClockIcon, CaretRight, Tag } from '@phosphor-icons/react';
 import { Product, Order, OrderStatus, StatusUpdate, ProductHistoryEntry, ProductVariation } from '../../types';
 import { cn } from '../../lib/utils';
 import { format } from 'date-fns';
@@ -54,6 +54,7 @@ export default function AdminProducts() {
   const [reportOrders, setReportOrders] = useState<(Order & { itemQty: number; itemTotal: number })[]>([]);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportOriginFilter, setReportOriginFilter] = useState<'all' | 'cliente' | 'admin'>('all');
+  const [reportTab, setReportTab] = useState<'sales' | 'history'>('sales');
   const [reportStatusFilter, setReportStatusFilter] = useState<string>('all');
 
   // Hit Goal States
@@ -169,7 +170,7 @@ export default function AdminProducts() {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(247, 37, 133); // Brand Pink
-    doc.text('Atacado Express Boutique', 14, 22);
+    doc.text('Saldo da Eguel', 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -239,13 +240,59 @@ export default function AdminProducts() {
     });
 
     // --- Footer ---
-    const totalFiltered = filteredReportOrders.reduce((s, o) => s + o.itemTotal, 0);
-    const finalY = (doc as any).lastAutoTable.finalY;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL FILTRADO: ${fmt(totalFiltered)}`, pageWidth - 14, finalY + 10, { align: 'right' });
-
     doc.save(`Relatório_${reportProduct.name.replace(/\s+/g, '_')}.pdf`);
+  };
+
+  const generateLabelsPDF = () => {
+    if (!reportProduct || filteredReportOrders.length === 0) return;
+
+    // Small Square Label: 50x50 mm
+    const doc = new jsPDF({
+      orientation: 'p',
+      unit: 'mm',
+      format: [50, 50]
+    });
+
+    filteredReportOrders.forEach((order, index) => {
+      if (index > 0) doc.addPage([50, 50], 'p');
+
+      // Top Branding (Subtle)
+      doc.setFontSize(7);
+      doc.setTextColor(247, 37, 133); // Pink
+      doc.setFont('helvetica', 'bold');
+      doc.text('Saldo da Eguel', 25, 6, { align: 'center' });
+
+      // Client Name (Main Focus)
+      doc.setTextColor(0);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      const splitClientName = doc.splitTextToSize(order.clientName.toUpperCase(), 44);
+      doc.text(splitClientName, 25, 14, { align: 'center' });
+
+      // Divider
+      doc.setDrawColor(240);
+      doc.line(10, 22, 40, 22);
+
+      // Order ID
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text('PEDIDO:', 25, 27, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`#${order.id.slice(-6).toUpperCase()}`, 25, 34, { align: 'center' });
+
+      // Item Detail
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${order.itemQty} unidades · ${reportProduct.name.slice(0, 20)}...`, 25, 42, { align: 'center' });
+
+      // Minimal footer date
+      doc.setFontSize(5);
+      doc.setTextColor(180);
+      doc.text(format(new Date(), "dd/MM/yy"), 25, 47, { align: 'center' });
+    });
+
+    doc.save(`Etiquetas_5x5_${reportProduct.name.replace(/\s+/g, '_')}.pdf`);
   };
 
   // Open product report
@@ -337,7 +384,7 @@ export default function AdminProducts() {
   };
 
   const shareGoalWhatsApp = (product: Product) => {
-    const message = `🎉 *ÓTIMAS NOTÍCIAS DA ATACADO EXPRESS BOUTIQUE!* 🛍️\n\nOlá! Passando para informar que a meta de produção do produto *${product.name.toUpperCase()}* acaba de ser atingida! ✨\n\nEle já está disponível para envio. Caso você tenha este item em um pedido pendente, o pagamento do saldo já pode ser realizado diretamente pelo nosso site. Após o pagamento, não esqueça de anexar o comprovante na área do pedido para agilizarmos sua entrega! 🚚💨\n\nConfira seus pedidos aqui: ${window.location.origin}/my-orders\n\nAgradecemos pela confiança! 💖`;
+    const message = `🎉 *ÓTIMAS NOTÍCIAS DA SALDO DA EGUEL!* 🛍️\n\nOlá! Passando para informar que a meta de produção do produto *${product.name.toUpperCase()}* acaba de ser atingida! ✨\n\nEle já está disponível para envio. Caso você tenha este item em um pedido pendente, o pagamento do saldo já pode ser realizado diretamente pelo nosso site. Após o pagamento, não esqueça de anexar o comprovante na área do pedido para agilizarmos sua entrega! 🚚💨\n\nConfira seus pedidos aqui: ${window.location.origin}/my-orders\n\nAgradecemos pela confiança! 💖`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -554,162 +601,166 @@ export default function AdminProducts() {
                 </button>
             </div>
 
-            <div className="p-6 space-y-6 overflow-y-auto">
+            <div className="p-6 space-y-4 overflow-y-auto">
               {reportLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
                 </div>
               ) : (
                 <>
-                  {/* KPI cards */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                        <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Pedidos</span>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-900">{kpiOrders.length}</p>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Unidades</span>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-900">{totalUnits}</p>
-                    </div>
-                    <div className="bg-pink-50 border border-pink-100 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <DollarSign className="w-4 h-4 text-pink-600" />
-                        <span className="text-xs font-bold text-pink-600 uppercase tracking-widest">Receita</span>
-                      </div>
-                      <p className="text-xl font-bold text-gray-900">{fmt(totalRevenue)}</p>
-                    </div>
-                    <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Users className="w-4 h-4 text-indigo-600" />
-                        <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Clientes</span>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-900">{uniqueClients}</p>
-                    </div>
+                  {/* Tab Selector */}
+                  <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl w-fit mb-2">
+                    <button
+                      onClick={() => setReportTab('sales')}
+                      className={cn(
+                        "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                        reportTab === 'sales' ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                      )}
+                    >
+                      Vendas
+                    </button>
+                    <button
+                      onClick={() => setReportTab('history')}
+                      className={cn(
+                        "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                        reportTab === 'history' ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                      )}
+                    >
+                      Histórico
+                    </button>
                   </div>
+                  {reportTab === 'sales' ? (
+                    <>
+                      {/* KPI cards - Monochromatic & Compact */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-white border border-gray-100 rounded-xl p-3">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Pedidos</p>
+                          <p className="text-xl font-bold text-gray-900 leading-none">{kpiOrders.length}</p>
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-xl p-3">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Unidades</p>
+                          <p className="text-xl font-bold text-gray-900 leading-none">{totalUnits}</p>
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-xl p-3">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Receita</p>
+                          <p className="text-xl font-bold text-gray-900 leading-none">{fmt(totalRevenue)}</p>
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-xl p-3">
+                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Clientes</p>
+                          <p className="text-xl font-bold text-gray-900 leading-none">{uniqueClients}</p>
+                        </div>
+                      </div>
 
-                  {/* Filters */}
-                  <div className="flex flex-wrap gap-3 py-2">
-                    {(['all', 'cliente', 'admin'] as const).map(origin => (
-                      <button
-                        key={origin}
-                        onClick={() => setReportOriginFilter(origin)}
-                        className={cn(
-                          "px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-                          reportOriginFilter === origin ? "bg-emerald-600 text-white shadow-md shadow-emerald-100" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
-                        )}
-                      >
-                        {origin === 'all' ? 'Todas Origens' : origin === 'cliente' ? 'Apenas Site' : 'Apenas Vendedora'}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* History Section */}
-                  <div className="space-y-4">
-                     <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <History className="w-4 h-4 text-emerald-500" weight="light" /> Histórico de Produção/Meta
-                     </h3>
-                     <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6">
-                        {!reportProduct.history || reportProduct.history.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">Nenhum evento registrado no histórico.</p>
+                      {/* Filters - Simplified Labels */}
+                      <div className="flex items-center gap-2 py-1">
+                        {(['all', 'cliente', 'admin'] as const).map(origin => (
+                          <button
+                            key={origin}
+                            onClick={() => setReportOriginFilter(origin)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                              reportOriginFilter === origin ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                            )}
+                          >
+                            {origin === 'all' ? 'Todos' : origin === 'cliente' ? 'Site' : 'Admin'}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="space-y-4">
+                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Detalhamento de Vendas</h3>
+                        {filteredReportOrders.length === 0 ? (
+                          <div className="text-center py-10 border border-dashed border-gray-100 rounded-xl">
+                             <p className="text-[11px] text-gray-400 italic">Nenhuma venda encontrada.</p>
+                          </div>
                         ) : (
-                          <div className="space-y-6 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
-                             {reportProduct.history.slice().reverse().map((h, i) => (
-                               <div key={i} className="relative pl-8">
-                                  <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-white border-2 border-emerald-500 z-10"></div>
-                                  <div className="space-y-1">
-                                     <div className="flex justify-between items-start">
-                                        <p className="text-xs font-black text-gray-900 uppercase">{h.type === 'goal_hit' ? 'Meta Atingida' : h.type}</p>
-                                        <span className="text-[10px] text-gray-400 font-medium">{format(new Date(h.date), "dd MMM, HH:mm", { locale: ptBR })}</span>
-                                     </div>
-                                     <p className="text-[11px] text-gray-600 leading-relaxed font-medium">"{h.message}"</p>
-                                     <p className="text-[9px] text-gray-400 font-bold uppercase">Registrado por: {h.user}</p>
-                                  </div>
-                               </div>
-                             ))}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                             {filteredReportOrders.map((o, idx) => (
+                                <div key={idx} className="bg-white border border-gray-50 rounded-xl p-3 shadow-sm flex flex-col gap-2 group hover:border-emerald-100 transition-all">
+                                   <div className="flex justify-between items-start">
+                                      <div className="min-w-0">
+                                         <div className="flex items-center gap-1.5 mb-0.5">
+                                           <span className="text-[10px] font-black text-gray-900 group-hover:text-emerald-600 transition-colors">#{o.id.slice(-6).toUpperCase()}</span>
+                                           <span className="text-[8px] text-gray-300">·</span>
+                                           <span className="text-[9px] font-black text-gray-400 uppercase">{o.orderOrigin === 'admin' ? 'Admin' : 'Site'}</span>
+                                         </div>
+                                         <p className="text-[11px] font-bold text-gray-700 truncate">{o.clientName}</p>
+                                         <p className="text-[9px] text-gray-400 font-medium">{format(new Date(o.orderDate), "dd MMM, HH:mm", { locale: ptBR })}</p>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                         <p className="text-[11px] font-black text-emerald-600 leading-none">{fmt(o.itemTotal)}</p>
+                                         <p className="text-[9px] text-gray-400 font-bold mt-1">{o.itemQty} un</p>
+                                      </div>
+                                   </div>
+                                   <div className="flex justify-end">
+                                      <div className={cn(
+                                        "px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase border",
+                                        statusConfig[o.status]?.color, statusConfig[o.status]?.bg, statusConfig[o.status]?.border
+                                      )}>
+                                        {statusConfig[o.status]?.label}
+                                      </div>
+                                   </div>
+                                </div>
+                              ))}
                           </div>
                         )}
-                     </div>
-                  </div>
-
-                  {/* Orders List */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Detalhamento de Vendas</h3>
-                    {filteredReportOrders.length === 0 ? (
-                      <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-2xl">
-                         <p className="text-gray-400 italic">Nenhuma venda encontrada para este filtro.</p>
                       </div>
-                    ) : (
-                      <div className="space-y-3">
-                         {filteredReportOrders.map((o, idx) => (
-                           <div key={idx} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-sm font-black text-gray-900">#{o.id.slice(-6).toUpperCase()}</span>
-                                    <span className={cn(
-                                       "px-2 py-0.5 rounded-full text-[8px] font-black uppercase",
-                                       o.orderOrigin === 'admin' ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
-                                    )}>
-                                      {o.orderOrigin === 'admin' ? 'Venda Admin' : 'Venda Site'}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs font-bold text-gray-700">{o.clientName}</p>
-                                  <p className="text-[10px] text-gray-400">{format(new Date(o.orderDate), "dd/MM/yyyy HH:mm")}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-black text-emerald-600">{fmt(o.itemTotal)}</p>
-                                  <p className="text-[10px] text-gray-500 font-bold">{o.itemQty} unidades</p>
-                                  <div className={cn(
-                                    "mt-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase border inline-block",
-                                    statusConfig[o.status]?.color, statusConfig[o.status]?.bg, statusConfig[o.status]?.border
-                                  )}>
-                                    {statusConfig[o.status]?.label}
-                                  </div>
-                                </div>
-                              </div>
-                           </div>
-                         ))}
-                      </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    /* History Tab */
+                    <div className="space-y-4 py-2">
+                       <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 min-h-[300px]">
+                          {!reportProduct.history || reportProduct.history.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center pt-20 text-center">
+                              <History className="w-8 h-8 text-gray-200 mb-2" />
+                              <p className="text-xs text-gray-400 italic font-medium">Nenhum evento registrado no histórico.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-6 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
+                               {reportProduct.history.slice().reverse().map((h, i) => (
+                                 <div key={i} className="relative pl-8">
+                                    <div className="absolute left-0.5 top-1 w-3 h-3 rounded-full bg-white border-2 border-gray-900 z-10"></div>
+                                    <div className="space-y-1">
+                                       <div className="flex justify-between items-start">
+                                          <p className="text-[10px] font-black text-gray-900 uppercase tracking-tight">{h.type === 'goal_hit' ? 'Meta Atingida' : h.type}</p>
+                                          <span className="text-[9px] text-gray-400 font-medium">{format(new Date(h.date), "dd MMM, HH:mm", { locale: ptBR })}</span>
+                                       </div>
+                                       <p className="text-[11px] text-gray-600 leading-relaxed font-medium">"{h.message}"</p>
+                                       <p className="text-[9px] text-gray-400 font-bold uppercase">Por: {h.user}</p>
+                                    </div>
+                                 </div>
+                               ))}
+                            </div>
+                          )}
+                       </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
             
-             {/* Modal Footer */}
+             {/* Modal Footer - Inline Actions Only */}
              {!reportLoading && (
-                <div className="p-6 md:p-8 bg-gray-50/50 border-t border-gray-100 rounded-b-2xl flex flex-col sm:flex-row gap-4 justify-between items-center">
-                   <div className="text-center sm:text-left">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Filtrado</p>
-                      <p className="text-xl font-bold text-emerald-600">{fmt(filteredReportOrders.reduce((s, o) => s + o.itemTotal, 0))}</p>
-                   </div>
-                   
-                   <div className="flex items-center gap-3 w-full sm:w-auto">
-                      <button
-                        onClick={() => shareGoalWhatsApp(reportProduct)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-100 text-emerald-700 px-6 py-3 rounded-xl text-sm font-bold hover:bg-emerald-200 transition-all"
-                      >
-                        <WhatsappLogo className="w-5 h-5" weight="fill" /> WhatsApp
-                      </button>
-                      <button
-                        onClick={generatePDF}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
-                      >
-                        <Export className="w-5 h-5" weight="bold" /> PDF
-                      </button>
-                      <button 
-                        onClick={() => setReportProduct(null)} 
-                        className="hidden sm:block px-8 py-3 bg-white border border-gray-200 text-gray-500 font-bold rounded-xl hover:text-gray-900 transition-all text-sm"
-                      >
-                        Fechar
-                      </button>
-                   </div>
+                <div className="p-5 bg-white border-t border-gray-100 rounded-b-2xl flex justify-center">
+                    <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+                       <button
+                         onClick={() => shareGoalWhatsApp(reportProduct)}
+                         className="flex items-center gap-1.5 bg-gray-50 text-gray-700 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-700 transition-all border border-gray-100 whitespace-nowrap"
+                       >
+                         <WhatsappLogo className="w-4 h-4" weight="fill" /> WhatsApp
+                       </button>
+                       <button
+                         onClick={generatePDF}
+                         className="flex items-center gap-1.5 bg-gray-50 text-gray-700 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100 whitespace-nowrap"
+                       >
+                         <Export className="w-4 h-4" weight="bold" /> Relatório
+                       </button>
+                       <button
+                         onClick={generateLabelsPDF}
+                         className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-sm whitespace-nowrap"
+                       >
+                         <Tag className="w-4 h-4" weight="bold" /> Etiquetas
+                       </button>
+                    </div>
                 </div>
              )}
           </div>
