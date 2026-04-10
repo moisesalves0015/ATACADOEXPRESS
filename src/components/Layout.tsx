@@ -7,14 +7,25 @@ import { signOut } from 'firebase/auth';
 import { UserProfile } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import Footer from './Footer';
+
+import { Search, SlidersHorizontal } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 interface LayoutProps {
   user: UserProfile | null;
 }
 
+export type LayoutContextType = {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+};
+
 export default function Layout({ user }: LayoutProps) {
   const navigate = useNavigate();
+  const { totalItems = 0 } = useCart();
   const [scrolled, setScrolled] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -37,8 +48,8 @@ export default function Layout({ user }: LayoutProps) {
         className={cn(
           "sticky top-0 z-[100] w-full transition-all duration-300 px-6",
           scrolled 
-            ? "py-3 bg-white/60 backdrop-blur-xl border-b border-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.03)]" 
-            : "py-6 bg-transparent border-b border-transparent"
+            ? "py-2 bg-white/60 backdrop-blur-xl border-b border-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.03)]" 
+            : "py-4 bg-transparent border-b border-transparent"
         )}
       >
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -58,6 +69,18 @@ export default function Layout({ user }: LayoutProps) {
               Express Boutique
             </span>
           </Link>
+
+          {/* New Global Search Bar - PC Only */}
+          <div className="hidden lg:flex flex-1 max-w-xl mx-8 relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Pesquisar no catálogo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-gray-50/50 border border-gray-100 rounded-xl pl-11 pr-4 py-2.5 text-sm font-bold shadow-sm focus:bg-white focus:border-pink-500/30 focus:ring-4 focus:ring-pink-500/5 transition-all outline-none"
+            />
+          </div>
 
           {/* Right Action Area */}
           <div className="flex items-center gap-3">
@@ -90,9 +113,19 @@ export default function Layout({ user }: LayoutProps) {
               {!isAdmin && (
                 <Link 
                   to="/cart" 
-                  className="p-2.5 bg-white/60 hover:bg-white rounded-xl shadow-sm border border-white/80 text-gray-700 hover:text-pink-500 transition-all active:scale-95"
+                  className="group relative flex items-center justify-center w-11 h-11 bg-white/60 hover:bg-white rounded-xl shadow-sm border border-white/80 transition-all active:scale-95"
                 >
-                  <ShoppingBagOpen className="w-5 h-5" weight="light" />
+                  <div className="flex flex-col items-center">
+                    <span className="text-[14px] font-black text-gray-900 leading-none group-hover:text-brand-pink transition-colors">
+                      {totalItems}
+                    </span>
+                    <span className="text-[7px] font-black uppercase text-pink-500 tracking-tighter -mb-0.5 opacity-70 group-hover:opacity-100">
+                      Itens
+                    </span>
+                  </div>
+                  {totalItems > 0 && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full border-2 border-white animate-pulse" />
+                  )}
                 </Link>
               )}
 
@@ -118,9 +151,14 @@ export default function Layout({ user }: LayoutProps) {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-7xl mx-auto w-full px-6 pt-8 pb-32 md:pl-28 md:pb-12">
-        <Outlet />
+      <main className="flex-grow max-w-7xl mx-auto w-full px-6 pt-0 pb-16 md:pl-28 md:pb-12">
+        <Outlet context={{ searchTerm, setSearchTerm } satisfies LayoutContextType} />
       </main>
+
+      {/* Footer */}
+      <div className="md:pl-24">
+        <Footer />
+      </div>
     </div>
   );
 }

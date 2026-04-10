@@ -14,6 +14,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
 import OrderDetails from './pages/OrderDetails';
+import MatchDiscovery from './pages/MatchDiscovery';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -70,6 +71,7 @@ export default function App() {
 
             <Route element={<Layout user={authLoading ? null : user} />}>
               <Route path="/" element={<Catalog />} />
+              <Route path="/descobrir" element={<MatchDiscovery />} />
               <Route path="/product/:id" element={<ProductDetail />} />
 
               {/* Client Routes */}

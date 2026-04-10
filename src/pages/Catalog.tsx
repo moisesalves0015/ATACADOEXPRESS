@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { LayoutContextType } from '../components/Layout';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
-import { useCart } from '../context/CartContext';
-import { ShoppingCart, Package, Search, Filter, Grid, Shirt, Crown, Gem, ShoppingBag, Palette } from 'lucide-react';
-import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, ShoppingBagOpen } from '@phosphor-icons/react';
-import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
+import { Search, SlidersHorizontal, Package } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Components
+import Hero from '../components/home/Hero';
+import CategorySection from '../components/home/CategorySection';
+import AdBanners from '../components/home/AdBanners';
+import MetaProductsCarousel from '../components/home/MetaProductsCarousel';
+import WhatsAppInvite from '../components/home/WhatsAppInvite';
+import Testimonials from '../components/home/Testimonials';
+import ProductCard from '../components/ProductCard';
 
 export default function Catalog() {
+  const { searchTerm, setSearchTerm } = useOutletContext<LayoutContextType>();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const { addToCart } = useCart();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const q = query(collection(db, 'products'), where('status', '==', 'active'));
@@ -33,184 +38,111 @@ export default function Catalog() {
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || 
+                           p.category?.toLowerCase() === categoryFilter.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
   const dbCategories = products.map(p => p.category);
   const defaultCategories = ['all', 'Vestidos', 'Blusas', 'Conjuntos', 'Acessórios', 'Bolsas', 'Calças', 'Saias', 'Casacos', 'Sapatos', 'Shorts'];
-  const categories = [...new Set([...defaultCategories, ...dbCategories])];
+  // Create a unique list of categories, ignoring case
+  const uniqueCategories = Array.from(new Set([...defaultCategories, ...dbCategories].map(c => c.toLowerCase())));
+  
+  // Map back to capitalized labels for display consistency
+  const categories = uniqueCategories.map(c => {
+    const found = defaultCategories.find(dc => dc.toLowerCase() === c.toLowerCase());
+    return found || c.charAt(0).toUpperCase() + c.slice(1);
+  });
 
-  const getCategoryConfig = (categoryName: string) => {
-    const assetsPath = '/assets/categories/';
-    switch (categoryName.toLowerCase()) {
-      case 'all': return { label: 'Ver Tudo', img: `${assetsPath}all.png` };
-      case 'vestidos': return { label: 'Vestidos', img: `${assetsPath}vestidos.png` };
-      case 'blusas': return { label: 'Blusas', img: `${assetsPath}blusas.png` };
-      case 'conjuntos': return { label: 'Conjuntos', img: `${assetsPath}conjuntos.png` };
-      case 'acessórios': return { label: 'Acessórios', img: `${assetsPath}acessorios.png` };
-      case 'bolsas': return { label: 'Bolsas', img: `${assetsPath}bolsas.png` };
-      case 'calças': return { label: 'Calças', img: `${assetsPath}calcas.png` };
-      case 'saias': return { label: 'Saias', img: `${assetsPath}saias.png` };
-      case 'casacos': return { label: 'Casacos', img: `${assetsPath}casacos.png` };
-      case 'sapatos': return { label: 'Sapatos', img: `${assetsPath}sapatos.png` };
-      case 'shorts': return { label: 'Shorts', img: `${assetsPath}shorts.png` };
-      default: return { label: categoryName, img: `${assetsPath}all.png` };
-    }
-  };
-
+  // Separate regular products (pronta_entrega) from meta products for the main feed
+  const displayProducts = filteredProducts.filter(p => {
+    const type = p.stockType?.toLowerCase().replace(/[\s_-]/g, '') || '';
+    return type === 'prontarentrega' || type === 'prontaentrega';
+  });
 
   return (
-    <div className="space-y-10 pb-24">
-      {/* Search Bar */}
-      <div className="search-bar-rounded group">
-        <Search className="w-5 h-5 text-gray-400 group-focus-within:text-brand-blue transition-colors" />
-        <input
-          type="text"
-          placeholder="Buscar produtos..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-transparent border-none focus:ring-0 text-sm font-medium"
-        />
-        <Filter className="w-5 h-5 text-gray-400 cursor-pointer hover:text-brand-blue" />
-      </div>
+    <div className="space-y-6 sm:space-y-8 pb-24">
+      {/* Hero Section */}
+      <Hero />
 
-      {/* Popular Brand */}
-      <section>
-        <h2 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
-          Categorias <div className="h-px bg-gray-100 flex-1 mt-1" />
-        </h2>
-        <div className="grid grid-rows-2 grid-flow-col gap-y-10 gap-x-12 overflow-x-auto no-scrollbar pb-10 px-4">
-          {categories.map((category) => {
-            const { label, img } = getCategoryConfig(category);
-            const isActive = categoryFilter === category;
-            
-            return (
-              <motion.button
-                key={category}
-                onClick={() => setCategoryFilter(category)}
-                title={label}
-                initial={{ y: 0 }}
-                animate={isActive ? { y: -8, scale: 1.15 } : { y: 0, scale: 1 }}
-                whileHover={{ y: -12, scale: 1.25 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className={cn(
-                  "flex flex-col items-center justify-center transition-all relative group h-32",
-                  isActive 
-                    ? "z-10" 
-                    : ""
-                )}
-              >
-                {/* Floating Item */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 drop-shadow-[0_20px_20px_rgba(0,0,0,0.15)] group-hover:drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)] transition-all duration-500 transform group-hover:-translate-y-4">
-                  <img 
-                    src={img} 
-                    alt={label} 
-                    className="w-full h-full object-contain" 
-                  />
-                </div>
-                
-                {/* Visual Label (Back again because grid needs context) */}
-                <span className={cn(
-                  "mt-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                  isActive ? "text-pink-500" : "text-gray-400 group-hover:text-gray-600"
-                )}>
-                  {label}
-                </span>
-
-                {isActive && (
-                  <motion.div 
-                    layoutId="activeCategoryDot"
-                    className="absolute -bottom-2 w-10 h-1 bg-pink-500 rounded-full" 
-                  />
-                )}
-              </motion.button>
-            );
-          })}
+      {/* Category Navigation & Search */}
+      <section className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8">
+          <div className="w-full">
+            <CategorySection 
+              categories={categories} 
+              activeCategory={categoryFilter} 
+              onCategoryChange={setCategoryFilter} 
+            />
+          </div>
+          
+          {/* Refined Search Bar - Mobile Only */}
+          <div className="relative group w-full lg:hidden flex-shrink-0">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
+            <input
+              type="text"
+              placeholder="O que você procura hoje?"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-12 py-3.5 text-sm font-bold shadow-sm focus:border-pink-500/20 focus:ring-0 transition-all outline-none"
+            />
+          </div>
         </div>
       </section>
 
-      {/* Suggest for you */}
+      {/* Add Banners with more top spacing to separate from navigation */}
+      <div className="pt-4 sm:pt-8">
+        <AdBanners />
+      </div>
+
+      {/* Meta Products Carousel */}
+      <div className="pt-2 sm:pt-4">
+        <MetaProductsCarousel products={products} loading={loading} />
+      </div>
+
+      {/* Main Product Feed */}
       <section>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold">Destaques para você</h2>
-          <button className="text-xs text-brand-blue font-bold hover:underline">Ver tudo</button>
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-none truncate">Pronta Entrega</h2>
+            <p className="text-gray-400 text-[10px] sm:text-sm font-bold mt-1 uppercase tracking-widest truncate">Envio imediato</p>
+          </div>
+          <button className="flex-shrink-0 text-[10px] sm:text-xs text-brand-pink font-black uppercase tracking-widest hover:underline hover:text-brand-pink/80 transition-all">
+            Ver todos
+          </button>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="product-card-rounded">
-                <div className="relative aspect-square mb-4 overflow-hidden rounded-xl bg-gray-100 animate-pulse" />
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-100 rounded-full animate-pulse w-3/4" />
-                  <div className="h-4 bg-gray-100 rounded-full animate-pulse w-1/2" />
-                </div>
-              </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-[4/5] bg-gray-50 rounded-[1.5rem] sm:rounded-[2rem] animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-6">
-            {filteredProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="product-card-rounded group cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`)}
-              >
-                <div className="relative aspect-square mb-4 overflow-hidden rounded-xl bg-gray-50">
-                  {product.imageUrls?.length || product.imageUrl ? (
-                    <img
-                      src={product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl}
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-200">
-                      <Package className="w-10 h-10 stroke-[1px]" />
-                    </div>
-                  )}
-                  
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Add to favorites logic
-                      const p = product;
-                      addToCart({
-                        productId: p.id,
-                        productName: p.name,
-                        quantity: 1,
-                        unitPrice: p.unitPrice,
-                        imageUrl: (p.imageUrls && p.imageUrls.length > 0) ? p.imageUrls[0] : p.imageUrl,
-                        stockType: p.stockType
-                      });
-                    }}
-                    className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors"
-                  >
-                    <ShoppingBagOpen className="w-3" weight="bold" />
-                  </button>
-                </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-2 sm:gap-x-4 gap-y-4 sm:gap-y-6">
+            <AnimatePresence>
+              {displayProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
 
-                <div className="space-y-1">
-                  <h3 className="text-xs font-bold text-gray-900 truncate">{product.name}</h3>
-                  <p className="text-sm font-bold text-gray-900">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+        {displayProducts.length === 0 && !loading && (
+          <div className="text-center py-16 sm:py-24 bg-gray-50 rounded-[2rem] sm:rounded-[3rem] border-2 border-dashed border-gray-100">
+            <div className="inline-flex p-3 sm:p-4 bg-white rounded-full text-gray-300 mb-4 shadow-sm">
+              <Package size={32} weight="thin" className="sm:w-10 sm:h-10" />
+            </div>
+            <p className="text-gray-400 text-sm sm:text-base font-bold px-4">Nenhum produto disponível nesta categoria.</p>
           </div>
         )}
       </section>
 
-      {filteredProducts.length === 0 && !loading && (
-        <div className="text-center py-20">
-          <p className="text-sm text-gray-400">Nenhum produto encontrado nesta busca.</p>
-        </div>
-      )}
+      {/* WhatsApp Community */}
+      <WhatsAppInvite />
+
+      {/* Testimonials */}
+      <Testimonials />
     </div>
   );
 }

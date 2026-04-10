@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
   
   --color-brand-yellow: #FFD700;
   --color-brand-blue: #A0D2EB;
@@ -18,6 +19,15 @@
 @layer base {
   body {
     @apply font-sans text-gray-900 bg-[#F8F9FB] antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-gray-900;
+  }
+
+  .font-fashion {
+    @apply font-display uppercase tracking-[0.2em] font-black;
   }
 }
 
@@ -220,4 +230,23 @@
 .btn-action-premium:hover {
   @apply shadow-lg brightness-110;
   transform: translateY(-1px);
+}
+
+.glass-morphism {
+  @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.text-gradient-pink {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(to right, #F72585, #7209b7);
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
