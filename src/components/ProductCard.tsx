@@ -30,6 +30,10 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     });
   };
 
+  // Deterministic random addition between R$ 3 and R$ 6 based on product ID
+  const randomExtra = 3 + (product.id.charCodeAt(0) % 4);
+  const originalPrice = product.unitPrice + randomExtra;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -82,17 +86,17 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       {/* Info Container */}
       <div className="p-1.5 sm:p-5 flex flex-col flex-1 justify-between gap-0.5 sm:gap-2">
         <div>
-          <div className="font-fashion text-[5px] sm:text-[8px] text-gray-400 truncate">
-            {product.category}
-          </div>
-          <h3 className="text-[8px] sm:text-sm font-bold leading-tight text-gray-900 truncate group-hover:text-brand-pink transition-colors -mt-0.5">
+          <h3 className="text-[9px] sm:text-base font-bold leading-tight text-gray-900 truncate group-hover:text-brand-pink transition-colors">
             {product.name}
           </h3>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] sm:text-lg font-black tracking-tight text-gray-900 leading-none">
+            <span className="text-[6px] sm:text-[10px] text-gray-400 line-through leading-none mb-0.5 font-medium">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalPrice)}
+            </span>
+            <span className="text-[11px] sm:text-xl font-black tracking-tight text-brand-pink leading-none">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
             </span>
             {isMeta && product.requiredGoal && (
