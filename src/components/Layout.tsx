@@ -151,7 +151,7 @@ export default function Layout({ user }: LayoutProps) {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-7xl mx-auto w-full px-6 pt-0 pb-16 md:pl-28 md:pb-12">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-2 sm:px-6 pt-0 pb-16 md:pl-28 md:pb-12">
         <Outlet context={{ searchTerm, setSearchTerm } satisfies LayoutContextType} />
       </main>
 

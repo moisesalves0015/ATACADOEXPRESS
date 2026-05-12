@@ -37,7 +37,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
       className={cn(
-        "group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col h-full",
+        "group bg-white rounded-md sm:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col h-full",
         className
       )}
       onClick={() => navigate(`/product/${product.id}`)}
@@ -58,13 +58,13 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         )}
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div className="absolute top-1 sm:top-3 left-1 sm:left-3 flex flex-col gap-1 sm:gap-2">
           {isMeta ? (
-            <div className="px-3 py-1 bg-brand-yellow/90 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-wider text-gray-900 border border-white/20">
+            <div className="px-1.5 py-0.5 sm:px-3 sm:py-1 bg-brand-yellow/90 backdrop-blur-md rounded-full text-[6px] sm:text-[10px] font-black uppercase tracking-wider text-gray-900 border border-white/20">
               Sob Encomenda
             </div>
           ) : (
-            <div className="px-3 py-1 bg-green-500/90 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-wider text-white border border-white/20">
+            <div className="px-1.5 py-0.5 sm:px-3 sm:py-1 bg-green-500/90 backdrop-blur-md rounded-full text-[6px] sm:text-[10px] font-black uppercase tracking-wider text-white border border-white/20">
               Pronta Entrega
             </div>
           )}
@@ -80,23 +80,23 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       </div>
 
       {/* Info Container */}
-      <div className="p-3 sm:p-5 flex flex-col flex-1 justify-between gap-1 sm:gap-2">
+      <div className="p-1.5 sm:p-5 flex flex-col flex-1 justify-between gap-0.5 sm:gap-2">
         <div>
-          <div className="font-fashion text-[7px] sm:text-[8px] text-gray-400 truncate">
+          <div className="font-fashion text-[5px] sm:text-[8px] text-gray-400 truncate">
             {product.category}
           </div>
-          <h3 className="text-xs sm:text-sm font-bold leading-tight text-gray-900 truncate group-hover:text-brand-pink transition-colors -mt-0.5">
+          <h3 className="text-[8px] sm:text-sm font-bold leading-tight text-gray-900 truncate group-hover:text-brand-pink transition-colors -mt-0.5">
             {product.name}
           </h3>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-base sm:text-lg font-black tracking-tight text-gray-900 leading-none">
+            <span className="text-[10px] sm:text-lg font-black tracking-tight text-gray-900 leading-none">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
             </span>
             {isMeta && product.requiredGoal && (
-              <span className="font-fashion text-[7px] sm:text-[8px] text-brand-pink truncate mt-0.5">
+              <span className="font-fashion text-[5px] sm:text-[8px] text-brand-pink truncate mt-0.5">
                 {product.currentGoalProgress || 0}/{product.requiredGoal}
               </span>
             )}

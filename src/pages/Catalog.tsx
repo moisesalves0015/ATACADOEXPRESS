@@ -113,13 +113,13 @@ export default function Catalog() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-4 lg:grid-cols-4 gap-1 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-[4/5] bg-gray-50 rounded-[1.5rem] sm:rounded-[2rem] animate-pulse" />
+              <div key={i} className="aspect-[4/5] bg-gray-50 rounded-xl sm:rounded-[2rem] animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-2 sm:gap-x-4 gap-y-4 sm:gap-y-6">
+          <div className="grid grid-cols-4 lg:grid-cols-4 gap-x-1 sm:gap-x-4 gap-y-2 sm:gap-y-6">
             <AnimatePresence>
               {displayProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />

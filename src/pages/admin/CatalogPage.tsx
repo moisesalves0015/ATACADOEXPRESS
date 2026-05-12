@@ -34,8 +34,6 @@ import {
   SelectionAll,
   Calendar,
   Clock,
-  LayoutDashboard,
-  Settings,
   Files
 } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
@@ -151,7 +149,7 @@ export default function CatalogPage() {
       const opt = {
         margin: 0,
         filename: `CATALOGO_${format(new Date(), 'ddMMyy')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: dims[0], windowWidth: dims[0] },
         jsPDF: { unit: 'mm', format: config.paperSize, orientation: config.orientation, compress: true },
         pagebreak: { mode: ['css', 'legacy'] },
@@ -376,7 +374,7 @@ export default function CatalogPage() {
                     {(() => {
                       const coverTitleSize = dims[0] < 600 ? '60px' : (dims[0] < 850 ? '80px' : '100px');
                       const coverSubtitleSize = dims[0] < 600 ? '16px' : (dims[0] < 850 ? '22px' : '28px');
-                      const coverDateSize = dims[0] < 600 ? '14px' : '22px';
+                      const coverDateSize = dims[0] < 600 ? '24px' : '36px';
 
                       return (
                         <section style={{
@@ -393,7 +391,7 @@ export default function CatalogPage() {
                           <h1 style={{ fontSize: coverTitleSize, fontWeight: '900', letterSpacing: '-4px', margin: 0, textTransform: 'uppercase', textAlign: 'center', lineHeight: 0.85 }}>ATACADO SALDO<br /><span style={{ color: config.primaryColor }}>DA KRICIA</span></h1>
                           <div style={{ width: '220px', height: '6px', backgroundColor: config.primaryColor, margin: '60px 0' }} />
                           <p style={{ fontSize: coverSubtitleSize, opacity: 0.5, fontWeight: '300', letterSpacing: '14px', textTransform: 'uppercase', textAlign: 'center' }}>Gestão de Inventário</p>
-                          <p style={{ marginTop: '80px', fontSize: coverDateSize, fontWeight: '700' }}>{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</p>
+                          <p style={{ marginTop: '80px', fontSize: coverDateSize, fontWeight: '900', color: config.coverStyle === 'minimal' ? '#64748b' : '#94a3b8' }}>{format(new Date(), "dd 'de' MMMM 'de' yyyy • HH:mm", { locale: ptBR })}</p>
                         </section>
                       );
                     })()}
@@ -535,7 +533,7 @@ export default function CatalogPage() {
                                       )}
                                       <div style={{ display: 'flex', gap: mode === 'premium' ? '12px' : '6px', flex: mode === 'premium' ? 1 : 'none', width: mode === 'compact' ? '100%' : 'auto' }}>
                                         <a 
-                                          href={`https://wa.me/5521980214244?text=${encodeURIComponent(`Olá, tenho interesse no produto ${product.name} (Ref: ${product.id})\n\nVeja aqui: ${window.location.origin}/product/${product.id}`)}`}
+                                          href={`https://wa.me/5521980214244?text=${encodeURIComponent(`Olá, tenho interesse no produto ${product.name}\n\nVeja aqui: https://atacadoexpress.vercel.app/product/${product.id}`)}`}
                                           target="_blank"
                                           rel="noreferrer"
                                           style={{ textDecoration: 'none', flex: mode === 'premium' ? 1 : 'none', height: buttonHeight, padding: mode === 'compact' ? '0 8px' : '0 16px', backgroundColor: '#25D366', color: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: badgeSize, fontWeight: '900', gap: '6px' }}
@@ -543,7 +541,7 @@ export default function CatalogPage() {
                                           <WhatsappLogo size={buttonIconSize} weight="bold" /> <span style={{ display: cols > 2 && mode === 'compact' ? 'none' : 'block' }}>WhatsApp</span>
                                         </a>
                                         <a 
-                                          href={`${window.location.origin}/product/${product.id}`}
+                                          href={`https://atacadoexpress.vercel.app/product/${product.id}`}
                                           target="_blank"
                                           rel="noreferrer"
                                           style={{ textDecoration: 'none', width: buttonHeight, height: buttonHeight, backgroundColor: '#0f172a', color: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
