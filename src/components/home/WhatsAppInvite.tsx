@@ -4,7 +4,7 @@ import { WhatsappLogo, ArrowRight } from '@phosphor-icons/react';
 export default function WhatsAppInvite() {
   return (
     <section>
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-[2rem] sm:rounded-[3rem] p-6 s:p-8 sm:p-12 text-white group">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-xl sm:rounded-xl p-6 s:p-8 sm:p-12 text-white group">
         {/* Background Elements */}
         <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl sm:blur-3xl group-hover:bg-white/20 transition-all duration-700" />
         <div className="absolute bottom-0 left-0 w-24 sm:w-32 h-24 sm:h-32 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl sm:blur-2xl" />
@@ -28,7 +28,7 @@ export default function WhatsAppInvite() {
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 sm:gap-4 px-6 sm:px-10 py-3.5 sm:py-5 bg-white text-[#128C7E] rounded-xl sm:rounded-[2rem] font-black text-sm sm:text-lg shadow-xl hover:shadow-2xl transition-all"
+            className="flex items-center gap-2 sm:gap-4 px-6 sm:px-10 py-3.5 sm:py-5 bg-white text-[#128C7E] rounded-xl sm:rounded-xl font-black text-sm sm:text-lg shadow-xl hover:shadow-2xl transition-all"
           >
             <WhatsappLogo size={24} weight="fill" className="sm:w-8 sm:h-8" />
             <span>Quero Entrar No Grupo</span>

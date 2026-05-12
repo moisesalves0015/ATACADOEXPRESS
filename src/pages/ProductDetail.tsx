@@ -46,7 +46,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+      <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
         <Cube className="w-16 h-16 text-gray-300 mx-auto mb-4" weight="light" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Produto não encontrado</h2>
         <p className="text-gray-500 mb-6">Este produto pode ter sido removido ou não está mais disponível.</p>
@@ -95,11 +95,11 @@ export default function ProductDetail() {
         <ArrowLeft className="w-5 h-5" weight="bold" />
       </button>
 
-      <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100">
+      <div className="bg-white rounded-xl overflow-hidden shadow-xl border border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Images */}
           <div className="flex flex-col gap-4 p-4 md:p-6 bg-gray-50/50">
-            <div className="relative aspect-square w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+            <div className="relative aspect-square w-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
               {product.imageUrls?.length || product.imageUrl ? (
                 <img 
                   src={product.imageUrls?.length ? product.imageUrls[selectedImage] : product.imageUrl} 
@@ -163,7 +163,7 @@ export default function ProductDetail() {
                 <p className="whitespace-pre-line leading-relaxed">{product.description || 'Nenhuma descrição fornecida.'}</p>
               </div>
 
-              <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-3">
+              <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white rounded-xl shadow-sm text-brand-blue">
                     {product.stockType === 'pronta_entrega' ? <Bag className="w-5 h-5" weight="light" /> : <SealCheck className="w-5 h-5" weight="light" />}
@@ -186,7 +186,7 @@ export default function ProductDetail() {
             <div className="mt-10 pt-8 border-t border-gray-100 space-y-6">
               <div className="flex items-center gap-6">
                 <span className="text-sm font-bold text-gray-900 uppercase tracking-widest">Quantidade</span>
-                <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-2xl border border-gray-100">
+                <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-xl border border-gray-100">
                   <button 
                     disabled={quantity <= 1 || outOfStock}
                     onClick={() => setQuantity(q => q - 1)}

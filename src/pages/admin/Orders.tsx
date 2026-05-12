@@ -294,13 +294,16 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <ClipboardList className="w-7 h-7 text-blue-600" /> Gestão de Pedidos
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-gray-100 pb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Gestão <span className="text-gray-400 font-normal">de Pedidos</span>
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">Acompanhe e gerencie o fluxo de entrega de vendas.</p>
+        </div>
         <button
           onClick={() => navigate('/admin/new-order')}
-          className="btn-action-premium"
+          className="btn-action-premium shrink-0"
         >
           <Plus className="w-4 h-4" /> Novo Pedido
         </button>
@@ -489,7 +492,7 @@ export default function AdminOrders() {
       {/* Confirmation Modal for Status Update */}
       {showStatusModal && pendingStatusUpdate && (
         <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-full animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl flex flex-col max-h-full animate-in fade-in zoom-in duration-200">
             <div className="p-6 border-b border-gray-50 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Atualizar Status</h3>
               <button 
@@ -501,7 +504,7 @@ export default function AdminOrders() {
             </div>
             
             <div className="p-6 space-y-6 overflow-y-auto">
-              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center justify-between shrink-0">
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center justify-between shrink-0">
                 <div>
                   <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Novo Status</p>
                   <p className="text-sm font-bold text-blue-900">{statusConfig[pendingStatusUpdate.newStatus]?.label}</p>
@@ -524,14 +527,14 @@ export default function AdminOrders() {
                     value={statusComment}
                     onChange={e => setStatusComment(e.target.value)}
                     placeholder="Ex: Recebi via WhatsApp, cliente já conferiu..."
-                    className="w-full px-4 py-3 text-sm border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
+                    className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
                   />
                 </div>
 
                 <div 
                   onClick={() => setIsInternalComment(!isInternalComment)}
                   className={cn(
-                    "flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all",
+                    "flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all",
                     isInternalComment ? "bg-amber-50 border-amber-100" : "bg-emerald-50 border-emerald-100"
                   )}
                 >
@@ -567,14 +570,14 @@ export default function AdminOrders() {
             <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-3">
               <button
                 onClick={() => { setShowStatusModal(false); setPendingStatusUpdate(null); }}
-                className="flex-grow py-3 px-4 border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-white transition-all text-sm"
+                className="flex-grow py-3 px-4 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-white transition-all text-sm"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmStatusUpdate}
                 disabled={isUpdatingStatus}
-                className="flex-grow py-3 px-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-sm disabled:opacity-50"
+                className="flex-grow py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 text-sm disabled:opacity-50"
               >
                 {isUpdatingStatus ? "Salvando..." : "Confirmar Mudança"}
               </button>
@@ -586,8 +589,8 @@ export default function AdminOrders() {
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
-          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-full">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white z-10 shrink-0 rounded-t-3xl">
+          <div className="bg-white rounded-xl w-full max-w-4xl shadow-2xl flex flex-col max-h-full">
+            <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-white z-10 shrink-0 rounded-t-xl">
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-bold text-gray-900">Pedido #{selectedOrder.id.slice(-6).toUpperCase()}</h2>
                 <div className={cn(
@@ -636,7 +639,7 @@ export default function AdminOrders() {
                   </div>
 
                   <div className={cn(
-                    'rounded-2xl px-6 py-4 flex items-start gap-4 border',
+                    'rounded-xl px-6 py-4 flex items-start gap-4 border',
                     selectedOrder.orderOrigin === 'admin' ? 'bg-purple-50 border-purple-100' : 'bg-blue-50 border-blue-100'
                   )}>
                     <div className={cn("p-2 rounded-xl", selectedOrder.orderOrigin === 'admin' ? "bg-purple-100" : "bg-blue-100")}>
@@ -654,7 +657,7 @@ export default function AdminOrders() {
 
                   <div>
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Itens do Pedido</h3>
-                    <div className="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
+                    <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-gray-100/50 text-gray-500 text-[10px] uppercase font-bold">
                           <tr>
@@ -729,7 +732,7 @@ export default function AdminOrders() {
                   {selectedOrder.observations && (
                     <div className="space-y-2">
                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Observações do Pedido</h3>
-                       <div className="p-4 bg-gray-50 rounded-2xl text-sm text-gray-600 italic border border-gray-100">
+                       <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 italic border border-gray-100">
                          "{selectedOrder.observations}"
                        </div>
                     </div>
@@ -766,7 +769,7 @@ export default function AdminOrders() {
                             return <Icon className={cn("w-3 h-3", statusConfig[h.status]?.color || "text-gray-400")} />;
                           })()}
                         </div>
-                        <div className="bg-gray-50/50 rounded-2xl p-3 border border-gray-100/50">
+                        <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100/50">
                           <div className="flex justify-between items-start mb-1">
                              <p className={cn("text-xs font-bold uppercase tracking-tight", statusConfig[h.status]?.color)}>
                                {statusConfig[h.status]?.label}

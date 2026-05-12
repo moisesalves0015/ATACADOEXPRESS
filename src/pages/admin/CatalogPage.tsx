@@ -215,10 +215,10 @@ export default function CatalogPage() {
 
 
         {/* --- Config Toolbar (Refined Tabs Style) --- */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-gray-100 rounded-xl flex items-center">
+              <div className="p-1.5 bg-gray-100 rounded-lg flex items-center">
                 {(['layout', 'design', 'content'] as const).map(tab => (
                   <button
                     key={tab}
@@ -329,7 +329,7 @@ export default function CatalogPage() {
                       key={item.key}
                       onClick={() => setConfig({...config, [item.key]: !config[item.key as keyof CatalogConfig]})}
                       className={cn(
-                        "flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all",
+                        "flex flex-col items-center gap-3 p-4 rounded-xl border transition-all",
                         config[item.key as keyof CatalogConfig] ? "bg-gray-900 text-white border-gray-900" : "bg-gray-50 text-gray-400 border-gray-100 hover:bg-white hover:border-gray-200"
                       )}
                     >
@@ -359,7 +359,7 @@ export default function CatalogPage() {
             </div>
           </div>
 
-          <div className="bg-gray-200/50 rounded-3xl p-10 flex justify-center overflow-auto min-h-[600px] custom-scrollbar border border-gray-200">
+          <div className="bg-gray-200/50 rounded-xl p-10 flex justify-center overflow-auto min-h-[600px] custom-scrollbar border border-gray-200">
             <AnimatePresence>
               {isPreviewVisible && (
                 <motion.div

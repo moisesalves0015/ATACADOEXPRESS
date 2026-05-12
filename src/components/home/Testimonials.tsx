@@ -38,7 +38,7 @@ export default function Testimonials() {
           <motion.div
             key={t.id}
             whileHover={{ y: -8 }}
-            className="bg-white p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col justify-between"
+            className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col justify-between"
           >
             <div>
               <div className="flex gap-1 mb-4 sm:mb-6 text-brand-yellow">

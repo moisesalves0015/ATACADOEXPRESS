@@ -195,7 +195,7 @@ export default function AdminDashboard() {
       {/* Stats Grid - Professional Clean */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:border-gray-300 transition-all flex flex-col justify-between h-40">
+          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:border-gray-300 transition-all flex flex-col justify-between h-40">
             <div className="flex items-center justify-between">
               <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-900 border border-gray-100">
                 <stat.icon size={18} strokeWidth={2} />
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Recent Orders - Minimalist List */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-widest">
               <ClipboardList className="w-4 h-4" /> Últimos Pedidos
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Goals / Active Metas */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-widest">
               <TrendingUp className="w-4 h-4" /> Metas em Andamento
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Mais Vendidos */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/30">
             <div className="p-2 bg-brand-pink/10 rounded-xl text-brand-pink">
               <Trophy size={16} />
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Melhores Clientes */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/30">
             <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
               <UserCircle size={16} />
@@ -347,7 +347,7 @@ export default function AdminDashboard() {
 
       {/* Pending Action Alert */}
       {pendingOrders.length > 0 && (
-        <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden relative">
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden relative">
           <div className="absolute right-0 top-0 bottom-0 w-32 bg-brand-pink/10 blur-[50px]"></div>
           <div className="flex items-center gap-4 relative z-10">
             <div className="bg-brand-pink p-3 rounded-xl shadow-lg shadow-brand-pink/20">

@@ -116,7 +116,7 @@ export default function MatchDiscovery() {
           >
             <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white/40">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 flex items-center justify-center bg-brand-pink/5 rounded-2xl text-brand-pink">
+                <div className="w-14 h-14 flex items-center justify-center bg-brand-pink/5 rounded-xl text-brand-pink">
                    <Info size={32} weight="fill" />
                 </div>
                 <div>
@@ -130,11 +130,11 @@ export default function MatchDiscovery() {
               </p>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200/50">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200/50">
                   <span className="text-gray-400 text-[8px] font-black uppercase tracking-widest block mb-1">Categoria</span>
                   <span className="text-gray-900 font-bold text-sm tracking-tight">{currentProduct.category}</span>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200/50">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200/50">
                   <span className="text-gray-400 text-[8px] font-black uppercase tracking-widest block mb-1">Estoque</span>
                   <span className="text-gray-900 font-bold text-sm tracking-tight">
                     {currentProduct.stockType === "pronta_entrega" ? "Disponível" : "Pré-venda"}
@@ -166,14 +166,14 @@ export default function MatchDiscovery() {
           animate={{ opacity: 1, scale: 1 }}
           className="h-[60vh] flex flex-col items-center justify-center text-center p-8 bg-white/50 backdrop-blur-md rounded-[2.5rem] border-2 border-dashed border-gray-200 mx-4"
         >
-          <div className="p-6 bg-white shadow-xl rounded-3xl mb-6">
+          <div className="p-6 bg-white shadow-xl rounded-xl mb-6">
             <ShoppingCart size={48} weight="duotone" className="text-brand-pink" />
           </div>
           <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">Match<span className="text-brand-pink">Kricia</span></h2>
           <p className="text-gray-400 font-medium mb-8">
             Já mostramos todas as novidades disponíveis por aqui. Que tal dar uma olhada no seu carrinho?
           </p>
-          <Link to="/cart" className="btn-action-premium w-full !rounded-2xl">
+          <Link to="/cart" className="btn-action-premium w-full !rounded-xl">
             Ver Meu Carrinho
           </Link>
           <Link to="/" className="mt-4 text-gray-400 font-bold text-sm uppercase tracking-widest hover:text-gray-600 transition-colors">

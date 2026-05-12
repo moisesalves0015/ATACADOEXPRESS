@@ -51,14 +51,14 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({ product, onSwipe, isTop }
         {/* Overlays for Feedback */}
         <motion.div 
           style={{ opacity: likeOpacity }}
-          className="absolute top-16 left-10 border-4 border-green-500 rounded-2xl px-6 py-2 rotate-[-15deg] pointer-events-none z-30"
+          className="absolute top-16 left-10 border-4 border-green-500 rounded-xl px-6 py-2 rotate-[-15deg] pointer-events-none z-30"
         >
           <span className="text-green-500 text-4xl font-black uppercase">QUERO</span>
         </motion.div>
 
         <motion.div 
           style={{ opacity: dislikeOpacity }}
-          className="absolute top-16 right-10 border-4 border-red-500 rounded-2xl px-6 py-2 rotate-[15deg] pointer-events-none z-30"
+          className="absolute top-16 right-10 border-4 border-red-500 rounded-xl px-6 py-2 rotate-[15deg] pointer-events-none z-30"
         >
           <span className="text-red-500 text-3xl font-black uppercase">NÃO</span>
         </motion.div>

@@ -164,7 +164,7 @@ export default function Checkout() {
             <button
               onClick={handleFinalizeOrder}
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 active:scale-95"
+              className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 active:scale-95"
             >
               {loading ? 'Processando...' : 'Confirmar e Gerar PIX'}
             </button>
@@ -182,7 +182,7 @@ export default function Checkout() {
 
           <div className="bg-white rounded-xl border border-gray-100 shadow-xl p-8">
             <div className="flex flex-col md:flex-row gap-8 items-center">
-              <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200">
                 <QrCode className="w-48 h-48 text-gray-900" />
                 <p className="text-center text-xs text-gray-400 mt-4 font-mono">PIX_SALDOMANAGER_MOCK_CODE</p>
               </div>

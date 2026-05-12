@@ -3,7 +3,7 @@ import { ArrowRight } from '@phosphor-icons/react';
 
 export default function Hero() {
   return (
-    <section className="relative h-[280px] md:h-[380px] w-full overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-gray-900 group">
+    <section className="relative h-[280px] md:h-[380px] w-full overflow-hidden rounded-xl md:rounded-xl bg-gray-900 group">
       {/* Background with overlay */}
       <div className="absolute inset-0 z-0">
         <img 

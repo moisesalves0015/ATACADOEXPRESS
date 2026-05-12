@@ -29,7 +29,7 @@ export default function AdBanners() {
   }, []);
 
   return (
-    <section className="relative h-32 sm:h-56 w-full overflow-hidden rounded-[1.5rem] sm:rounded-[2.5rem] group cursor-pointer bg-gray-100">
+    <section className="relative h-32 sm:h-56 w-full overflow-hidden rounded-xl sm:rounded-[2.5rem] group cursor-pointer bg-gray-100">
       <AnimatePresence mode="wait">
         <motion.div
           key={banners[currentIndex].id}

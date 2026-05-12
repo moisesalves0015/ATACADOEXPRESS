@@ -234,7 +234,7 @@ export default function AdminReports() {
                 tooltip: `De cada R$ 100,00 que entram na empresa, ${fmt(Math.max(0, (totals.netProfit / (totals.totalRevenue || 1)) * 100))} é o que sobra livre de verdade.`
               },
             ].map((kpi, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative group">
+              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
@@ -266,7 +266,7 @@ export default function AdminReports() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
+            <div className="lg:col-span-2 bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-8 flex items-center gap-2">
                 <Activity size={16} className="text-brand-pink" /> Evolução Financeira
               </h2>
@@ -296,7 +296,7 @@ export default function AdminReports() {
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center">
+            <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center">
                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-8 self-start">Comprometimento</h2>
                <div className="flex-1 w-full flex items-center justify-center relative">
                   <div className="absolute text-center">
@@ -327,7 +327,7 @@ export default function AdminReports() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 h-fit">
+          <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6 h-fit">
             <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                <Plus size={16} /> Novo Lançamento
             </h2>
@@ -386,7 +386,7 @@ export default function AdminReports() {
           </div>
 
           {/* List */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden text-gray-900">
+          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden text-gray-900">
             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Histórico do Período</h2>
               <div className="text-[10px] font-bold text-gray-400 uppercase">

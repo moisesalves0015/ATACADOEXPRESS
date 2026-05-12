@@ -19,7 +19,7 @@ export default function MetaProductsCarousel({ products, loading }: MetaProducts
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-3 sm:gap-4">
-        <div className="p-2 sm:p-3 bg-brand-pink/10 rounded-xl sm:rounded-2xl text-brand-pink">
+        <div className="p-2 sm:p-3 bg-brand-pink/10 rounded-xl sm:rounded-xl text-brand-pink">
           <Sparkle size={20} weight="fill" className="sm:w-6 sm:h-6" />
         </div>
         <div className="min-w-0">
@@ -43,7 +43,7 @@ export default function MetaProductsCarousel({ products, loading }: MetaProducts
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/50 rounded-[2rem] p-8 sm:p-12 text-center border-2 border-dashed border-gray-100"
+            className="bg-white/50 rounded-xl p-8 sm:p-12 text-center border-2 border-dashed border-gray-100"
           >
             <div className="inline-flex p-3 bg-white rounded-full text-gray-300 mb-4 shadow-sm border border-gray-50">
               <Info size={24} color="#F72585" />

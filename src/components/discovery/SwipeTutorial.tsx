@@ -17,7 +17,7 @@ export default function SwipeTutorial({ onClose }: SwipeTutorialProps) {
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="relative max-w-sm w-full bg-gray-900/95 backdrop-blur-3xl rounded-[3rem] p-8 border border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.5)] flex flex-col items-center overflow-hidden"
+        className="relative max-w-sm w-full bg-gray-900/95 backdrop-blur-3xl rounded-xl p-8 border border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.5)] flex flex-col items-center overflow-hidden"
       >
         {/* Modal Background Glows */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -108,7 +108,7 @@ export default function SwipeTutorial({ onClose }: SwipeTutorialProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5 }}
           onClick={onClose}
-          className="mt-12 w-full flex items-center justify-center gap-3 py-4 bg-white text-gray-900 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-brand-pink hover:text-white transition-all active:scale-95 group relative z-10"
+          className="mt-12 w-full flex items-center justify-center gap-3 py-4 bg-white text-gray-900 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-brand-pink hover:text-white transition-all active:scale-95 group relative z-10"
         >
           <span>Aproveitar</span>
           <SkipForward size={16} weight="fill" className="group-hover:translate-x-1 transition-transform" />

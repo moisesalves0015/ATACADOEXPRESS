@@ -84,7 +84,7 @@ export default function Catalog() {
               placeholder="O que você procura hoje?"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border-2 border-gray-100 rounded-2xl pl-12 pr-12 py-3.5 text-sm font-bold shadow-sm focus:border-pink-500/20 focus:ring-0 transition-all outline-none"
+              className="w-full bg-white border-2 border-gray-100 rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold shadow-sm focus:border-pink-500/20 focus:ring-0 transition-all outline-none"
             />
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function Catalog() {
         {loading ? (
           <div className="grid grid-cols-4 lg:grid-cols-4 gap-1 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-[4/5] bg-gray-50 rounded-xl sm:rounded-[2rem] animate-pulse" />
+              <div key={i} className="aspect-[4/5] bg-gray-50 rounded-xl sm:rounded-xl animate-pulse" />
             ))}
           </div>
         ) : (
@@ -129,7 +129,7 @@ export default function Catalog() {
         )}
 
         {displayProducts.length === 0 && !loading && (
-          <div className="text-center py-16 sm:py-24 bg-gray-50 rounded-[2rem] sm:rounded-[3rem] border-2 border-dashed border-gray-100">
+          <div className="text-center py-16 sm:py-24 bg-gray-50 rounded-xl sm:rounded-xl border-2 border-dashed border-gray-100">
             <div className="inline-flex p-3 sm:p-4 bg-white rounded-full text-gray-300 mb-4 shadow-sm">
               <Package size={32} weight="thin" className="sm:w-10 sm:h-10" />
             </div>

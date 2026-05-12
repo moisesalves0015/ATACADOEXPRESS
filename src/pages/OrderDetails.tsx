@@ -101,11 +101,11 @@ export default function OrderDetails() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xl overflow-hidden">
         {/* Status Banner */}
         <div className={cn("p-8 flex items-center justify-between border-b", config.bg, config.border)}>
           <div className="flex items-center gap-6">
-            <div className={cn("p-4 rounded-2xl bg-white shadow-lg", config.color)}>
+            <div className={cn("p-4 rounded-xl bg-white shadow-lg", config.color)}>
               <config.icon className="w-8 h-8" />
             </div>
             <div>
@@ -118,7 +118,7 @@ export default function OrderDetails() {
               href={order.paymentProofUrl} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white px-5 py-3 rounded-2xl text-sm font-bold text-gray-700 shadow-md hover:shadow-lg transition-all active:scale-95"
+              className="flex items-center gap-2 bg-white px-5 py-3 rounded-xl text-sm font-bold text-gray-700 shadow-md hover:shadow-lg transition-all active:scale-95"
             >
               <FileText className="w-4 h-4 text-blue-600" /> Ver Comprovante
             </a>
@@ -134,7 +134,7 @@ export default function OrderDetails() {
               <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
                 <Package className="w-4 h-4 text-blue-500" /> Itens Adquiridos
               </h3>
-              <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 space-y-4">
+              <div className="bg-gray-50/50 rounded-xl p-6 border border-gray-100 space-y-4">
                 {order.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center group">
                     <div className="flex items-center gap-4">
@@ -214,7 +214,7 @@ export default function OrderDetails() {
 
             {/* Proof Upload interface for Client (Only if pending) */}
             {(order.status === 'aguardando_comprovante' || order.status === 'aguardando_pagamento') && (
-              <div className="bg-blue-600 p-8 rounded-3xl text-white shadow-xl shadow-blue-100 relative overflow-hidden group">
+              <div className="bg-blue-600 p-8 rounded-xl text-white shadow-xl shadow-blue-100 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                    <Upload className="w-32 h-32" />
                 </div>
@@ -228,7 +228,7 @@ export default function OrderDetails() {
                   
                   <div className="space-y-4">
                     <label className={cn(
-                      "w-full flex-col flex items-center justify-center min-h-[140px] px-6 py-4 bg-white/20 border-2 border-dashed border-white/60 rounded-2xl cursor-pointer hover:bg-white/30 transition-all font-medium",
+                      "w-full flex-col flex items-center justify-center min-h-[140px] px-6 py-4 bg-white/20 border-2 border-dashed border-white/60 rounded-xl cursor-pointer hover:bg-white/30 transition-all font-medium",
                       uploading ? 'opacity-50 pointer-events-none' : ''
                     )}>
                       {uploading ? (
@@ -306,7 +306,7 @@ export default function OrderDetails() {
                          {format(new Date(h.updatedAt), "dd MMM - HH:mm", { locale: ptBR })}
                       </p>
                       {h.comment && (
-                        <div className="flex items-start gap-2 text-[11px] text-gray-600 bg-gray-50 p-3 rounded-2xl border border-gray-100 italic">
+                        <div className="flex items-start gap-2 text-[11px] text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 italic">
                            <MessageSquare className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
                            "{h.comment}"
                         </div>
@@ -317,7 +317,7 @@ export default function OrderDetails() {
               </div>
             </div>
 
-            <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 space-y-4">
+            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 space-y-4">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Entrega e Dados</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
@@ -337,7 +337,7 @@ export default function OrderDetails() {
             </div>
 
             {order.observations && (
-              <div className="bg-amber-50/50 p-6 rounded-3xl border border-amber-100/50">
+              <div className="bg-amber-50/50 p-6 rounded-xl border border-amber-100/50">
                 <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest mb-3">Sua Observação</h3>
                 <p className="text-xs text-amber-800 italic leading-relaxed">"{order.observations}"</p>
               </div>

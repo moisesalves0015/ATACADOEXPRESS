@@ -41,7 +41,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
       className={cn(
-        "group bg-white rounded-md sm:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col h-full",
+        "group bg-white rounded-md sm:rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col h-full",
         className
       )}
       onClick={() => navigate(`/product/${product.id}`)}
@@ -77,7 +77,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         {/* Add to Cart Button */}
         <button 
           onClick={handleAddToCart}
-          className="absolute bottom-4 right-4 p-3 bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 text-brand-pink hover:bg-brand-pink hover:text-white transition-all duration-300 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+          className="absolute bottom-4 right-4 p-3 bg-white/90 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 text-brand-pink hover:bg-brand-pink hover:text-white transition-all duration-300 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
         >
           <ShoppingBagOpen size={20} weight="bold" />
         </button>

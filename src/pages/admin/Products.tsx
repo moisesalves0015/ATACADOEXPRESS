@@ -420,10 +420,13 @@ export default function AdminProducts() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <Package className="w-7 h-7 text-blue-600" /> Gestão de Produtos
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-gray-100 pb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Gestão <span className="text-gray-400 font-normal">de Produtos</span>
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">Gerencie seu inventário e as metas de vendas.</p>
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/admin/catalog')}
@@ -589,9 +592,9 @@ export default function AdminProducts() {
       ============================================================ */}
       {reportProduct && (
         <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl flex flex-col max-h-full">
+          <div className="bg-white rounded-xl w-full max-w-4xl shadow-xl flex flex-col max-h-full">
             {/* Header */}
-            <div className="p-6 border-b border-gray-100 flex items-start justify-between bg-white z-10 shrink-0 rounded-t-2xl">
+            <div className="p-6 border-b border-gray-100 flex items-start justify-between bg-white z-10 shrink-0 rounded-t-xl">
               <div className="flex items-center gap-4">
                 {reportProduct.imageUrls?.length || reportProduct.imageUrl ? (
                   <img src={reportProduct.imageUrls?.length ? reportProduct.imageUrls[0] : reportProduct.imageUrl} alt="" className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
@@ -622,7 +625,7 @@ export default function AdminProducts() {
               ) : (
                 <>
                   {/* Tab Selector */}
-                  <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl w-fit mb-2">
+                  <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg w-fit mb-2">
                     <button
                       onClick={() => setReportTab('sales')}
                       className={cn(
@@ -721,7 +724,7 @@ export default function AdminProducts() {
                   ) : (
                     /* History Tab */
                     <div className="space-y-4 py-2">
-                       <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-6 min-h-[300px]">
+                       <div className="bg-gray-50/50 rounded-xl border border-gray-100 p-6 min-h-[300px]">
                           {!reportProduct.history || reportProduct.history.length === 0 ? (
                             <div className="flex flex-col items-center justify-center pt-20 text-center">
                               <History className="w-8 h-8 text-gray-200 mb-2" />
@@ -753,7 +756,7 @@ export default function AdminProducts() {
             
              {/* Modal Footer - Inline Actions Only */}
              {!reportLoading && (
-                <div className="p-5 bg-white border-t border-gray-100 rounded-b-2xl flex justify-center">
+                <div className="p-5 bg-white border-t border-gray-100 rounded-b-xl flex justify-center">
                     <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
                        <button
                          onClick={() => shareGoalWhatsApp(reportProduct)}
@@ -788,7 +791,7 @@ export default function AdminProducts() {
             {/* Header */}
             <div className="p-8 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white relative z-20">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                   {currentProduct.id ? <Edit2 className="w-6 h-6 text-blue-600" /> : <Plus className="w-6 h-6 text-blue-600" />}
                 </div>
                 <div>
@@ -819,7 +822,7 @@ export default function AdminProducts() {
                     key={tab.id}
                     onClick={() => setFormSection(tab.id as any)}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all group relative outline-none shrink-0",
+                      "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all group relative outline-none shrink-0",
                       formSection === tab.id 
                         ? "bg-white text-blue-600 shadow-sm border border-gray-100" 
                         : "text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
@@ -847,7 +850,7 @@ export default function AdminProducts() {
                                 required
                                 value={currentProduct.name}
                                 onChange={e => setCurrentProduct({ ...currentProduct, name: e.target.value })}
-                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                 placeholder="Ex: Vestido Midi Floral Premium"
                               />
                             </div>
@@ -858,7 +861,7 @@ export default function AdminProducts() {
                                 required
                                 value={currentProduct.category}
                                 onChange={e => setCurrentProduct({ ...currentProduct, category: e.target.value })}
-                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                 placeholder="Festa, Casual, Praia..."
                               />
                             </div>
@@ -875,7 +878,7 @@ export default function AdminProducts() {
                                     required
                                     value={currentProduct.unitPrice}
                                     onChange={e => setCurrentProduct({ ...currentProduct, unitPrice: parseFloat(e.target.value) })}
-                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                   />
                                 </div>
                               </div>
@@ -889,7 +892,7 @@ export default function AdminProducts() {
                                     required
                                     value={currentProduct.costPrice || 0}
                                     onChange={e => setCurrentProduct({ ...currentProduct, costPrice: parseFloat(e.target.value) })}
-                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                   />
                                 </div>
                               </div>
@@ -903,7 +906,7 @@ export default function AdminProducts() {
                                     type="button"
                                     onClick={() => setCurrentProduct({ ...currentProduct, status: s as any })}
                                     className={cn(
-                                      "flex-1 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border-2 transition-all",
+                                      "flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest border-2 transition-all",
                                       currentProduct.status === s 
                                         ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100" 
                                         : "bg-white border-gray-100 text-gray-400 hover:border-gray-200 font-bold"
@@ -922,7 +925,7 @@ export default function AdminProducts() {
                           value={currentProduct.description}
                           onChange={e => setCurrentProduct({ ...currentProduct, description: e.target.value })}
                           rows={4}
-                          className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-medium leading-relaxed"
+                          className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-medium leading-relaxed"
                           placeholder="Descreva o tecido, caimento e detalhes especiais..."
                         ></textarea>
                       </div>
@@ -932,7 +935,7 @@ export default function AdminProducts() {
                   {/* SECTION: STOCK & GOAL */}
                   {formSection === 'stock' && (
                     <div className="space-y-10 animate-in slide-in-from-right-4 duration-300">
-                      <div className="bg-blue-50/50 p-8 rounded-[2rem] border border-blue-100">
+                      <div className="bg-blue-50/50 p-8 rounded-xl border border-blue-100">
                         <div className="flex items-center gap-4 mb-6">
                           <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black">1</div>
                           <div>
@@ -943,7 +946,7 @@ export default function AdminProducts() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <label 
                             onClick={() => setCurrentProduct({ ...currentProduct, stockType: currentProduct.stockType === 'pronta_entrega' ? 'previsao_meta' : 'pronta_entrega' })}
-                            className="flex items-center gap-4 bg-white p-5 rounded-2xl cursor-pointer border-2 border-transparent hover:border-blue-200 transition-all"
+                            className="flex items-center gap-4 bg-white p-5 rounded-xl cursor-pointer border-2 border-transparent hover:border-blue-200 transition-all"
                           >
                             <div className={cn(
                               "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
@@ -958,14 +961,14 @@ export default function AdminProducts() {
                               type="number"
                               value={currentProduct.availableQuantity}
                               onChange={e => setCurrentProduct({ ...currentProduct, availableQuantity: parseInt(e.target.value) })}
-                              className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl outline-none text-sm font-bold focus:border-blue-500"
+                              className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-xl outline-none text-sm font-bold focus:border-blue-500"
                               placeholder="Qtd em estoque"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="bg-orange-50/50 p-8 rounded-[2rem] border border-orange-100">
+                      <div className="bg-orange-50/50 p-8 rounded-xl border border-orange-100">
                         <div className="flex items-center gap-4 mb-6">
                           <div className="w-10 h-10 bg-orange-500 text-white rounded-xl flex items-center justify-center font-black">2</div>
                           <div>
@@ -976,7 +979,7 @@ export default function AdminProducts() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <label 
                             onClick={() => setCurrentProduct({ ...currentProduct, requiredGoal: (currentProduct.requiredGoal || 0) > 0 ? 0 : 50 })}
-                            className="flex items-center gap-4 bg-white p-5 rounded-2xl cursor-pointer border-2 border-transparent hover:border-orange-200 transition-all"
+                            className="flex items-center gap-4 bg-white p-5 rounded-xl cursor-pointer border-2 border-transparent hover:border-orange-200 transition-all"
                           >
                             <div className={cn(
                               "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
@@ -991,7 +994,7 @@ export default function AdminProducts() {
                               type="number"
                               value={currentProduct.requiredGoal || 0}
                               onChange={e => setCurrentProduct({ ...currentProduct, requiredGoal: parseInt(e.target.value) })}
-                              className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl outline-none text-sm font-bold focus:border-orange-500"
+                              className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-xl outline-none text-sm font-bold focus:border-orange-500"
                               placeholder="Meta de unidades"
                             />
                           </div>
@@ -1028,13 +1031,13 @@ export default function AdminProducts() {
                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                             {/* Existing Images */}
                             {existingImageUrls.map((url, idx) => (
-                              <div key={`exist-${idx}`} className="aspect-square bg-gray-100 rounded-3xl overflow-hidden relative group shadow-sm border border-gray-200">
+                              <div key={`exist-${idx}`} className="aspect-square bg-gray-100 rounded-xl overflow-hidden relative group shadow-sm border border-gray-200">
                                  <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 px-4 backdrop-blur-sm">
                                     <button
                                       type="button"
                                       onClick={() => setExistingImageUrls(existingImageUrls.filter((_, i) => i !== idx))}
-                                      className="p-3 bg-red-600 text-white rounded-2xl hover:bg-red-700 shadow-xl active:scale-90 transition-all font-bold text-xs"
+                                      className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-xl active:scale-90 transition-all font-bold text-xs"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -1043,14 +1046,14 @@ export default function AdminProducts() {
                             ))}
                             {/* New Files Preview */}
                             {newImageFiles.map((file, idx) => (
-                              <div key={`new-${idx}`} className="aspect-square bg-gray-100 rounded-3xl overflow-hidden relative group border-2 border-dashed border-blue-200 shadow-xl shadow-blue-50">
+                              <div key={`new-${idx}`} className="aspect-square bg-gray-100 rounded-xl overflow-hidden relative group border-2 border-dashed border-blue-200 shadow-xl shadow-blue-50">
                                  <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover opacity-70" />
                                  <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest">Aguardando</div>
                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                       type="button"
                                       onClick={() => setNewImageFiles(newImageFiles.filter((_, i) => i !== idx))}
-                                      className="p-3 bg-red-600 text-white rounded-2xl hover:bg-red-700 active:scale-90 transition-all font-bold text-xs"
+                                      className="p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 active:scale-90 transition-all font-bold text-xs"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -1074,7 +1077,7 @@ export default function AdminProducts() {
                       >
                          <div className="flex items-center gap-5">
                             <div className={cn(
-                               "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg",
+                               "w-14 h-14 rounded-xl flex items-center justify-center shadow-lg",
                                currentProduct.hasVariations ? "bg-indigo-600 text-white shadow-indigo-100" : "bg-white text-gray-300"
                             )}>
                                <Layers className="w-7 h-7" />
@@ -1102,7 +1105,7 @@ export default function AdminProducts() {
                             <div 
                               onClick={() => setCurrentProduct({ ...currentProduct, allowVariationSelection: !currentProduct.allowVariationSelection })}
                               className={cn(
-                                "flex items-center justify-between p-6 rounded-2xl border-2 cursor-pointer transition-all",
+                                "flex items-center justify-between p-6 rounded-xl border-2 cursor-pointer transition-all",
                                 currentProduct.allowVariationSelection ? "bg-indigo-50 border-indigo-200" : "bg-white border-gray-100"
                               )}
                             >
@@ -1135,7 +1138,7 @@ export default function AdminProducts() {
                                 setCurrentProduct({ ...currentProduct, variationsRequired: !currentProduct.variationsRequired });
                               }}
                               className={cn(
-                                "flex items-center justify-between p-6 rounded-2xl border-2 cursor-pointer transition-all",
+                                "flex items-center justify-between p-6 rounded-xl border-2 cursor-pointer transition-all",
                                 currentProduct.variationsRequired ? "bg-orange-50 border-orange-200" : "bg-white border-gray-100",
                                 !currentProduct.allowVariationSelection && "opacity-30 cursor-not-allowed"
                               )}
@@ -1165,7 +1168,7 @@ export default function AdminProducts() {
                          </div>
 
                          {/* Variation Builder */}
-                           <div className="bg-white border-2 border-gray-50 rounded-[2rem] p-8 shadow-sm">
+                           <div className="bg-white border-2 border-gray-50 rounded-xl p-8 shadow-sm">
                               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Monte as Variações Disponíveis</h4>
                               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
                                  <div className="md:col-span-4">
@@ -1174,10 +1177,10 @@ export default function AdminProducts() {
                                       placeholder="Ex: Cor ou Tamanho"
                                       value={tempVariation.name}
                                       onChange={e => setTempVariation({ ...tempVariation, name: e.target.value })}
-                                      className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-500 transition-all font-bold text-sm outline-none"
+                                      className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-indigo-500 transition-all font-bold text-sm outline-none"
                                     />
                                  </div>
-                                 <div className="md:col-span-6 flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded-2xl border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white transition-all">
+                                 <div className="md:col-span-6 flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded-xl border-2 border-transparent focus-within:border-indigo-500 focus-within:bg-white transition-all">
                                     <input 
                                       type="text"
                                       placeholder="Opções (ex: P, Azul...)"
@@ -1202,7 +1205,7 @@ export default function AdminProducts() {
                                      }
                                      setTempVariation({ ...tempVariation, option: '' });
                                    }}
-                                   className="md:col-span-2 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center p-4 text-xs tracking-widest uppercase"
+                                   className="md:col-span-2 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center p-4 text-xs tracking-widest uppercase"
                                  >
                                     Add
                                  </button>
@@ -1211,7 +1214,7 @@ export default function AdminProducts() {
                               {/* Current Variations Display */}
                               <div className="space-y-4 pt-6 border-t border-gray-50">
                                  {(currentProduct.variations || []).map((v, vIdx) => (
-                                   <div key={vIdx} className="flex flex-col gap-3 p-5 bg-gray-50/50 rounded-2xl border border-gray-100 group">
+                                   <div key={vIdx} className="flex flex-col gap-3 p-5 bg-gray-50/50 rounded-xl border border-gray-100 group">
                                       <div className="flex justify-between items-center">
                                          <span className="text-xs font-black uppercase text-indigo-600 tracking-wider flex items-center gap-2">
                                             <Settings className="w-3 h-3" /> {v.name}
@@ -1277,7 +1280,7 @@ export default function AdminProducts() {
                   form="productForm"
                   type="submit"
                   disabled={loading || isUploading}
-                  className="bg-blue-600 text-white px-6 md:px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95 w-full sm:w-auto"
+                  className="bg-blue-600 text-white px-6 md:px-10 py-4 rounded-xl font-black text-sm uppercase tracking-[0.1em] hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95 w-full sm:w-auto"
                 >
                   {loading ? (
                     <>
@@ -1303,11 +1306,11 @@ export default function AdminProducts() {
       ============================================================ */}
       {isHitGoalModalOpen && hitGoalProduct && (
         <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-full animate-in fade-in zoom-in duration-300">
+          <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl flex flex-col max-h-full animate-in fade-in zoom-in duration-300">
             {/* Header */}
-            <div className="p-8 border-b border-gray-50 flex items-center justify-between shrink-0 bg-emerald-50 rounded-t-3xl">
+            <div className="p-8 border-b border-gray-50 flex items-center justify-between shrink-0 bg-emerald-50 rounded-t-xl">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-100">
+                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100">
                   <Zap className="w-8 h-8 text-emerald-600 fill-emerald-600 animate-pulse" />
                 </div>
                 <div>
@@ -1334,7 +1337,7 @@ export default function AdminProducts() {
                         required
                         value={hitGoalStock}
                         onChange={e => setHitGoalStock(parseInt(e.target.value))}
-                        className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:bg-white focus:border-emerald-500 transition-all outline-none text-lg font-bold"
+                        className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:bg-white focus:border-emerald-500 transition-all outline-none text-lg font-bold"
                         placeholder="Ex: 50"
                       />
                       <Package className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-300 group-focus-within:text-emerald-500 transition-colors" />
@@ -1345,7 +1348,7 @@ export default function AdminProducts() {
                  <div 
                    onClick={() => setShouldChargeClients(!shouldChargeClients)}
                    className={cn(
-                     "flex items-center justify-between p-5 rounded-2xl border-2 cursor-pointer transition-all",
+                     "flex items-center justify-between p-5 rounded-xl border-2 cursor-pointer transition-all",
                      shouldChargeClients ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100"
                    )}
                  >
@@ -1377,7 +1380,7 @@ export default function AdminProducts() {
                   <button
                     type="submit"
                     disabled={isProcessingGoal}
-                    className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
+                    className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
                   >
                     {isProcessingGoal ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -1391,7 +1394,7 @@ export default function AdminProducts() {
                   <button
                     type="button"
                     onClick={() => shareGoalWhatsApp(hitGoalProduct)}
-                    className="w-full py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-black rounded-2xl hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 active:scale-95"
+                    className="w-full py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-black rounded-xl hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 active:scale-95"
                   >
                     <MessageCircle className="w-5 h-5" /> NOTIFICAR VIA WHATSAPP (MENSAGEM PROFISSIONAL)
                   </button>

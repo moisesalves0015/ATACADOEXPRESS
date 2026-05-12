@@ -93,7 +93,7 @@ export default function Layout({ user }: LayoutProps) {
                     {isAdmin ? 'Administrador' : 'Membro Premium'}
                   </span>
                 </div>
-                <div className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white shadow-lg shadow-gray-200/30 group cursor-pointer hover:scale-105 transition-all">
+                <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-lg shadow-gray-200/30 group cursor-pointer hover:scale-105 transition-all">
                   <img 
                     src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
                     alt={user.name} 

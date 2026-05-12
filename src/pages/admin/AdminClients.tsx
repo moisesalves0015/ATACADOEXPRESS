@@ -187,14 +187,16 @@ export default function AdminClients() {
   return (
     <div className="space-y-8 pb-24">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <Users className="w-7 h-7 text-brand-pink" /> 
-          Gestão de Equipe e Clientes
-        </h1>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-gray-100 pb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Gestão <span className="text-gray-400 font-normal">de Equipe e Clientes</span>
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">Gerencie acessos, contas e o banco de dados da sua empresa.</p>
+        </div>
         <button
           onClick={() => setIsRegisterModalOpen(true)}
-          className="btn-action-premium"
+          className="btn-action-premium shrink-0"
         >
           <Plus className="w-4 h-4" /> Novo Cadastro
         </button>
@@ -313,7 +315,7 @@ export default function AdminClients() {
       {/* Register Modal */}
       {isRegisterModalOpen && (
         <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-xl flex flex-col max-h-full">
              <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Plus className="w-5 h-5 text-brand-pink" /> Novo Cadastro
@@ -407,7 +409,7 @@ export default function AdminClients() {
       {/* Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed top-[85px] bottom-[100px] md:top-0 md:bottom-0 md:left-[80px] left-0 right-0 z-[1000] flex items-center justify-center p-4 bg-black/5 backdrop-blur-md">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-xl flex flex-col max-h-full">
              <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-blue-600" /> Editar Perfil

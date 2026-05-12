@@ -219,7 +219,7 @@ export default function AdminNewOrder() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 bg-red-50 text-red-600 px-4 py-3 rounded-2xl text-sm font-semibold">
+        <div className="flex items-center gap-3 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-semibold">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>
@@ -231,14 +231,14 @@ export default function AdminNewOrder() {
         <div className="space-y-6">
 
           {/* Client selector */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
             <h2 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
               <UserSearch className="w-4 h-4 text-pink-500" />
               Cliente
             </h2>
 
             {selectedClient ? (
-              <div className="flex items-center justify-between bg-pink-50 border border-pink-100 rounded-2xl p-4">
+              <div className="flex items-center justify-between bg-pink-50 border border-pink-100 rounded-xl p-4">
                 <div>
                   <p className="font-bold text-gray-900">{selectedClient.name}</p>
                   <p className="text-xs text-gray-500">{selectedClient.email}</p>
@@ -289,7 +289,7 @@ export default function AdminNewOrder() {
           </div>
 
           {/* Product selector */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
             <h2 className="text-sm font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
               <Package className="w-4 h-4 text-pink-500" />
               Produtos

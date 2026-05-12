@@ -135,7 +135,7 @@ export default function Register() {
 
           <form onSubmit={handleRegister} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-3 bg-red-50 text-red-500 px-4 py-3 rounded-2xl text-sm font-semibold">
+              <div className="flex items-center gap-3 bg-red-50 text-red-500 px-4 py-3 rounded-xl text-sm font-semibold">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
