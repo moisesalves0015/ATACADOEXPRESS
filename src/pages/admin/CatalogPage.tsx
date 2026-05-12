@@ -42,7 +42,7 @@ export default function CatalogPage() {
     return () => unsubProducts();
   }, []);
 
-  const productsPerPage = 6;
+  const productsPerPage = 1;
   const pages = [];
   for (let i = 0; i < products.length; i += productsPerPage) {
     pages.push(products.slice(i, i + productsPerPage));
@@ -81,7 +81,7 @@ export default function CatalogPage() {
 
   const getImageUrl = (url: string) => {
     if (!url) return '';
-    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=jpg`;
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=800&h=800&fit=cover&output=jpg`;
   };
 
   if (loading) {
@@ -137,66 +137,80 @@ export default function CatalogPage() {
             </div>
           </section>
 
-          {/* PRODUCT PAGES */}
+          {/* PRODUCT PAGES (1 PER PAGE) */}
           {pages.map((pageProducts, pageIdx) => (
             <section key={pageIdx} style={{
-              width: '1122px', height: '791px', backgroundColor: 'white', padding: '30px 40px', position: 'relative',
+              width: '1122px', height: '791px', backgroundColor: 'white', padding: '50px 60px', position: 'relative',
               pageBreakAfter: pageIdx === pages.length - 1 ? 'auto' : 'always', 
               display: 'flex', flexDirection: 'column', boxSizing: 'border-box', fontFamily: globalFont
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #0f172a', paddingBottom: '12px', marginBottom: '20px' }}>
+              {/* Header - REVERTED TO "SALDO DE ESTOQUE" */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '5px solid #0f172a', paddingBottom: '15px', marginBottom: '35px' }}>
                 <div>
-                   <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', margin: 0, textTransform: 'uppercase' }}>Saldo de Estoque</h2>
-                   <p style={{ fontSize: '11px', color: '#ec4899', fontWeight: '800', marginTop: '2px' }}>PÁGINA {pageIdx + 1} DE {pages.length}</p>
+                   <h2 style={{ fontSize: '30px', fontWeight: '900', color: '#0f172a', margin: 0, textTransform: 'uppercase' }}>Saldo de Estoque</h2>
+                   <p style={{ fontSize: '12px', color: '#ec4899', fontWeight: '800', marginTop: '2px' }}>PÁGINA {pageIdx + 1} DE {products.length}</p>
                 </div>
-                <p style={{ fontSize: '13px', fontWeight: '900', color: '#0f172a' }}>ATACADO SALDO DA KRICIA</p>
+                <p style={{ fontSize: '16px', fontWeight: '900', color: '#0f172a' }}>ATACADO SALDO DA KRICIA</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', gap: '15px', flex: 1, marginBottom: '40px' }}>
-                {pageProducts.map((product) => (
-                  <div key={product.id} style={{
-                    border: '1px solid #e2e8f0', borderRadius: '16px', padding: '12px 15px', display: 'flex', gap: '20px',
-                    backgroundColor: '#ffffff', pageBreakInside: 'avoid', boxSizing: 'border-box', height: '180px'
-                  }}>
-                    <div style={{ width: '130px', height: '130px', borderRadius: '12px', backgroundColor: '#f8fafc', overflow: 'hidden', flexShrink: 0, border: '1px solid #f1f5f9' }}>
-                      {product.imageUrl ? (
-                        <img src={getImageUrl(product.imageUrl)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}><ImageIcon size={32} /></div>
-                      )}
-                    </div>
+              {/* Single Product Layout */}
+              {pageProducts.map((product) => (
+                <div key={product.id} style={{
+                  flex: 1, display: 'flex', gap: '40px', alignItems: 'flex-start',
+                  backgroundColor: '#ffffff', boxSizing: 'border-box'
+                }}>
+                  {/* SLIGHTLY SMALLER PHOTO TO FIT BUTTONS */}
+                  <div style={{ width: '420px', height: '420px', borderRadius: '24px', backgroundColor: '#f8fafc', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0', boxShadow: '0 8px 25px rgba(0,0,0,0.05)' }}>
+                    {product.imageUrl ? (
+                      <img src={getImageUrl(product.imageUrl)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}><ImageIcon size={80} /></div>
+                    )}
+                  </div>
 
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
-                          <h3 style={{ fontSize: '14px', fontWeight: '900', color: '#0f172a', margin: 0, textTransform: 'uppercase', maxWidth: '190px', lineHeight: '1.2' }}>{product.name}</h3>
-                          <p style={{ fontSize: '18px', fontWeight: '900', color: '#ec4899', margin: 0 }}>R$ {(product.unitPrice || 0).toFixed(2)}</p>
-                        </div>
-                        <p style={{ fontSize: '10px', color: '#475569', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-wrap', maxHeight: '45px', overflow: 'hidden' }}>
-                          {product.description || 'Descrição disponível no portal.'}
+                  {/* CONTENT */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '420px', justifyContent: 'space-between' }}>
+                    <div>
+                      <h3 style={{ fontSize: '38px', fontWeight: '900', color: '#0f172a', margin: '0 0 8px', textTransform: 'uppercase', lineHeight: '1.1' }}>{product.name}</h3>
+                      <div style={{ display: 'inline-block', backgroundColor: '#fdf2f8', padding: '8px 16px', borderRadius: '12px', marginBottom: '20px' }}>
+                         <p style={{ fontSize: '42px', fontWeight: '900', color: '#ec4899', margin: 0 }}>R$ {(product.unitPrice || 0).toFixed(2)}</p>
+                      </div>
+                      
+                      <div style={{ marginBottom: '25px' }}>
+                        <p style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>Descrição detalhada:</p>
+                        <p style={{ fontSize: '16px', color: '#475569', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>
+                          {product.description || 'Descrição em breve.'}
                         </p>
                       </div>
+                    </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '6px' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #f1f5f9', paddingTop: '20px' }}>
                         <div>
-                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '13px', fontWeight: '900', color: (product.availableQuantity || 0) > 0 ? '#059669' : '#dc2626' }}>{product.availableQuantity || 0} un.</span>
-                              <span style={{ fontSize: '8px', fontWeight: '900', color: 'white', backgroundColor: (product.availableQuantity || 0) > 0 ? '#059669' : '#dc2626', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
-                                {(product.availableQuantity || 0) > 0 ? 'Disponível' : 'Esgotado'}
+                           <p style={{ fontSize: '13px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>Quantidade disponível:</p>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ fontSize: '28px', fontWeight: '900', color: (product.availableQuantity || 0) > 0 ? '#059669' : '#dc2626' }}>{product.availableQuantity || 0} un.</span>
+                              <span style={{ fontSize: '12px', fontWeight: '900', color: 'white', backgroundColor: (product.availableQuantity || 0) > 0 ? '#059669' : '#dc2626', padding: '4px 12px', borderRadius: '6px', textTransform: 'uppercase' }}>
+                                {(product.availableQuantity || 0) > 0 ? 'Em Estoque' : 'Esgotado'}
                               </span>
                            </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <a href={`https://wa.me/5521980214244?text=${encodeURIComponent(`Olá! Quero o item: *${product.name}*`)}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', backgroundColor: '#25D366', color: 'white', borderRadius: '10px', fontSize: '10px', fontWeight: '900', textDecoration: 'none', textTransform: 'uppercase' }}>WhatsApp</a>
-                          <a href="/" style={{ padding: '6px 12px', backgroundColor: '#0f172a', color: 'white', borderRadius: '8px', fontSize: '10px', fontWeight: '900', textDecoration: 'none', textTransform: 'uppercase' }}>Site</a>
-                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
+                        <a href={`https://wa.me/5521980214244?text=${encodeURIComponent(`Olá! Quero pedir o produto: *${product.name}*`)}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px', backgroundColor: '#25D366', color: 'white', borderRadius: '15px', fontSize: '18px', fontWeight: '900', textDecoration: 'none', textTransform: 'uppercase', boxShadow: '0 8px 15px rgba(37, 211, 102, 0.2)' }}>
+                          <WhatsappLogo size={24} weight="bold" /> WhatsApp
+                        </a>
+                        <a href="/" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px', backgroundColor: '#0f172a', color: 'white', borderRadius: '15px', fontSize: '18px', fontWeight: '900', textDecoration: 'none', textTransform: 'uppercase', boxShadow: '0 8px 15px rgba(15, 23, 42, 0.2)' }}>
+                          <ShoppingCart size={24} weight="bold" /> Site
+                        </a>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
 
-              <div style={{ marginTop: 'auto', marginBottom: '30px', paddingTop: '15px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>
+              <div style={{ marginTop: 'auto', marginBottom: '10px', paddingTop: '15px', borderTop: '2px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' }}>
                 <span>Atacado Saldo da Kricia — (21) 98021-4244</span>
                 <span>Documento Oficial de Saldo e Inventário</span>
               </div>
