@@ -1,205 +1,430 @@
-import { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { useState, useEffect, useMemo } from 'react';
+import { collection, onSnapshot, query, orderBy, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
-import { Order, Product } from '../../types';
-import { BarChart3, Download, Calendar, Filter, Package, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Order, Product, FinanceEntry, FinanceCategory, FinanceType } from '../../types';
+import { 
+  Plus, Trash2, LayoutDashboard, ArrowRightLeft, 
+  TrendingUp, Wallet, DollarSign, Percent, Activity,
+  ArrowUpRight, ArrowDownRight, Clock, Info
+} from 'lucide-react';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell 
+} from 'recharts';
 import { cn } from '../../lib/utils';
-import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
+import { 
+  format, startOfMonth, endOfMonth, subMonths, isWithinInterval, 
+  eachDayOfInterval, startOfDay, endOfDay, subDays, isSameDay 
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+const COLORS = ['#111827', '#4B5563', '#9CA3AF', '#F72585', '#4361EE', '#10B981'];
+const CATEGORIES: FinanceCategory[] = ['Fornecedor', 'Marketing', 'Infraestrutura', 'Logística', 'Pessoal', 'Outros', 'Ganho Extra'];
+
 export default function AdminReports() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'entries'>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [finances, setFinances] = useState<FinanceEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState('month');
+  const [dateRange, setDateRange] = useState('30days');
+  
+  // New entry form state
+  const [newEntry, setNewEntry] = useState({
+    description: '',
+    amount: '',
+    category: 'Outros' as FinanceCategory,
+    date: format(new Date(), 'yyyy-MM-dd'),
+    type: 'expense' as FinanceType
+  });
 
   useEffect(() => {
     const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('orderDate', 'desc')), (snapshot) => {
       setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'orders');
-    });
+    }, (error) => { handleFirestoreError(error, OperationType.LIST, 'orders'); });
+
     const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
       setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+    }, (error) => { handleFirestoreError(error, OperationType.LIST, 'products'); });
+
+    const unsubFinances = onSnapshot(query(collection(db, 'finances'), orderBy('date', 'desc')), (snapshot) => {
+      setFinances(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FinanceEntry)));
       setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'products');
-    });
-    return () => { unsubOrders(); unsubProducts(); };
+    }, (error) => { handleFirestoreError(error, OperationType.LIST, 'finances'); });
+
+    return () => { unsubOrders(); unsubProducts(); unsubFinances(); };
   }, []);
 
-  const getFilteredOrders = () => {
+  const dateFilter = useMemo(() => {
     const now = new Date();
-    let start, end;
-    if (dateRange === 'month') {
+    let start = startOfMonth(now);
+    let end = endOfDay(now);
+
+    if (dateRange === '7days') {
+      start = startOfDay(subDays(now, 7));
+    } else if (dateRange === '30days') {
+      start = startOfDay(subDays(now, 30));
+    } else if (dateRange === 'month') {
       start = startOfMonth(now);
       end = endOfMonth(now);
     } else if (dateRange === 'last-month') {
       start = startOfMonth(subMonths(now, 1));
       end = endOfMonth(subMonths(now, 1));
-    } else {
-      return orders;
     }
-    return orders.filter(o => isWithinInterval(new Date(o.orderDate), { start, end }));
+    return { start, end };
+  }, [dateRange]);
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => isWithinInterval(new Date(o.orderDate), dateFilter) && o.status !== 'cancelado');
+  }, [orders, dateFilter]);
+
+  const filteredFinances = useMemo(() => {
+    return finances.filter(f => isWithinInterval(new Date(f.date), dateFilter));
+  }, [finances, dateFilter]);
+
+  const totals = useMemo(() => {
+    let salesRevenue = 0;
+    let cogs = 0;
+    filteredOrders.forEach(order => {
+      salesRevenue += order.totalValue;
+      order.items.forEach(item => {
+        const product = products.find(p => p.id === item.productId);
+        cogs += (product?.costPrice || 0) * item.quantity;
+      });
+    });
+
+    const otherGains = filteredFinances.filter(f => f.type === 'gain').reduce((sum, f) => sum + f.amount, 0);
+    const expenses = filteredFinances.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+
+    const totalRevenue = salesRevenue + otherGains;
+    const grossProfit = salesRevenue - cogs;
+    const netProfit = grossProfit + otherGains - expenses;
+
+    return { salesRevenue, otherGains, totalRevenue, cogs, expenses, grossProfit, netProfit };
+  }, [filteredOrders, filteredFinances, products]);
+
+  const timeSeriesData = useMemo(() => {
+    const days = eachDayOfInterval({ start: dateFilter.start, end: dateFilter.end });
+    return days.map(day => {
+      const dayOrders = filteredOrders.filter(o => isSameDay(new Date(o.orderDate), day));
+      const rev = dayOrders.reduce((sum, o) => sum + o.totalValue, 0);
+      let dayCogs = 0;
+      dayOrders.forEach(o => o.items.forEach(item => {
+        const product = products.find(p => p.id === item.productId);
+        dayCogs += (product?.costPrice || 0) * item.quantity;
+      }));
+
+      const dayFin = filteredFinances.filter(f => isSameDay(new Date(f.date), day));
+      const exp = dayFin.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+      const gain = dayFin.filter(f => f.type === 'gain').reduce((sum, f) => sum + f.amount, 0);
+
+      return {
+        date: format(day, 'dd/MM'),
+        receita: rev + gain,
+        lucro: (rev - dayCogs) + gain - exp
+      };
+    });
+  }, [filteredOrders, filteredFinances, products, dateFilter]);
+
+  const handleAddEntry = async () => {
+    if (!newEntry.description || !newEntry.amount) return;
+    try {
+      await addDoc(collection(db, 'finances'), {
+        ...newEntry,
+        amount: parseFloat(newEntry.amount),
+        createdAt: new Date().toISOString()
+      });
+      setNewEntry({ ...newEntry, description: '', amount: '' });
+    } catch (error) {
+       console.error("Error adding entry:", error);
+    }
   };
 
-  const filteredOrders = getFilteredOrders();
-  const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.totalValue, 0);
-  
-  // Top Products
-  const productSales: Record<string, { name: string, qty: number, revenue: number }> = {};
-  filteredOrders.forEach(order => {
-    order.items.forEach(item => {
-      if (!productSales[item.productId]) {
-        productSales[item.productId] = { name: item.productName, qty: 0, revenue: 0 };
-      }
-      productSales[item.productId].qty += item.quantity;
-      productSales[item.productId].revenue += item.quantity * item.unitPrice;
-    });
-  });
-
-  const topProducts = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-
-  // Top Clients
-  const clientSales: Record<string, { name: string, orders: number, revenue: number }> = {};
-  filteredOrders.forEach(order => {
-    if (!clientSales[order.clientId]) {
-      clientSales[order.clientId] = { name: order.clientName, orders: 0, revenue: 0 };
+  const handleDeleteEntry = async (id: string) => {
+    if (confirm('Deseja excluir este lançamento?')) {
+      await deleteDoc(doc(db, 'finances', id));
     }
-    clientSales[order.clientId].orders += 1;
-    clientSales[order.clientId].revenue += order.totalValue;
-  });
+  };
 
-  const topClients = Object.values(clientSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+    </div>
+  );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-          <BarChart3 className="w-7 h-7 text-blue-600" /> Relatórios e Indicadores
-        </h1>
-        <div className="flex items-center gap-2">
-          <select
+    <div className="space-y-8 pb-10">
+      {/* Professional Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-100 pb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Gestão <span className="text-gray-400 font-normal">Financeira</span>
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">Acompanhamento de fluxo de caixa e rentabilidade real.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="bg-gray-100 p-1 rounded-xl flex items-center">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={cn(
+                "px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 uppercase tracking-widest",
+                activeTab === 'overview' ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+              )}
+            >
+              <LayoutDashboard size={14} /> Visão Geral
+            </button>
+            <button
+              onClick={() => setActiveTab('entries')}
+              className={cn(
+                "px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 uppercase tracking-widest",
+                activeTab === 'entries' ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+              )}
+            >
+              <ArrowRightLeft size={14} /> Lançamentos
+            </button>
+          </div>
+          
+          <select 
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="pl-3 pr-10 py-2 text-base border-gray-200 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl"
+            className="bg-white border border-gray-200 px-4 py-2 rounded-xl text-xs font-bold text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900/5 transition-all"
           >
+            <option value="7days">Últimos 7 dias</option>
+            <option value="30days">Últimos 30 dias</option>
             <option value="month">Este Mês</option>
             <option value="last-month">Mês Passado</option>
-            <option value="all">Todo Período</option>
           </select>
-          <button className="bg-white border border-gray-200 p-2 rounded-xl hover:bg-gray-50 transition-colors text-gray-500" title="Exportar PDF">
-            <Download className="w-5 h-5" />
-          </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-blue-50 p-2 rounded-xl">
-              <DollarSign className="w-5 h-5 text-blue-600" />
-            </div>
-            <span className="text-sm font-bold text-gray-500">Receita Total</span>
+      {activeTab === 'overview' ? (
+        <div className="space-y-8">
+          {/* Primary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { 
+                label: 'Faturamento Bruto', 
+                value: totals.totalRevenue, 
+                icon: DollarSign, 
+                color: 'text-gray-900',
+                tooltip: `Você arrecadou R$ ${fmt(totals.totalRevenue).replace('R$', '')}, sendo ${fmt(totals.salesRevenue)} em vendas e ${fmt(totals.otherGains)} em ganhos extras.`
+              },
+              { 
+                label: 'Lucro Líquido Real', 
+                value: totals.netProfit, 
+                icon: TrendingUp, 
+                color: totals.netProfit >= 0 ? 'text-emerald-600' : 'text-red-500',
+                tooltip: `Seu lucro foi de ${fmt(totals.netProfit)} porque suas vendas totais foram ${fmt(totals.totalRevenue)}, mas você teve ${fmt(totals.cogs + totals.expenses)} em custos totais.`
+              },
+              { 
+                label: 'Custos Totais', 
+                value: totals.cogs + totals.expenses, 
+                icon: Wallet, 
+                color: 'text-orange-600',
+                tooltip: `Você teve um gasto de ${fmt(totals.cogs + totals.expenses)}, sendo ${fmt(totals.cogs)} em custo de mercadoria (CMV) e ${fmt(totals.expenses)} em despesas fixas/extras.`
+              },
+              { 
+                label: 'Margem Líquida', 
+                value: `${totals.totalRevenue > 0 ? ((totals.netProfit / totals.totalRevenue) * 100).toFixed(1) : 0}%`, 
+                icon: Percent, 
+                color: 'text-indigo-600',
+                tooltip: `De cada R$ 100,00 que entram na empresa, ${fmt(Math.max(0, (totals.netProfit / (totals.totalRevenue || 1)) * 100))} é o que sobra livre de verdade.`
+              },
+            ].map((kpi, idx) => (
+              <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative group">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                      <kpi.icon size={16} />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{kpi.label}</span>
+                  </div>
+                  
+                  {/* Tooltip trigger */}
+                  <div className="relative flex items-center cursor-help">
+                    <Info 
+                      size={16} 
+                      className="text-gray-300 hover:text-gray-600 transition-colors peer" 
+                      tabIndex={0}
+                    />
+                    {/* Tooltip Box */}
+                    <div className="absolute bottom-[calc(100%+10px)] right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 w-48 sm:w-56 p-3 bg-gray-900 text-white text-[11px] font-medium leading-relaxed rounded-xl shadow-xl opacity-0 invisible peer-hover:opacity-100 peer-hover:visible peer-focus:opacity-100 peer-focus:visible transition-all z-50 pointer-events-none">
+                      {kpi.tooltip}
+                      {/* Triangle Arrow */}
+                      <div className="absolute top-full right-1 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 border-[5px] border-transparent border-t-gray-900" />
+                    </div>
+                  </div>
+                </div>
+                <h3 className={cn("text-2xl font-bold tracking-tight", kpi.color)}>
+                  {typeof kpi.value === 'string' ? kpi.value : fmt(kpi.value)}
+                </h3>
+              </div>
+            ))}
           </div>
-          <h3 className="text-2xl font-black text-gray-900">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue)}
-          </h3>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-green-50 p-2 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-green-600" />
-            </div>
-            <span className="text-sm font-bold text-gray-500">Total de Pedidos</span>
-          </div>
-          <h3 className="text-2xl font-black text-gray-900">{filteredOrders.length}</h3>
-        </div>
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-purple-50 p-2 rounded-xl">
-              <Users className="w-5 h-5 text-purple-600" />
-            </div>
-            <span className="text-sm font-bold text-gray-500">Ticket Médio</span>
-          </div>
-          <h3 className="text-2xl font-black text-gray-900">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0)}
-          </h3>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Products Table */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Package className="w-5 h-5 text-blue-600" /> Produtos Mais Vendidos
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-8 flex items-center gap-2">
+                <Activity size={16} className="text-brand-pink" /> Evolução Financeira
+              </h2>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={timeSeriesData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94A3B8', fontWeight: 'bold' }} />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '12px' }}
+                    />
+                    <Area type="monotone" dataKey="receita" stroke="#111827" strokeWidth={2} fillOpacity={0.05} fill="#111827" />
+                    <Area type="monotone" dataKey="lucro" stroke="#F72585" strokeWidth={2} fillOpacity={0.05} fill="#F72585" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-center gap-8 mt-4">
+                <div className="flex items-center gap-2">
+                   <div className="w-3 h-3 bg-gray-900 rounded-full" />
+                   <span className="text-[10px] font-bold text-gray-500 uppercase">Receita</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <div className="w-3 h-3 bg-brand-pink rounded-full" />
+                   <span className="text-[10px] font-bold text-gray-500 uppercase">Lucro Líquido</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center">
+               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-8 self-start">Comprometimento</h2>
+               <div className="flex-1 w-full flex items-center justify-center relative">
+                  <div className="absolute text-center">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase">Custos / Rec</p>
+                    <p className="text-2xl font-black text-gray-900">{totals.totalRevenue > 0 ? Math.round(((totals.cogs + totals.expenses) / totals.totalRevenue) * 100) : 0}%</p>
+                  </div>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Custos', value: totals.cogs + totals.expenses },
+                          { name: 'Lucro', value: Math.max(0, totals.netProfit) }
+                        ]}
+                        innerRadius={70}
+                        outerRadius={90}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                         <Cell fill="#E2E8F0" />
+                         <Cell fill="#111827" />
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+               </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Form */}
+          <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6 h-fit">
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+               <Plus size={16} /> Novo Lançamento
             </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Descrição</label>
+                <input 
+                  type="text" 
+                  value={newEntry.description}
+                  onChange={e => setNewEntry({ ...newEntry, description: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+                  placeholder="Ex: Aluguel do mês"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Valor</label>
+                    <input 
+                      type="number" 
+                      value={newEntry.amount}
+                      onChange={e => setNewEntry({ ...newEntry, amount: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+                      placeholder="0.00"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Data</label>
+                    <input 
+                      type="date" 
+                      value={newEntry.date}
+                      onChange={e => setNewEntry({ ...newEntry, date: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold uppercase"
+                    />
+                 </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Categoria</label>
+                <select 
+                  value={newEntry.category}
+                  onChange={e => {
+                    const cat = e.target.value as FinanceCategory;
+                    setNewEntry({ ...newEntry, category: cat, type: cat === 'Ganho Extra' ? 'gain' : 'expense' });
+                  }}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+                >
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <button 
+                onClick={handleAddEntry}
+                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-800 transition-all mt-4"
+              >
+                Salvar Lançamento
+              </button>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <th className="px-6 py-3">Produto</th>
-                  <th className="px-6 py-3 text-center">Qtd</th>
-                  <th className="px-6 py-3 text-right">Receita</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {topProducts.map((p, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">{p.name}</td>
-                    <td className="px-6 py-4 text-sm text-center text-gray-500">{p.qty}</td>
-                    <td className="px-6 py-4 text-sm font-black text-right text-blue-600">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.revenue)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
 
-        {/* Top Clients Table */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Users className="w-5 h-5 text-purple-600" /> Clientes Fiéis
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <th className="px-6 py-3">Cliente</th>
-                  <th className="px-6 py-3 text-center">Pedidos</th>
-                  <th className="px-6 py-3 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {topClients.map((c, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900">{c.name}</td>
-                    <td className="px-6 py-4 text-sm text-center text-gray-500">{c.orders}</td>
-                    <td className="px-6 py-4 text-sm font-black text-right text-purple-600">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(c.revenue)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* List */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden text-gray-900">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Histórico do Período</h2>
+              <div className="text-[10px] font-bold text-gray-400 uppercase">
+                {filteredFinances.length} Lançamentos
+              </div>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {filteredFinances.map(entry => (
+                <div key={entry.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center border",
+                      entry.type === 'gain' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-500 border-red-100"
+                    )}>
+                      {entry.type === 'gain' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{entry.description}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{entry.category} · {format(new Date(entry.date), 'dd MMM yyyy', { locale: ptBR })}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <span className={cn("text-sm font-black tracking-tight", entry.type === 'gain' ? "text-emerald-600" : "text-gray-900")}>
+                      {entry.type === 'expense' ? '-' : '+'} {fmt(entry.amount)}
+                    </span>
+                    <button onClick={() => handleDeleteEntry(entry.id)} className="text-gray-300 hover:text-red-500 transition-colors p-2">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredFinances.length === 0 && (
+                <div className="py-20 text-center opacity-30 italic text-sm font-medium">Nenhum lançamento no período selecionado.</div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

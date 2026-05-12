@@ -89,6 +89,7 @@ export default function AdminProducts() {
       stockType: 'pronta_entrega',
       availableQuantity: 0,
       unitPrice: 0,
+      costPrice: 0,
       status: 'active',
       imageUrl: '',
       imageUrls: [],
@@ -170,7 +171,7 @@ export default function AdminProducts() {
     // Header
     doc.setFontSize(22);
     doc.setTextColor(247, 37, 133); // Brand Pink
-    doc.text('Saldo da Eguel', 14, 22);
+    doc.text('Saldo da Kricia', 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -260,7 +261,7 @@ export default function AdminProducts() {
       doc.setFontSize(7);
       doc.setTextColor(247, 37, 133); // Pink
       doc.setFont('helvetica', 'bold');
-      doc.text('Saldo da Eguel', 25, 6, { align: 'center' });
+      doc.text('Saldo da Kricia', 25, 6, { align: 'center' });
 
       // Client Name (Main Focus)
       doc.setTextColor(0);
@@ -384,7 +385,7 @@ export default function AdminProducts() {
   };
 
   const shareGoalWhatsApp = (product: Product) => {
-    const message = `🎉 *ÓTIMAS NOTÍCIAS DA SALDO DA EGUEL!* 🛍️\n\nOlá! Passando para informar que a meta de produção do produto *${product.name.toUpperCase()}* acaba de ser atingida! ✨\n\nEle já está disponível para envio. Caso você tenha este item em um pedido pendente, o pagamento do saldo já pode ser realizado diretamente pelo nosso site. Após o pagamento, não esqueça de anexar o comprovante na área do pedido para agilizarmos sua entrega! 🚚💨\n\nConfira seus pedidos aqui: ${window.location.origin}/my-orders\n\nAgradecemos pela confiança! 💖`;
+    const message = `🎉 *ÓTIMAS NOTÍCIAS DA SALDO DA KRICIA!* 🛍️\n\nOlá! Passando para informar que a meta de produção do produto *${product.name.toUpperCase()}* acaba de ser atingida! ✨\n\nEle já está disponível para envio. Caso você tenha este item em um pedido pendente, o pagamento do saldo já pode ser realizado diretamente pelo nosso site. Após o pagamento, não esqueça de anexar o comprovante na área do pedido para agilizarmos sua entrega! 🚚💨\n\nConfira seus pedidos aqui: ${window.location.origin}/my-orders\n\nAgradecemos pela confiança! 💖`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -851,18 +852,34 @@ export default function AdminProducts() {
                             </div>
                          </div>
                          <div className="space-y-6">
-                            <div>
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Preço Unidade (Atacado)</label>
-                              <div className="relative">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">R$</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  required
-                                  value={currentProduct.unitPrice}
-                                  onChange={e => setCurrentProduct({ ...currentProduct, unitPrice: parseFloat(e.target.value) })}
-                                  className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Preço Venda</label>
+                                <div className="relative">
+                                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">R$</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    required
+                                    value={currentProduct.unitPrice}
+                                    onChange={e => setCurrentProduct({ ...currentProduct, unitPrice: parseFloat(e.target.value) })}
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Preço Custo</label>
+                                <div className="relative">
+                                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">R$</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    required
+                                    value={currentProduct.costPrice || 0}
+                                    onChange={e => setCurrentProduct({ ...currentProduct, costPrice: parseFloat(e.target.value) })}
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                  />
+                                </div>
                               </div>
                             </div>
                             <div>

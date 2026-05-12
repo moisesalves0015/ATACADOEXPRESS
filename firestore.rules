@@ -124,5 +124,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAuthenticated();
     }
+
+    // Finances collection
+    match /finances/{entryId} {
+      allow read, write: if isAdmin();
+    }
   }
 }

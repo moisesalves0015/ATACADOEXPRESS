@@ -22,6 +22,10 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
+    // SPA fallback: all unmatched routes serve index.html (client-side routing)
+    app.use((_req, res, next) => {
+      vite.middlewares.handle(_req, res, next);
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));

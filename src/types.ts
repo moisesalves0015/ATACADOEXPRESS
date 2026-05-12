@@ -22,6 +22,7 @@ export interface Product {
   stockType: StockType;
   availableQuantity: number;
   unitPrice: number;
+  costPrice?: number;
   requiredGoal?: number;
   currentGoalProgress?: number;
   estimatedArrivalDate?: string;
@@ -98,3 +99,17 @@ export interface Order {
 }
 
 export interface CartItem extends OrderItem {}
+
+export type FinanceCategory = 'Fornecedor' | 'Marketing' | 'Infraestrutura' | 'Logística' | 'Pessoal' | 'Outros' | 'Ganho Extra';
+export type FinanceType = 'expense' | 'gain';
+
+export interface FinanceEntry {
+  id: string;
+  description: string;
+  amount: number;
+  category: FinanceCategory;
+  date: string;
+  type: FinanceType;
+  createdAt: string;
+}
+

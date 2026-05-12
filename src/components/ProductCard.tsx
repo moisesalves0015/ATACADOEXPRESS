@@ -7,6 +7,7 @@ import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
+  key?: React.Key;
   product: Product;
   className?: string;
 }

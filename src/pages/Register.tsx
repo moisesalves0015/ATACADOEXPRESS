@@ -102,7 +102,7 @@ export default function Register() {
 
         <div className="flex flex-col z-10">
           <span className="text-5xl font-black text-white tracking-tighter">Saldo</span>
-          <span className="text-sm font-black uppercase tracking-[0.4em] -mt-1" style={{ color: '#F72585' }}>da Eguel</span>
+          <span className="text-sm font-black uppercase tracking-[0.4em] -mt-1" style={{ color: '#F72585' }}>da Kricia</span>
         </div>
 
         <div className="z-10">
@@ -115,7 +115,7 @@ export default function Register() {
           </p>
         </div>
 
-        <p className="text-white/30 text-sm z-10">© 2025 Saldo da Eguel</p>
+        <p className="text-white/30 text-sm z-10">© 2025 Saldo da Kricia</p>
       </div>
 
       {/* Right form panel */}
@@ -125,7 +125,7 @@ export default function Register() {
           <div className="lg:hidden text-center mb-8">
             <span className="text-3xl font-black text-gray-900 tracking-tighter">Saldo</span>
             <br />
-            <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#F72585' }}>da Eguel</span>
+            <span className="text-xs font-black uppercase tracking-[0.4em]" style={{ color: '#F72585' }}>da Kricia</span>
           </div>
 
           <div className="mb-6 text-center lg:text-left">

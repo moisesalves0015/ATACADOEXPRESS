@@ -13,7 +13,7 @@ export default function Footer() {
                <div className="w-1.5 h-1.5 rounded-full bg-pink-500 mb-1 animate-pulse" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-[0.25em] -mt-1 ml-0.5 text-brand-pink">
-              Saldo da Eguel
+              Saldo da Kricia
             </span>
           </Link>
           <p className="text-gray-400 text-sm leading-relaxed max-w-xs font-medium">
@@ -68,7 +68,7 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-3">
               <Envelope size={20} className="text-brand-pink flex-shrink-0" weight="bold" />
-              <span className="text-gray-500 text-sm font-bold leading-snug">contato@saldodaeguel.com</span>
+              <span className="text-gray-500 text-sm font-bold leading-snug">contato@saldodakricia.com</span>
             </li>
           </ul>
         </div>
@@ -76,14 +76,14 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
         <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-          © 2026 Saldo da Eguel. Todos os direitos reservados.
+          © 2026 Saldo da Kricia. Todos os direitos reservados.
         </p>
         
         {/* Payment Methods */}
         <div className="flex items-center gap-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-          <img src="https://logodownload.org/wp-content/uploads/2014/07/visa-logo-1.png" alt="Visa" className="h-4 sm:h-5 object-contain" />
-          <img src="https://logodownload.org/wp-content/uploads/2014/07/mastercard-logo-7.png" alt="Mastercard" className="h-6 sm:h-8 object-contain" />
-          <img src="https://logodownload.org/wp-content/uploads/2020/02/pix-logo-1.png" alt="Pix" className="h-5 sm:h-6 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d6/Visa_2021.svg" alt="Visa" className="h-3 sm:h-4 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-5 sm:h-6 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_Pix.png" alt="Pix" className="h-4 sm:h-5 object-contain" />
         </div>
       </div>
     </footer>

@@ -7,7 +7,7 @@ export default function Hero() {
       {/* Background with overlay */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070&auto=format&fit=crop" 
+          src="/banner-bg.png" 
           alt="Fashion Hero" 
           className="w-full h-full object-cover opacity-50 transition-transform duration-10000 group-hover:scale-110"
         />
