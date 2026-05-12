@@ -68,11 +68,14 @@ export default function AdminOrders() {
       
       const updateEntry: StatusUpdate = {
         status: pendingStatusUpdate.newStatus,
-        comment: statusComment.trim() || undefined,
         isInternal: isInternalComment,
         updatedAt: new Date().toISOString(),
         updatedBy: adminName,
       };
+
+      if (statusComment.trim()) {
+        updateEntry.comment = statusComment.trim();
+      }
 
       await updateDoc(doc(db, 'orders', pendingStatusUpdate.orderId), {
         status: pendingStatusUpdate.newStatus,

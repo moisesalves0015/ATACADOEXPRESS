@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, arrayUnion } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../firebase';
@@ -13,6 +14,8 @@ import autoTable from 'jspdf-autotable';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+
 
 const statusConfig: Record<string, { label: string, color: string, bg: string, border: string }> = {
   aguardando_pagamento: { label: 'Aguardando Pagamento', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
@@ -42,6 +45,7 @@ const getCategoryImg = (categoryName: string) => {
 };
 
 export default function AdminProducts() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -420,12 +424,20 @@ export default function AdminProducts() {
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <Package className="w-7 h-7 text-blue-600" /> Gestão de Produtos
         </h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="btn-action-premium"
-        >
-          <Plus className="w-4 h-4" /> Novo Produto
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/admin/catalog')}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 text-xs font-black rounded-xl hover:bg-emerald-100 transition-all border border-emerald-200"
+          >
+            <WhatsappLogo className="w-4 h-4" weight="fill" /> Catálogo WhatsApp
+          </button>
+          <button
+            onClick={() => handleOpenModal()}
+            className="btn-action-premium"
+          >
+            <Plus className="w-4 h-4" /> Novo Produto
+          </button>
+        </div>
       </div>
 
       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">

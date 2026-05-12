@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, Home, ClipboardList, LayoutDashboard, Package, BarChart3, Users } from 'lucide-react';
-import { HouseLine, Receipt, ShoppingBagOpen, UserCircle, Graph, Cube, UsersThree, ChartBar, Sparkle } from '@phosphor-icons/react';
+import { HouseLine, Receipt, ShoppingBagOpen, UserCircle, Graph, Cube, UsersThree, ChartBar, Sparkle, BookOpenText } from '@phosphor-icons/react';
 import { useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { UserProfile } from '../types';
@@ -18,6 +18,7 @@ export default function GlobalNav({ user }: GlobalNavProps) {
     { to: '/admin', label: 'Home', icon: Graph },
     { to: '/admin/products', label: 'Produtos', icon: Cube },
     { to: '/admin/orders', label: 'Pedidos', icon: Receipt },
+    { to: '/admin/catalog', label: 'Catálogo PDF', icon: BookOpenText },
     { to: '/admin/clients', label: 'Clientes', icon: UsersThree },
     { to: '/admin/reports', label: 'Relatórios', icon: ChartBar },
   ] : [
