@@ -63,7 +63,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Badges */}
         {isMeta && (
-          <div className="absolute top-1 sm:top-3 left-1 sm:left-3 flex flex-col gap-1 sm:gap-2">
+          <div className="absolute top-1 sm:top-3 left-1 sm:left-3 hidden sm:flex flex-col gap-1 sm:gap-2">
             <div className="px-1.5 py-0.5 sm:px-3 sm:py-1 bg-brand-yellow/90 backdrop-blur-md rounded-full text-[6px] sm:text-[10px] font-black uppercase tracking-wider text-gray-900 border border-white/20">
               Sob Encomenda
             </div>

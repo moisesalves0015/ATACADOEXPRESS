@@ -61,7 +61,7 @@ export default function Catalog() {
   }).slice(0, 8); // Limita a 2 linhas de 4 cards
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-24">
+    <div className="space-y-2 sm:space-y-4 pb-24">
       {/* Hero Section */}
       <Hero />
 
@@ -75,15 +75,8 @@ export default function Catalog() {
               onCategoryChange={setCategoryFilter} 
             />
             
-            {/* Banner Categorias */}
-            <div className="mt-4 sm:mt-6">
-              <img 
-                src="/assets/bannes/fixos/banner_categorias.svg" 
-                alt="Categorias" 
-                className="w-full h-auto object-contain shadow-sm"
-              />
-            </div>
           </div>
+
           
           {/* Refined Search Bar - Mobile Only */}
           <div className="relative group w-full lg:hidden flex-shrink-0">
@@ -190,6 +183,15 @@ export default function Catalog() {
 
       {/* WhatsApp Community */}
       <WhatsAppInvite />
+
+      {/* Banner Categorias */}
+      <div className="mt-2 sm:mt-4">
+        <img 
+          src="/assets/bannes/fixos/banner_categorias.svg" 
+          alt="Categorias" 
+          className="w-full h-auto object-contain shadow-sm"
+        />
+      </div>
 
       {/* Testimonials */}
       <Testimonials />

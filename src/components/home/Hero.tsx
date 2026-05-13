@@ -10,7 +10,7 @@ export default function Hero() {
       <img 
         src="/assets/bannes/fixos/hero.svg" 
         alt="Atacado Express Hero" 
-        className="w-full h-auto rounded-xl shadow-md"
+        className="w-full h-auto rounded-md shadow-sm"
       />
     </motion.section>
   );

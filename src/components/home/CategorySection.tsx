@@ -63,9 +63,9 @@ export default function CategorySection({ categories, activeCategory, onCategory
       {/* Scrollable Container - Full bleed on mobile, contained on desktop */}
       <div 
         ref={scrollRef}
-        className="overflow-x-auto no-scrollbar scroll-smooth -mx-6 md:mx-0"
+        className="overflow-x-auto no-scrollbar scroll-smooth -mx-4 md:mx-0"
       >
-        <div className="grid grid-rows-2 grid-flow-col auto-cols-max md:flex md:items-center gap-x-2 sm:gap-x-4 gap-y-2 sm:gap-y-4 py-2 px-6 md:px-1">
+        <div className="grid grid-rows-2 grid-flow-col auto-cols-max md:flex md:items-center gap-x-2 sm:gap-x-4 gap-y-2 sm:gap-y-4 py-2 px-4 md:px-1">
           {categories.map((category) => {
             const { label, img } = getCategoryConfig(category);
             const isActive = activeCategory === category;

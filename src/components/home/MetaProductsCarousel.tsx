@@ -19,23 +19,20 @@ export default function MetaProductsCarousel({ products, loading }: MetaProducts
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-3 sm:gap-4">
-        <div className="p-2 sm:p-3 bg-brand-pink/10 rounded-xl sm:rounded-xl text-brand-pink">
-          <Sparkle size={20} weight="fill" className="sm:w-6 sm:h-6" />
-        </div>
         <div className="min-w-0">
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-none truncate">Produtos em Meta</h2>
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-none truncate">Listas Abertas</h2>
           <p className="text-gray-400 text-[9px] sm:text-sm font-bold mt-1 uppercase tracking-widest truncate">Incentive a bater a meta e garanta o seu!</p>
         </div>
       </div>
 
       <AnimatePresence mode="wait">
         {metaProducts.length > 0 ? (
-          <div className="flex items-stretch gap-6 overflow-x-auto no-scrollbar pb-8 px-4 -mx-4">
+          <div className="flex items-stretch gap-0.5 sm:gap-2 overflow-x-auto no-scrollbar pb-2 px-4 -mx-4">
             {metaProducts.map((product) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                className="w-[280px] flex-shrink-0"
+                className="w-[calc((100vw-34px)/4)] sm:w-[calc((100%-48px)/4)] flex-shrink-0"
               />
             ))}
           </div>
