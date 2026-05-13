@@ -62,17 +62,13 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         )}
 
         {/* Badges */}
-        <div className="absolute top-1 sm:top-3 left-1 sm:left-3 flex flex-col gap-1 sm:gap-2">
-          {isMeta ? (
+        {isMeta && (
+          <div className="absolute top-1 sm:top-3 left-1 sm:left-3 flex flex-col gap-1 sm:gap-2">
             <div className="px-1.5 py-0.5 sm:px-3 sm:py-1 bg-brand-yellow/90 backdrop-blur-md rounded-full text-[6px] sm:text-[10px] font-black uppercase tracking-wider text-gray-900 border border-white/20">
               Sob Encomenda
             </div>
-          ) : (
-            <div className="px-1.5 py-0.5 sm:px-3 sm:py-1 bg-green-500/90 backdrop-blur-md rounded-full text-[6px] sm:text-[10px] font-black uppercase tracking-wider text-white border border-white/20">
-              Pronta Entrega
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Add to Cart Button */}
         <button 
@@ -91,24 +87,21 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           </h3>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-[6px] sm:text-[10px] text-gray-400 line-through leading-none mb-0.5 font-medium">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalPrice)}
-            </span>
-            <span className="text-[11px] sm:text-xl font-black tracking-tight text-brand-pink leading-none">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-baseline gap-0.5 sm:gap-1 whitespace-nowrap">
+            <span className="text-[14px] sm:text-2xl font-black tracking-tighter text-brand-pink leading-none">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
             </span>
-            {isMeta && product.requiredGoal && (
-              <span className="font-fashion text-[5px] sm:text-[8px] text-brand-pink truncate mt-0.5">
-                {product.currentGoalProgress || 0}/{product.requiredGoal}
-              </span>
-            )}
+            <span className="text-[9px] sm:text-[14px] text-gray-400 line-through leading-none font-bold opacity-60">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalPrice)}
+            </span>
           </div>
           
-          <div className="text-gray-200 group-hover:text-brand-pink transition-colors hidden sm:block">
-            <Info size={18} weight="bold" />
-          </div>
+          {isMeta && product.requiredGoal && (
+            <span className="font-fashion text-[6px] sm:text-[10px] text-brand-pink font-bold uppercase tracking-widest">
+              Progresso: {product.currentGoalProgress || 0}/{product.requiredGoal}
+            </span>
+          )}
         </div>
       </div>
     </motion.div>

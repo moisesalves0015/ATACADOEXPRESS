@@ -15,6 +15,7 @@ import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
 import OrderDetails from './pages/OrderDetails';
 import MatchDiscovery from './pages/MatchDiscovery';
+import AllProducts from './pages/AllProducts';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -24,6 +25,7 @@ import AdminReports from './pages/admin/Reports';
 import AdminNewOrder from './pages/admin/NewOrder';
 import AdminClients from './pages/admin/AdminClients';
 import CatalogPageAdmin from './pages/admin/CatalogPage';
+import DesignVault from './pages/admin/DesignVault';
 
 // Components
 import Layout from './components/Layout';
@@ -72,6 +74,7 @@ export default function App() {
 
             <Route element={<Layout user={authLoading ? null : user} />}>
               <Route path="/" element={<Catalog />} />
+              <Route path="/produtos" element={<AllProducts />} />
               <Route path="/descobrir" element={<MatchDiscovery />} />
               <Route path="/product/:id" element={<ProductDetail />} />
 
@@ -92,6 +95,7 @@ export default function App() {
                 <Route path="/admin/reports" element={<AdminReports />} />
                 <Route path="/admin/clients" element={<AdminClients />} />
                 <Route path="/admin/catalog" element={<CatalogPageAdmin />} />
+                <Route path="/admin/design-vault" element={<DesignVault />} />
               </Route>
             </Route>
           </Routes>

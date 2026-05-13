@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import { LayoutContextType } from '../components/Layout';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -58,7 +58,7 @@ export default function Catalog() {
   const displayProducts = filteredProducts.filter(p => {
     const type = p.stockType?.toLowerCase().replace(/[\s_-]/g, '') || '';
     return type === 'prontarentrega' || type === 'prontaentrega';
-  });
+  }).slice(0, 8); // Limita a 2 linhas de 4 cards
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-24">
@@ -74,6 +74,15 @@ export default function Catalog() {
               activeCategory={categoryFilter} 
               onCategoryChange={setCategoryFilter} 
             />
+            
+            {/* Banner Categorias */}
+            <div className="mt-4 sm:mt-6">
+              <img 
+                src="/assets/bannes/fixos/banner_categorias.svg" 
+                alt="Categorias" 
+                className="w-full h-auto object-contain shadow-sm"
+              />
+            </div>
           </div>
           
           {/* Refined Search Bar - Mobile Only */}
@@ -96,20 +105,48 @@ export default function Catalog() {
       </div>
 
       {/* Meta Products Carousel */}
-      <div className="pt-2 sm:pt-4">
+      <div className="-mt-4 sm:-mt-6">
         <MetaProductsCarousel products={products} loading={loading} />
       </div>
 
       {/* Main Product Feed */}
       <section>
-        <div className="flex justify-between items-center mb-6 sm:mb-8">
-          <div className="min-w-0">
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-none truncate">Pronta Entrega</h2>
-            <p className="text-gray-400 text-[10px] sm:text-sm font-bold mt-1 uppercase tracking-widest truncate">Envio imediato</p>
+        {/* Promotional Side-by-Side Banners */}
+        <div className="flex gap-1 sm:gap-2 mb-2 sm:mb-4">
+          <img 
+            src="/assets/bannes/fixos/frete_esp.svg" 
+            alt="Frete Especial" 
+            className="w-1/2 h-auto rounded-md sm:rounded-lg"
+          />
+          <img 
+            src="/assets/bannes/fixos/desc_progre.svg" 
+            alt="Desconto Progressivo" 
+            className="w-1/2 h-auto rounded-md sm:rounded-lg"
+          />
+        </div>
+
+        <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-none truncate">Pronta Entrega</h2>
+              <p className="text-gray-400 text-[10px] sm:text-sm font-bold mt-1 uppercase tracking-widest truncate">Envio imediato</p>
+            </div>
+            <img 
+              src="/assets/bannes/fixos/Selo_pronta_entrega.png" 
+              alt="Selo Pronta Entrega" 
+              className="h-10 sm:h-14 w-auto object-contain flex-shrink-0"
+            />
           </div>
-          <button className="flex-shrink-0 text-[10px] sm:text-xs text-brand-pink font-black uppercase tracking-widest hover:underline hover:text-brand-pink/80 transition-all">
-            Ver todos
-          </button>
+          <Link 
+            to="/produtos?filter=pronta_entrega" 
+            className="flex-shrink-0 hover:scale-105 active:scale-95 transition-all duration-300"
+          >
+            <img 
+              src="/assets/buttons/btn_vertodos/btn01.svg" 
+              alt="Ver todos" 
+              className="h-7 sm:h-9 w-auto object-contain"
+            />
+          </Link>
         </div>
 
         {loading ? (
@@ -119,13 +156,26 @@ export default function Catalog() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-4 lg:grid-cols-4 gap-x-1 sm:gap-x-4 gap-y-2 sm:gap-y-6">
-            <AnimatePresence>
-              {displayProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </AnimatePresence>
-          </div>
+          <>
+            <div className="grid grid-cols-4 lg:grid-cols-4 gap-x-0.5 sm:gap-x-2 gap-y-1 sm:gap-y-4">
+              <AnimatePresence>
+                {displayProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Banner Faixa Descrição - Logo abaixo das 2 linhas, alinhado com o grid */}
+            {displayProducts.length > 0 && (
+              <div className="mt-1 sm:mt-2">
+                <img 
+                  src="/assets/bannes/fixos/faixa_desc.svg" 
+                  alt="Destaque" 
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+            )}
+          </>
         )}
 
         {displayProducts.length === 0 && !loading && (
