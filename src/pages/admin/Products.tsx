@@ -633,7 +633,7 @@ export default function AdminProducts() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => navigate(`/admin/product-performance/${product.id}`)}
+                        onClick={() => handleOpenReport(product)}
                         className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
                         title="Ver Performance"
                       >
@@ -661,12 +661,11 @@ export default function AdminProducts() {
           </table>
         </div>
 
-        {/* Mobile View: Product Cards */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-4 p-4">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="mobile-card">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border border-gray-100">
+            <div key={product.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col p-5 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border border-gray-100">
                   {product.imageUrls?.length || product.imageUrl ? (
                     <img src={product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
@@ -675,9 +674,9 @@ export default function AdminProducts() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="text-base font-bold text-gray-900 truncate">{product.name}</p>
+                    <p className="text-base font-black text-gray-900 truncate">{product.name}</p>
                     <span className={cn(
-                      "px-1.5 py-0.5 rounded text-[8px] font-black uppercase border shrink-0",
+                      "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase border shrink-0",
                       product.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'
                     )}>
                       {product.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -691,9 +690,9 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4 pt-4 border-t border-gray-50">
+              <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-50">
                 <div>
-                  <span className="mobile-label">Tipo</span>
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Tipo</span>
                   <span className={cn(
                     "px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
                     product.stockType === 'pronta_entrega' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-orange-50 text-orange-700 border-orange-100'
@@ -702,24 +701,24 @@ export default function AdminProducts() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="mobile-label">Preço Unitário</span>
-                  <p className="text-base font-black text-gray-900">{fmt(product.unitPrice)}</p>
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Preço</span>
+                  <p className="text-sm font-black text-gray-900">{fmt(product.unitPrice)}</p>
                 </div>
               </div>
 
-              <div className="mb-4 pt-4 border-t border-gray-50">
+              <div>
                 {product.stockType === 'pronta_entrega' ? (
                   <div className="flex items-center justify-between">
-                    <span className="mobile-label">Estoque Disponível</span>
+                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Estoque Disponível</span>
                     <p className="text-sm font-black text-gray-900">{product.availableQuantity} un</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="mobile-label">Progresso da Meta</span>
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Progresso da Meta</span>
                       <p className="text-xs font-black text-gray-900">{product.currentGoalProgress || 0} / {product.requiredGoal}</p>
                     </div>
-                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                       <div 
                         className="bg-brand-pink h-full transition-all duration-500" 
                         style={{ width: `${Math.min(100, ((product.currentGoalProgress || 0) / (product.requiredGoal || 1)) * 100)}%` }}
@@ -729,22 +728,22 @@ export default function AdminProducts() {
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-50">
+              <div className="flex items-center justify-end gap-2 pt-1">
                 <button
-                  onClick={() => navigate(`/admin/product-performance/${product.id}`)}
-                  className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl border border-emerald-100 touch-action"
+                  onClick={() => handleOpenReport(product)}
+                  className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl border border-emerald-100 active:scale-95 transition-all"
                 >
                   <BarChart2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleOpenModal(product)}
-                  className="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100 touch-action"
+                  className="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100 active:scale-95 transition-all"
                 >
                   <Edit2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleDeleteProduct(product.id)}
-                  className="bg-red-50 text-red-600 p-2.5 rounded-xl border border-red-100 touch-action"
+                  className="bg-red-50 text-red-600 p-2.5 rounded-xl border border-red-100 active:scale-95 transition-all"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>

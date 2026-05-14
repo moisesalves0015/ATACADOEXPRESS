@@ -97,6 +97,7 @@ export default function App() {
                 <Route path="/admin/pessoas" element={<AdminClients />} />
                 <Route path="/admin/pessoas/:id" element={<PersonProfile />} />
                 <Route path="/admin/catalog" element={<CatalogPageAdmin />} />
+                <Route path="/admin/product-performance/:id" element={<AdminDashboard />} />
                 <Route path="/admin/design-vault" element={<DesignVault />} />
               </Route>
             </Route>

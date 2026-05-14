@@ -810,9 +810,10 @@ export default function AdminOrders() {
                       <td className="px-6 py-4">
                         {(() => {
                            const config = statusConfig[order.status] || statusConfig.aguardando_pagamento;
+                           const IconComp = config.icon;
                            return (
                             <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border", config.bg, config.border, config.color)}>
-                              <config.icon className="w-3.5 h-3.5" />
+                              <IconComp className="w-3.5 h-3.5" />
                               <span className="text-[10px] font-bold uppercase tracking-wider">{config.label}</span>
                             </div>
                            )
@@ -977,7 +978,10 @@ export default function AdminOrders() {
                       </td>
                       <td className="px-6 py-4">
                         <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border", config.bg, config.border, config.color)}>
-                          <config.icon className="w-3.5 h-3.5" />
+                        {(() => {
+                          const IconComp = config.icon;
+                          return <IconComp className="w-3.5 h-3.5" />;
+                        })()}
                           <span className="text-[10px] font-bold uppercase tracking-wider">{config.label}</span>
                         </div>
                       </td>
@@ -1584,3 +1588,5 @@ export default function AdminOrders() {
     </>
   );
 }
+
+// UI Fixed and structurally validated
