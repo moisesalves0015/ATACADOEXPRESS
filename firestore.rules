@@ -41,7 +41,7 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'name', 'email', 'role']) &&
-             data.role in ['admin', 'client'] &&
+             data.role in ['admin', 'client', 'seller', 'supplier'] &&
              data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
              data.email is string && data.email.size() > 0;
     }
@@ -56,7 +56,7 @@ service cloud.firestore {
 
     function isValidOrder(data) {
       return data.keys().hasAll(['clientId', 'orderDate', 'totalValue', 'status']) &&
-             data.status in ['aguardando_pagamento', 'aguardando_comprovante', 'confirmando_pagamento', 'pagamento_confirmado', 'separacao', 'enviado', 'entregue', 'cancelado'] &&
+             data.status in ['aguardando_pagamento', 'aguardando_comprovante', 'confirmando_pagamento', 'pagamento_confirmado', 'separacao', 'entregue', 'cancelado'] &&
              data.totalValue is number && data.totalValue >= 0 &&
              data.clientId is string && data.clientId.size() > 0;
     }
@@ -70,12 +70,14 @@ service cloud.firestore {
       // Users can read their own profile; admins can read all
       allow read: if isOwner(uid) || isAdmin();
 
-      // On register: authenticated user can create their own doc.
-      // The role field cannot be 'admin' — only admins can create admin accounts.
-      allow create: if isAuthenticated() &&
-                       isOwner(uid) &&
-                       isValidUser(request.resource.data) &&
-                       request.resource.data.role == 'client';
+      // On register: authenticated user can create their own doc as client.
+      // Admin can create any user doc.
+      allow create: if (
+                        isAuthenticated() &&
+                        isOwner(uid) &&
+                        isValidUser(request.resource.data) &&
+                        request.resource.data.role == 'client'
+                      ) || isAdmin();
 
       // User can update their own profile but CANNOT change their own role.
       // Admin can update any profile including role changes.
@@ -127,6 +129,16 @@ service cloud.firestore {
 
     // Finances collection
     match /finances/{entryId} {
+      allow read, write: if isAdmin();
+    }
+
+    // System Logs collection
+    match /system_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Payouts collection
+    match /payouts/{payoutId} {
       allow read, write: if isAdmin();
     }
   }

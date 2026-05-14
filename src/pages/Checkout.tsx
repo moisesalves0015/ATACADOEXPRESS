@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, auth, storage } from '../firebase';
+import { db, auth } from '../firebase';
 import { QrCode, Copy, CheckCircle2, Upload, AlertCircle, ArrowLeft, Package, Info, Search, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -25,6 +24,21 @@ export default function Checkout() {
       const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
       const userData = userDoc.data();
 
+      const itemsWithStatus = items.map(item => ({
+        ...item,
+        status: 'aguardando_pagamento' as const,
+        discount: 0,
+        amountPaid: 0,
+        paymentDate: '',
+        paymentMethod: '',
+        history: [{
+          timestamp: new Date().toISOString(),
+          actionType: 'CREATE',
+          description: 'Item adicionado ao pedido.',
+          userEmail: userData?.email || auth.currentUser.email || 'Cliente',
+        }]
+      }));
+
       const orderData = {
         clientId: auth.currentUser.uid,
         clientName: userData?.name || 'Cliente',
@@ -34,8 +48,8 @@ export default function Checkout() {
         totalValue: totalValue + deliveryFee,
         totalReady: initialPaymentTotal,
         totalPending: totalPendingValue,
-        status: initialPaymentTotal > 0 ? 'aguardando_pagamento' : 'aguardando_comprovante', // If nothing to pay now, skip payment wait? No, maybe a better status. 
-        items,
+        status: 'aguardando_pagamento',
+        items: itemsWithStatus,
         observations: '',
         orderOrigin: 'cliente' as const,
       };
@@ -68,29 +82,6 @@ export default function Checkout() {
     } catch (err) {
       console.error(err);
       alert('Erro ao processar pedido. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    if (!orderId) return;
-    setLoading(true);
-    try {
-      const extension = file.name.split('.').pop();
-      const storageRef = ref(storage, `payment_proofs/${orderId}_${Date.now()}.${extension}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      await updateDoc(doc(db, 'orders', orderId), {
-        paymentProofUrl: url,
-        status: 'confirmando_pagamento'
-      });
-      alert('Comprovante enviado! O status foi alterado para Confirmando Pagamento.');
-      navigate('/my-orders');
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao enviar comprovante.');
     } finally {
       setLoading(false);
     }
@@ -208,55 +199,19 @@ export default function Checkout() {
                     <p className="text-xs text-blue-700 leading-relaxed font-bold">
                       Valor a pagar agora: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(confirmedTotal)}
                     </p>
-                    <p className="text-[10px] text-blue-600 leading-relaxed">
-                      Após o pagamento, anexe o comprovante abaixo para agilizarmos a confirmação e separação do seu pedido.
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-10 pt-10 border-t border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Upload className="w-5 h-5 text-blue-600" /> Enviar Comprovante
-              </h3>
-              <div className="space-y-4">
-                <label className={cn(
-                  "w-full flex-col flex items-center justify-center min-h-[140px] px-6 py-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-all font-medium",
-                  loading ? 'opacity-50 pointer-events-none' : ''
-                )}>
-                  {loading ? (
-                    <>
-                       <Loader2 className="w-8 h-8 text-blue-600 mb-2 animate-spin" />
-                       <span className="text-gray-900 font-bold">Enviando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8 text-blue-600 mb-2" />
-                      <span className="text-gray-900 text-sm font-bold">Clique para anexar arquivo da galeria</span>
-                      <span className="text-gray-500 text-[10px] mt-1">Imagens ou Documentos</span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*,.pdf"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        handleFileUpload(e.target.files[0]);
-                      }
-                    }}
-                    disabled={loading}
-                  />
-                </label>
+            <div className="mt-10 pt-10 border-t border-gray-100 flex justify-center">
                 <button
                   onClick={() => navigate('/my-orders')}
                   disabled={loading}
-                  className="w-full px-6 py-4 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
+                  className="w-full max-w-sm px-6 py-4 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
                 >
-                  Pular por agora
+                  Ir para Meus Pedidos
                 </button>
-              </div>
             </div>
           </div>
         </div>

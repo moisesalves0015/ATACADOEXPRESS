@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, handleFirestoreError, OperationType } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Order, OrderStatus, StatusUpdate } from '../types';
 import { ArrowLeft, Clock, CheckCircle2, Truck, Package, XCircle, FileText, ExternalLink, MapPin, User, Upload, Search, History, MessageSquare, Loader2, Plus } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -11,8 +10,6 @@ import { ptBR } from 'date-fns/locale';
 
 const statusConfig = {
   aguardando_pagamento: { label: 'Aguardando Pagamento', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
-  aguardando_comprovante: { label: 'Aguardando Comprovante', icon: Upload, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
-  confirmando_pagamento: { label: 'Confirmando Pagamento', icon: Search, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
   pagamento_confirmado: { label: 'Pagamento Confirmado', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
   separacao: { label: 'Em Separação', icon: Package, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100' },
   entregue: { label: 'Entregue', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' },
@@ -23,51 +20,24 @@ export default function OrderDetails() {
   const { id } = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    const unsubscribe = onSnapshot(doc(db, 'orders', id), (doc) => {
-      if (doc.exists()) {
-        setOrder({ id: doc.id, ...doc.data() } as Order);
+    
+    const unsub = onSnapshot(doc(db, 'orders', id), (snapshot) => {
+      if (snapshot.exists()) {
+        setOrder({ id: snapshot.id, ...snapshot.data() } as Order);
+      } else {
+        setOrder(null);
       }
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `orders/${id}`);
+      handleFirestoreError(error, OperationType.GET, 'orders');
+      setLoading(false);
     });
-    return () => unsubscribe();
+    
+    return () => unsub();
   }, [id]);
-
-  const handleFileUpload = async (file: File) => {
-    if (!order) return;
-    setUploading(true);
-    try {
-      const extension = file.name.split('.').pop();
-      const storageRef = ref(storage, `payment_proofs/${order.id}_${Date.now()}.${extension}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      const updateEntry: StatusUpdate = {
-        status: 'confirmando_pagamento',
-        comment: 'Comprovante enviado pelo cliente.',
-        isInternal: false,
-        updatedAt: new Date().toISOString(),
-        updatedBy: order.clientName,
-      };
-
-      await updateDoc(doc(db, 'orders', order.id), {
-        paymentProofUrl: url,
-        status: 'confirmando_pagamento',
-        statusHistory: arrayUnion(updateEntry)
-      });
-      alert('Comprovante enviado com sucesso! Nosso time irá validar o pagamento.');
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao enviar comprovante.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -113,16 +83,6 @@ export default function OrderDetails() {
               <h2 className={cn("text-2xl font-black", config.color)}>{config.label}</h2>
             </div>
           </div>
-          {order.paymentProofUrl && (
-            <a 
-              href={order.paymentProofUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white px-5 py-3 rounded-xl text-sm font-bold text-gray-700 shadow-md hover:shadow-lg transition-all active:scale-95"
-            >
-              <FileText className="w-4 h-4 text-blue-600" /> Ver Comprovante
-            </a>
-          )}
         </div>
 
         <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -212,56 +172,6 @@ export default function OrderDetails() {
               </div>
             </div>
 
-            {/* Proof Upload interface for Client (Only if pending) */}
-            {(order.status === 'aguardando_comprovante' || order.status === 'aguardando_pagamento') && (
-              <div className="bg-blue-600 p-8 rounded-xl text-white shadow-xl shadow-blue-100 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                   <Upload className="w-32 h-32" />
-                </div>
-                <div className="relative z-10 space-y-6">
-                  <div>
-                    <h3 className="text-xl font-bold mb-2 flex items-center gap-3">
-                      <Upload className="w-6 h-6" /> Enviar Comprovante
-                    </h3>
-                    <p className="text-blue-100 text-sm opacity-80">Nos envie o link do seu comprovante de pagamento para confirmarmos seu pedido.</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <label className={cn(
-                      "w-full flex-col flex items-center justify-center min-h-[140px] px-6 py-4 bg-white/20 border-2 border-dashed border-white/60 rounded-xl cursor-pointer hover:bg-white/30 transition-all font-medium",
-                      uploading ? 'opacity-50 pointer-events-none' : ''
-                    )}>
-                      {uploading ? (
-                        <>
-                           <Loader2 className="w-8 h-8 text-white mb-2 animate-spin" />
-                           <span className="text-white font-bold">Enviando...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-8 h-8 text-white mb-2" />
-                          <span className="text-white text-sm font-bold">Clique para anexar arquivo da galeria</span>
-                          <span className="text-blue-100 text-[10px] mt-1">Imagens ou Documentos</span>
-                        </>
-                      )}
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*,.pdf"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            handleFileUpload(e.target.files[0]);
-                          }
-                        }}
-                        disabled={uploading}
-                      />
-                    </label>
-                    <p className="text-[10px] text-white/60 text-center uppercase font-black tracking-[0.2em]">
-                      Confirmação 100% segura e manual
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Sidebar Info & History */}

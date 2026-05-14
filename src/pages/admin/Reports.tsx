@@ -5,7 +5,7 @@ import { Order, Product, FinanceEntry, FinanceCategory, FinanceType } from '../.
 import { 
   Plus, Trash2, LayoutDashboard, ArrowRightLeft, 
   TrendingUp, Wallet, DollarSign, Percent, Activity,
-  ArrowUpRight, ArrowDownRight, Clock, Info
+  ArrowUpRight, ArrowDownRight, Clock, Info, Users
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -95,12 +95,13 @@ export default function AdminReports() {
 
     const otherGains = filteredFinances.filter(f => f.type === 'gain').reduce((sum, f) => sum + f.amount, 0);
     const expenses = filteredFinances.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+    const totalCommissions = filteredOrders.reduce((sum, o) => sum + (o.commissionValue || 0), 0);
 
     const totalRevenue = salesRevenue + otherGains;
     const grossProfit = salesRevenue - cogs;
-    const netProfit = grossProfit + otherGains - expenses;
+    const netProfit = grossProfit + otherGains - expenses - totalCommissions;
 
-    return { salesRevenue, otherGains, totalRevenue, cogs, expenses, grossProfit, netProfit };
+    return { salesRevenue, otherGains, totalRevenue, cogs, expenses, totalCommissions, grossProfit, netProfit };
   }, [filteredOrders, filteredFinances, products]);
 
   const timeSeriesData = useMemo(() => {
@@ -157,40 +158,40 @@ export default function AdminReports() {
   return (
     <div className="space-y-8 pb-10">
       {/* Professional Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-100 pb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 border-b border-gray-100 pb-6 sm:pb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
             Gestão <span className="text-gray-400 font-normal">Financeira</span>
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Acompanhamento de fluxo de caixa e rentabilidade real.</p>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1">Acompanhamento de fluxo de caixa e rentabilidade.</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="bg-gray-100 p-1 rounded-xl flex items-center">
             <button
               onClick={() => setActiveTab('overview')}
               className={cn(
-                "px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 uppercase tracking-widest",
+                "flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-2 uppercase tracking-widest",
                 activeTab === 'overview' ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
               )}
             >
-              <LayoutDashboard size={14} /> Visão Geral
+              <LayoutDashboard size={14} /> <span className="hidden sm:inline">Visão Geral</span><span className="sm:hidden">Geral</span>
             </button>
             <button
               onClick={() => setActiveTab('entries')}
               className={cn(
-                "px-5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 uppercase tracking-widest",
+                "flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-2 uppercase tracking-widest",
                 activeTab === 'entries' ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
               )}
             >
-              <ArrowRightLeft size={14} /> Lançamentos
+              <ArrowRightLeft size={14} /> <span className="hidden sm:inline">Lançamentos</span><span className="sm:hidden">Lançar</span>
             </button>
           </div>
           
           <select 
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="bg-white border border-gray-200 px-4 py-2 rounded-xl text-xs font-bold text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900/5 transition-all"
+            className="bg-white border border-gray-200 px-4 py-2 rounded-xl text-[10px] sm:text-xs font-bold text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900/5 transition-all h-[38px] sm:h-auto"
           >
             <option value="7days">Últimos 7 dias</option>
             <option value="30days">Últimos 30 dias</option>
@@ -203,17 +204,17 @@ export default function AdminReports() {
       {activeTab === 'overview' ? (
         <div className="space-y-8">
           {/* Primary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               { 
-                label: 'Faturamento Bruto', 
+                label: 'Receita Bruta', 
                 value: totals.totalRevenue, 
                 icon: DollarSign, 
                 color: 'text-gray-900',
                 tooltip: `Você arrecadou R$ ${fmt(totals.totalRevenue).replace('R$', '')}, sendo ${fmt(totals.salesRevenue)} em vendas e ${fmt(totals.otherGains)} em ganhos extras.`
               },
               { 
-                label: 'Lucro Líquido Real', 
+                label: 'Lucro Real', 
                 value: totals.netProfit, 
                 icon: TrendingUp, 
                 color: totals.netProfit >= 0 ? 'text-emerald-600' : 'text-red-500',
@@ -234,43 +235,41 @@ export default function AdminReports() {
                 tooltip: `De cada R$ 100,00 que entram na empresa, ${fmt(Math.max(0, (totals.netProfit / (totals.totalRevenue || 1)) * 100))} é o que sobra livre de verdade.`
               },
             ].map((kpi, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                      <kpi.icon size={16} />
+              <div key={idx} className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-sm relative group flex flex-col justify-between h-32 sm:h-auto">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                      <kpi.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{kpi.label}</span>
+                    <span className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">{kpi.label}</span>
                   </div>
                   
                   {/* Tooltip trigger */}
-                  <div className="relative flex items-center cursor-help">
+                  <div className="hidden sm:flex items-center cursor-help">
                     <Info 
-                      size={16} 
+                      size={14} 
                       className="text-gray-300 hover:text-gray-600 transition-colors peer" 
                       tabIndex={0}
                     />
-                    {/* Tooltip Box */}
-                    <div className="absolute bottom-[calc(100%+10px)] right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 w-48 sm:w-56 p-3 bg-gray-900 text-white text-[11px] font-medium leading-relaxed rounded-xl shadow-xl opacity-0 invisible peer-hover:opacity-100 peer-hover:visible peer-focus:opacity-100 peer-focus:visible transition-all z-50 pointer-events-none">
+                    <div className="absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-56 p-3 bg-gray-900 text-white text-[11px] font-medium leading-relaxed rounded-xl shadow-xl opacity-0 invisible peer-hover:opacity-100 peer-hover:visible peer-focus:opacity-100 peer-focus:visible transition-all z-50 pointer-events-none">
                       {kpi.tooltip}
-                      {/* Triangle Arrow */}
-                      <div className="absolute top-full right-1 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 border-[5px] border-transparent border-t-gray-900" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-gray-900" />
                     </div>
                   </div>
                 </div>
-                <h3 className={cn("text-2xl font-bold tracking-tight", kpi.color)}>
+                <h3 className={cn("text-lg sm:text-2xl font-bold tracking-tight", kpi.color)}>
                   {typeof kpi.value === 'string' ? kpi.value : fmt(kpi.value)}
                 </h3>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
-              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-8 flex items-center gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="lg:col-span-2 bg-white p-5 sm:p-8 rounded-2xl border border-gray-200 shadow-sm">
+              <h2 className="text-[10px] sm:text-sm font-bold text-gray-900 uppercase tracking-widest mb-6 sm:mb-8 flex items-center gap-2">
                 <Activity size={16} className="text-brand-pink" /> Evolução Financeira
               </h2>
-              <div className="h-[300px] w-full">
+              <div className="h-[250px] sm:h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={timeSeriesData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -327,63 +326,63 @@ export default function AdminReports() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
-          <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6 h-fit">
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-               <Plus size={16} /> Novo Lançamento
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Descrição</label>
-                <input 
-                  type="text" 
-                  value={newEntry.description}
-                  onChange={e => setNewEntry({ ...newEntry, description: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
-                  placeholder="Ex: Aluguel do mês"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                 <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Valor</label>
-                    <input 
-                      type="number" 
-                      value={newEntry.amount}
-                      onChange={e => setNewEntry({ ...newEntry, amount: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
-                      placeholder="0.00"
-                    />
-                 </div>
-                 <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Data</label>
-                    <input 
-                      type="date" 
-                      value={newEntry.date}
-                      onChange={e => setNewEntry({ ...newEntry, date: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold uppercase"
-                    />
-                 </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Categoria</label>
-                <select 
-                  value={newEntry.category}
-                  onChange={e => {
-                    const cat = e.target.value as FinanceCategory;
-                    setNewEntry({ ...newEntry, category: cat, type: cat === 'Ganho Extra' ? 'gain' : 'expense' });
-                  }}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+            <div className="bg-white p-4 sm:p-8 rounded-xl border border-gray-100 shadow-sm space-y-4 h-fit">
+              <h2 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                 <Plus size={16} /> Novo Lançamento
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5">Descrição</label>
+                  <input 
+                    type="text" 
+                    value={newEntry.description}
+                    onChange={e => setNewEntry({ ...newEntry, description: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+                    placeholder="Ex: Aluguel"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5">Valor</label>
+                      <input 
+                        type="number" 
+                        value={newEntry.amount}
+                        onChange={e => setNewEntry({ ...newEntry, amount: e.target.value })}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+                        placeholder="0.00"
+                      />
+                   </div>
+                   <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5">Data</label>
+                      <input 
+                        type="date" 
+                        value={newEntry.date}
+                        onChange={e => setNewEntry({ ...newEntry, date: e.target.value })}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold uppercase"
+                      />
+                   </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-1.5">Categoria</label>
+                  <select 
+                    value={newEntry.category}
+                    onChange={e => {
+                      const cat = e.target.value as FinanceCategory;
+                      setNewEntry({ ...newEntry, category: cat, type: cat === 'Ganho Extra' ? 'gain' : 'expense' });
+                    }}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-900 transition-all outline-none text-sm font-bold"
+                  >
+                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <button 
+                  onClick={handleAddEntry}
+                  className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-gray-800 transition-all mt-2"
                 >
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                  Salvar Lançamento
+                </button>
               </div>
-              <button 
-                onClick={handleAddEntry}
-                className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-800 transition-all mt-4"
-              >
-                Salvar Lançamento
-              </button>
             </div>
-          </div>
 
           {/* List */}
           <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden text-gray-900">

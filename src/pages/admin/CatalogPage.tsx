@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -51,6 +51,14 @@ interface Product {
   category: string;
   imageUrl: string;
   status: 'active' | 'inactive';
+  supplierId?: string;
+  supplierName?: string;
+}
+
+interface Supplier {
+  uid: string;
+  name: string;
+  tradingName?: string;
 }
 
 interface CatalogConfig {
@@ -96,6 +104,8 @@ export default function CatalogPage() {
   const navigate = useNavigate();
   const catalogRef = useRef<HTMLDivElement>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   
@@ -130,12 +140,24 @@ export default function CatalogPage() {
       setProducts(prods.filter(p => p.status === 'active'));
       setLoading(false);
     });
-    return () => unsubProducts();
+
+    const unsubSuppliers = onSnapshot(query(collection(db, 'users'), where('role', '==', 'supplier')), (snap) => {
+      setSuppliers(snap.docs.map(doc => ({ uid: doc.id, ...doc.data() } as Supplier)));
+    });
+
+    return () => {
+      unsubProducts();
+      unsubSuppliers();
+    };
   }, []);
 
+  const filteredProducts = supplierFilter === 'all' 
+    ? products 
+    : products.filter(p => p.supplierId === supplierFilter);
+
   const pages = [];
-  for (let i = 0; i < products.length; i += config.productsPerPage) {
-    pages.push(products.slice(i, i + config.productsPerPage));
+  for (let i = 0; i < filteredProducts.length; i += config.productsPerPage) {
+    pages.push(filteredProducts.slice(i, i + config.productsPerPage));
   }
 
   const handleDownloadPDF = async () => {
@@ -339,6 +361,26 @@ export default function CatalogPage() {
                       <span className="text-[8px] font-bold uppercase tracking-widest text-center">{item.label}</span>
                     </button>
                   ))}
+                  <div className="col-span-2 md:col-span-7 mt-4 border-t border-gray-100 pt-6">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-3"><Files size={14}/> Filtrar por Fornecedor</label>
+                    <div className="flex flex-wrap gap-2">
+                      <button 
+                        onClick={() => setSupplierFilter('all')}
+                        className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", supplierFilter === 'all' ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300")}
+                      >
+                        Todos
+                      </button>
+                      {suppliers.map(s => (
+                        <button 
+                          key={s.uid}
+                          onClick={() => setSupplierFilter(s.uid)}
+                          className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", supplierFilter === s.uid ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300")}
+                        >
+                          {s.tradingName || s.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
               )}
 

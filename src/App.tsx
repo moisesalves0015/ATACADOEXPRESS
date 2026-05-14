@@ -24,6 +24,7 @@ import AdminOrders from './pages/admin/Orders';
 import AdminReports from './pages/admin/Reports';
 import AdminNewOrder from './pages/admin/NewOrder';
 import AdminClients from './pages/admin/AdminClients';
+import PersonProfile from './pages/admin/PersonProfile';
 import CatalogPageAdmin from './pages/admin/CatalogPage';
 import DesignVault from './pages/admin/DesignVault';
 
@@ -93,7 +94,8 @@ export default function App() {
                 <Route path="/admin/orders" element={<AdminOrders />} />
                 <Route path="/admin/new-order" element={<AdminNewOrder />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
-                <Route path="/admin/clients" element={<AdminClients />} />
+                <Route path="/admin/pessoas" element={<AdminClients />} />
+                <Route path="/admin/pessoas/:id" element={<PersonProfile />} />
                 <Route path="/admin/catalog" element={<CatalogPageAdmin />} />
                 <Route path="/admin/design-vault" element={<DesignVault />} />
               </Route>

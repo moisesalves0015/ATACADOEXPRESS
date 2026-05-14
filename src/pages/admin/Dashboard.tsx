@@ -20,7 +20,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('orderDate', 'desc')), (snapshot) => {
-      setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
+      // RISCO-04: filter soft-deleted orders so they don't affect any metric
+      setOrders(snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as Order))
+        .filter(o => !(o as any).deletedAt)
+      );
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'orders');
     });
@@ -31,7 +35,7 @@ export default function AdminDashboard() {
       handleFirestoreError(error, OperationType.LIST, 'products');
     });
 
-    const unsubUsers = onSnapshot(query(collection(db, 'users'), where('role', '==', 'client')), (snapshot) => {
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
       setUsers(snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as unknown as UserProfile)));
       setLoading(false);
     }, (error) => {
@@ -67,12 +71,33 @@ export default function AdminDashboard() {
     return d >= prevMonthStart && d < monthStart;
   });
 
-  const totalRevenue = orders.reduce((sum, o) => sum + o.totalValue, 0);
-  const todayRevenue = todayOrders.reduce((sum, o) => sum + o.totalValue, 0);
-  const yesterdayRevenue = yesterdayOrders.reduce((sum, o) => sum + o.totalValue, 0);
+  const getItemRevenue = (orderList: Order[], onlyPaid: boolean) => {
+    return orderList.reduce((sum, order) => {
+      let orderSum = 0;
+      order.items.forEach(item => {
+        // Fallback to order.status if item.status is somehow missing (legacy orders)
+        const currentStatus = item.status || order.status;
+        
+        if (currentStatus !== 'cancelado') {
+          if (onlyPaid) {
+            if (['pagamento_confirmado', 'separacao', 'entregue'].includes(currentStatus)) {
+              orderSum += item.quantity * item.unitPrice;
+            }
+          } else {
+            orderSum += item.quantity * item.unitPrice;
+          }
+        }
+      });
+      return sum + orderSum;
+    }, 0);
+  };
+
+  const totalRevenue = getItemRevenue(orders, true);
+  const todayRevenue = getItemRevenue(todayOrders, true);
+  const yesterdayRevenue = getItemRevenue(yesterdayOrders, true);
   
-  const currentMonthRevenue = currentMonthOrders.reduce((sum, o) => sum + o.totalValue, 0);
-  const previousMonthRevenue = previousMonthOrders.reduce((sum, o) => sum + o.totalValue, 0);
+  const currentMonthRevenue = getItemRevenue(currentMonthOrders, true);
+  const previousMonthRevenue = getItemRevenue(previousMonthOrders, true);
 
   const todayTrend = yesterdayRevenue === 0 
     ? (todayRevenue > 0 ? 100 : 0) 
@@ -95,8 +120,10 @@ export default function AdminDashboard() {
   const topProducts = useMemo(() => {
     const sales: Record<string, { name: string, qty: number, revenue: number }> = {};
     orders.forEach(order => {
-      if (order.status === 'cancelado') return;
       order.items.forEach(item => {
+        const currentStatus = item.status || order.status;
+        if (currentStatus === 'cancelado') return;
+        
         if (!sales[item.productId]) {
           sales[item.productId] = { name: item.productName, qty: 0, revenue: 0 };
         }
@@ -114,14 +141,76 @@ export default function AdminDashboard() {
   const topClients = useMemo(() => {
     const clients: Record<string, { name: string, qty: number, revenue: number }> = {};
     orders.forEach(order => {
-      if (order.status === 'cancelado') return;
-      if (!clients[order.clientId]) {
-        clients[order.clientId] = { name: order.clientName, qty: 0, revenue: 0 };
+      let validOrderRevenue = 0;
+      let validItems = 0;
+      order.items.forEach(item => {
+         const currentStatus = item.status || order.status;
+         if (currentStatus !== 'cancelado') {
+           validOrderRevenue += item.quantity * item.unitPrice;
+           validItems += item.quantity;
+         }
+      });
+      
+      if (validItems > 0) {
+        if (!clients[order.clientId]) {
+          clients[order.clientId] = { name: order.clientName, qty: 0, revenue: 0 };
+        }
+        clients[order.clientId].qty += 1;
+        clients[order.clientId].revenue += validOrderRevenue;
       }
-      clients[order.clientId].qty += 1;
-      clients[order.clientId].revenue += order.totalValue;
     });
     return Object.entries(clients)
+      .map(([id, data]) => ({ id, ...data }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+  }, [orders]);
+
+  // Top Suppliers Logic
+  const topSuppliers = useMemo(() => {
+    const suppliersMap: Record<string, { name: string, qty: number, revenue: number }> = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const currentStatus = item.status || order.status;
+        if (currentStatus === 'cancelado') return;
+
+        const p = products.find(prod => prod.id === item.productId);
+        if (p?.supplierId) {
+          if (!suppliersMap[p.supplierId]) {
+            suppliersMap[p.supplierId] = { name: p.supplierName || 'Desconhecido', qty: 0, revenue: 0 };
+          }
+          suppliersMap[p.supplierId].qty += item.quantity;
+          suppliersMap[p.supplierId].revenue += item.quantity * item.unitPrice;
+        }
+      });
+    });
+    return Object.entries(suppliersMap)
+      .map(([id, data]) => ({ id, ...data }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+  }, [orders, products]);
+
+  // Top Sellers Logic
+  const topSellers = useMemo(() => {
+    const sellersMap: Record<string, { name: string, qty: number, revenue: number, commission: number }> = {};
+    orders.forEach(order => {
+      if (order.sellerId) {
+        if (!sellersMap[order.sellerId]) {
+          sellersMap[order.sellerId] = { name: order.sellerName || 'Desconhecido', qty: 0, revenue: 0, commission: 0 };
+        }
+        
+        order.items.forEach(item => {
+          const currentStatus = item.status || order.status;
+          const isConfirmed = ['pagamento_confirmado', 'separacao', 'entregue'].includes(currentStatus);
+            
+          if (isConfirmed) {
+            sellersMap[order.sellerId!].revenue += item.quantity * item.unitPrice;
+            sellersMap[order.sellerId!].commission += item.commissionValue || 0;
+            sellersMap[order.sellerId!].qty += item.quantity;
+          }
+        });
+      }
+    });
+    return Object.entries(sellersMap)
       .map(([id, data]) => ({ id, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
@@ -148,7 +237,7 @@ export default function AdminDashboard() {
     },
     { 
       label: 'Clientes Ativos', 
-      value: users.length, 
+      value: users.filter(u => u.role === 'client').length, 
       icon: Users, 
       trendValue: newUsersThisMonth,
       trendText: `+${newUsersThisMonth} novos`,
@@ -193,16 +282,18 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid - Professional Clean */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:border-gray-300 transition-all flex flex-col justify-between h-40">
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-900 border border-gray-100">
-                <stat.icon size={18} strokeWidth={2} />
+          <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:border-brand-pink/20 transition-all flex flex-col justify-between h-32 relative overflow-hidden group">
+            <div className="absolute right-0 top-0 w-24 h-24 bg-gray-50 rounded-bl-full -mr-10 -mt-10 group-hover:bg-brand-pink/5 transition-colors" />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center text-white shadow-lg shadow-gray-200">
+                <stat.icon className="w-5 h-5" strokeWidth={2.5} />
               </div>
               {stat.trendText && (
                 <span className={cn(
-                  "text-[9px] font-bold px-2 py-0.5 rounded-md border",
+                  "text-[9px] font-black px-2 py-1 rounded-lg border uppercase tracking-widest",
                   stat.isNeutral ? "bg-gray-50 text-gray-400 border-gray-100" :
                   stat.isAlert ? "bg-orange-50 text-orange-600 border-orange-100" :
                   stat.isPositive ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"
@@ -212,9 +303,9 @@ export default function AdminDashboard() {
               )}
             </div>
             
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{stat.label}</p>
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{stat.value}</h3>
+            <div className="relative z-10">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{stat.label}</p>
+              <h3 className="text-xl font-black text-gray-900 tracking-tight leading-tight">{stat.value}</h3>
             </div>
           </div>
         ))}
@@ -233,23 +324,24 @@ export default function AdminDashboard() {
           </div>
           <div className="divide-y divide-gray-50">
             {orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 font-bold text-xs">
+              <div key={order.id} className="px-5 py-5 flex items-center justify-between hover:bg-gray-50/50 transition-all">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-11 h-11 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 font-black text-xs shrink-0">
                     {order.clientName.charAt(0)}
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">{order.clientName}</p>
-                    <p className="text-[10px] font-medium text-gray-400">#{order.id.slice(-6).toUpperCase()} · {format(new Date(order.orderDate), 'HH:mm')}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-gray-900 truncate">{order.clientName}</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">#{order.id.slice(-6).toUpperCase()} · {format(new Date(order.orderDate), 'HH:mm')}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}</p>
-                  <span className={cn(
-                    "inline-block mt-0.5 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded border tracking-widest",
-                    order.status === 'aguardando_pagamento' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-blue-50 text-blue-600 border-blue-100'
-                  )}>
-                    {order.status.replace('_', ' ')}
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-black text-gray-900">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                       order.items.reduce((s, i) => s + (i.quantity * i.unitPrice), 0)
+                    )}
+                  </p>
+                  <span className="inline-block mt-1 text-[8px] font-black uppercase px-2 py-0.5 rounded-md border tracking-widest bg-emerald-50 text-emerald-600 border-emerald-100">
+                    {order.items.length} itens
                   </span>
                 </div>
               </div>
@@ -264,49 +356,106 @@ export default function AdminDashboard() {
               <TrendingUp className="w-4 h-4" /> Metas em Andamento
             </h2>
           </div>
-          <div className="p-6 space-y-6">
-            {products.filter(p => p.stockType === 'previsao_meta').slice(0, 4).map((p) => (
-              <div key={p.id} className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-gray-700">{p.name}</span>
-                  <span className="font-bold text-gray-400">{p.currentGoalProgress}/{p.requiredGoal} <span className="text-[10px] ml-1">({Math.round(((p.currentGoalProgress || 0) / (p.requiredGoal || 1)) * 100)}%)</span></span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
-                  <div 
-                    className="bg-gray-900 h-full rounded-full transition-all duration-700"
-                    style={{ width: `${Math.min(100, ((p.currentGoalProgress || 0) / (p.requiredGoal || 1)) * 100)}%` }}
-                  />
-                </div>
+          <div className="p-4 sm:p-6 space-y-5">
+            {/* RISCO-05/14: only active products with unfinished goals */}
+            {products
+              .filter(p =>
+                p.status === 'active' &&
+                p.stockType === 'previsao_meta' &&
+                (p.requiredGoal || 0) > 0 &&
+                !p.goalReached &&
+                (p.currentGoalProgress || 0) < (p.requiredGoal || 0)
+              )
+              .slice(0, 4)
+              .map((p) => {
+                const progress = p.currentGoalProgress || 0;
+                const goal = p.requiredGoal || 1;
+                // RISCO-16: never show negative remaining
+                const remaining = Math.max(0, goal - progress);
+                const pct = Math.min(100, Math.round((progress / goal) * 100));
+
+                // RISCO-08/16: safe WhatsApp message
+                const handleIncentive = () => {
+                  const msg =
+                    `🔥 *META EM ANDAMENTO* 🔥\n\n` +
+                    `Olá, pessoal! Estamos chegando lá! 🚀\n\n` +
+                    `Faltam apenas *${remaining} unidade${remaining !== 1 ? 's' : ''}* do produto *${p.name}* para batermos a meta!\n\n` +
+                    `Já vendemos *${progress} de ${goal}* unidades (${pct}% da meta). \n\n` +
+                    `Vamos acelerar as vendas e fechar essa meta juntos! 📣💪`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                };
+
+                return (
+                  <div key={p.id} className="space-y-2">
+                    <div className="flex justify-between items-start text-xs gap-2">
+                      <span className="font-bold text-gray-700 truncate flex-1" title={p.name}>{p.name}</span>
+                      <span className="font-bold text-gray-400 shrink-0">
+                        {progress}/{goal}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
+                      <div
+                        className="bg-gray-900 h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] sm:text-[9px] font-bold text-orange-600 uppercase tracking-widest">
+                        Faltam {remaining} un
+                      </span>
+                      <button
+                        onClick={handleIncentive}
+                        className="flex items-center gap-1 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded-lg transition-all border border-emerald-100"
+                        title="Gerar mensagem de incentivo para WhatsApp"
+                      >
+                        <ShoppingBag className="w-2.5 h-2.5" /> Incentivar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            }
+            {products.filter(p =>
+              p.status === 'active' &&
+              p.stockType === 'previsao_meta' &&
+              (p.requiredGoal || 0) > 0 &&
+              !p.goalReached &&
+              (p.currentGoalProgress || 0) < (p.requiredGoal || 0)
+            ).length === 0 && (
+              <div className="text-center py-8 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                Nenhuma meta ativa
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Mais Vendidos */}
+        {/* Desempenho por Fornecedor */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/30">
-            <div className="p-2 bg-brand-pink/10 rounded-xl text-brand-pink">
-              <Trophy size={16} />
+            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+              <Package size={16} />
             </div>
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Mais Vendidos</h2>
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Desempenho por Fornecedor</h2>
           </div>
           <div className="divide-y divide-gray-50">
-            {topProducts.map((p, i) => (
-              <div key={p.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-all">
+            {topSuppliers.length === 0 ? (
+              <div className="p-10 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">Nenhum dado disponível</div>
+            ) : topSuppliers.map((s, i) => (
+              <div key={s.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-all">
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-black text-gray-300">0{i+1}</span>
-                  <p className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{p.name}</p>
+                  <p className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{s.name}</p>
                 </div>
                 <div className="flex items-center gap-6">
                    <div className="text-right">
                       <p className="text-[10px] text-gray-400 font-bold uppercase">Volume</p>
-                      <p className="text-sm font-bold text-gray-900">{p.qty} un</p>
+                      <p className="text-sm font-bold text-gray-900">{s.qty} un</p>
                    </div>
                    <div className="text-right min-w-[80px]">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Receita</p>
-                      <p className="text-sm font-bold text-brand-pink">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.revenue)}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">Total Vendido</p>
+                      <p className="text-sm font-bold text-orange-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.revenue)}</p>
                    </div>
                 </div>
               </div>
@@ -314,29 +463,34 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Melhores Clientes */}
+        {/* Ranking de Vendedores */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/30">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-              <UserCircle size={16} />
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+              <TrendingUp size={16} />
             </div>
-            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Top Clientes</h2>
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Ranking de Vendedores</h2>
           </div>
           <div className="divide-y divide-gray-50">
-            {topClients.map((c, i) => (
-              <div key={c.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-all">
+            {topSellers.length === 0 ? (
+              <div className="p-10 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">Nenhum dado disponível</div>
+            ) : topSellers.map((sel, i) => (
+              <div key={sel.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50/30 transition-all">
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-black text-gray-300">0{i+1}</span>
-                  <p className="text-sm font-bold text-gray-900 truncate max-w-[150px]">{c.name}</p>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 truncate max-w-[120px]">{sel.name}</p>
+                    <p className="text-[9px] font-black text-emerald-600 uppercase">Comissão: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sel.commission)}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-6">
                    <div className="text-right">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Pedidos</p>
-                      <p className="text-sm font-bold text-gray-900">{c.qty}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">Vendas</p>
+                      <p className="text-sm font-bold text-gray-900">{sel.qty}</p>
                    </div>
                    <div className="text-right min-w-[80px]">
                       <p className="text-[10px] text-gray-400 font-bold uppercase">Total</p>
-                      <p className="text-sm font-bold text-indigo-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(c.revenue)}</p>
+                      <p className="text-sm font-bold text-emerald-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sel.revenue)}</p>
                    </div>
                 </div>
               </div>
@@ -348,17 +502,17 @@ export default function AdminDashboard() {
       {/* Pending Action Alert */}
       {pendingOrders.length > 0 && (
         <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden relative">
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-brand-pink/10 blur-[50px]"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-white/10 blur-[50px]"></div>
           <div className="flex items-center gap-4 relative z-10">
-            <div className="bg-brand-pink p-3 rounded-xl shadow-lg shadow-brand-pink/20">
+            <div className="bg-gray-800 p-3 rounded-xl border border-gray-700 shadow-lg">
               <AlertCircle className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Pendências Financeiras</h3>
-              <p className="text-gray-400 text-xs">Existem {pendingOrders.length} pedidos aguardando confirmação de pagamento.</p>
+              <h3 className="text-lg font-bold text-white">Pendências em Itens</h3>
+              <p className="text-gray-400 text-xs">Existem {pendingOrders.length} pedidos com itens aguardando confirmação de pagamento.</p>
             </div>
           </div>
-          <Link to="/admin/orders?status=aguardando_pagamento" className="bg-white text-gray-900 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all relative z-10">
+          <Link to="/admin/orders" className="bg-white text-gray-900 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all relative z-10">
             Verificar Agora
           </Link>
         </div>

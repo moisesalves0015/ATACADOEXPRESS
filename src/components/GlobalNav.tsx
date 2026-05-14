@@ -19,7 +19,7 @@ export default function GlobalNav({ user }: GlobalNavProps) {
     { to: '/admin/products', label: 'Produtos', icon: Cube },
     { to: '/admin/orders', label: 'Pedidos', icon: Receipt },
     { to: '/admin/catalog', label: 'Catálogo PDF', icon: BookOpenText },
-    { to: '/admin/clients', label: 'Clientes', icon: UsersThree },
+    { to: '/admin/pessoas', label: 'Pessoas', icon: UsersThree },
     { to: '/admin/reports', label: 'Relatórios', icon: ChartBar },
     { to: '/admin/design-vault', label: 'Design Vault', icon: Palette },
   ] : [

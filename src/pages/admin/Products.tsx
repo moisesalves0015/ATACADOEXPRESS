@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, arrayUnion } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, arrayUnion, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../firebase';
-import { Package, Plus, Search, Edit2, Trash2, X, Upload, BarChart2, TrendingUp, ShoppingBag, DollarSign, Users, Filter, ShieldCheck, User, Clock, CheckCircle2, Zap, MessageCircle, Loader2, History, Image as ImageIcon, Layers, Settings, Check, ChevronRight, MousePointer2 } from 'lucide-react';
+import { Package, Plus, Search, Edit2, Trash2, X, Upload, BarChart2, TrendingUp, ShoppingBag, DollarSign, Users, Filter, ShieldCheck, User, Clock, CheckCircle2, Zap, MessageCircle, Loader2, History, Image as ImageIcon, Layers, Settings, Check, ChevronRight, MousePointer2, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, Cube, Lightning, ChartLineUp, NotePencil, Trash, Export, SealCheck, UsersThree, ChartBar, Receipt, HouseLine, UserCircle, WhatsappLogo, Gear, Image, Stack, MagnifyingGlass, Plus as PlusIcon, X as XIcon, TrendUp, CurrencyDollar, Clock as ClockIcon, CaretRight, Tag } from '@phosphor-icons/react';
-import { Product, Order, OrderStatus, StatusUpdate, ProductHistoryEntry, ProductVariation } from '../../types';
+import { Product, Order, OrderStatus, StatusUpdate, ProductHistoryEntry, ProductVariation, UserProfile } from '../../types';
 import { cn } from '../../lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -49,6 +49,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product> | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -73,6 +74,10 @@ export default function AdminProducts() {
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [tempVariation, setTempVariation] = useState({ name: '', option: '' });
+  const [suppliers, setSuppliers] = useState<UserProfile[]>([]);
+  const [supplierFilter, setSupplierFilter] = useState('all');
+  const [productStatusFilter, setProductStatusFilter] = useState('all'); // all | active | inactive
+  const [stockTypeFilter, setStockTypeFilter] = useState('all'); // all | pronta_entrega | previsao_meta
 
   useEffect(() => {
     const q = query(collection(db, 'products'));
@@ -82,7 +87,17 @@ export default function AdminProducts() {
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'products');
     });
-    return () => unsubscribe();
+
+    // Fetch suppliers
+    const qSuppliers = query(collection(db, 'users'), where('role', '==', 'supplier'));
+    const unsubSuppliers = onSnapshot(qSuppliers, (snapshot) => {
+      setSuppliers(snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as unknown as UserProfile)));
+    });
+
+    return () => {
+      unsubscribe();
+      unsubSuppliers();
+    };
   }, []);
 
   const handleOpenModal = (product?: Product) => {
@@ -103,6 +118,8 @@ export default function AdminProducts() {
       allowVariationSelection: true,
       requiredGoal: 0,
       currentGoalProgress: 0,
+      supplierId: product?.supplierId || '',
+      supplierName: product?.supplierName || '',
     });
     setExistingImageUrls(product?.imageUrls || (product?.imageUrl ? [product.imageUrl] : []));
     setNewImageFiles([]);
@@ -110,59 +127,42 @@ export default function AdminProducts() {
     setIsModalOpen(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentProduct) return;
-
-    setLoading(true);
-    try {
-      let finalImageUrls = [...existingImageUrls];
-
-      // Upload new images
-      if (newImageFiles.length > 0) {
-        setIsUploading(true);
-        const uploadPromises = newImageFiles.map(async (file) => {
-          const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-          const uploadResult = await uploadBytes(storageRef, file);
-          return getDownloadURL(uploadResult.ref);
-        });
-        const uploadedUrls = await Promise.all(uploadPromises);
-        finalImageUrls = [...finalImageUrls, ...uploadedUrls];
-        setIsUploading(false);
-      }
-
-      const productData = {
-        ...currentProduct,
-        imageUrls: finalImageUrls,
-        imageUrl: finalImageUrls[0] || '', // Fallback for legacy code
-        updatedAt: new Date().toISOString()
-      };
-
-      if (currentProduct.id) {
-        await updateDoc(doc(db, 'products', currentProduct.id), productData);
-      } else {
-        await addDoc(collection(db, 'products'), {
-          ...productData,
-          createdAt: new Date().toISOString(),
-          currentGoalProgress: 0
-        });
-      }
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao salvar produto.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (postId: string) => {
+  const handleDeleteProduct = async (postId: string) => {
     if (window.confirm('Excluir este produto permanentemente?')) {
       try {
         await deleteDoc(doc(db, 'products', postId));
       } catch (err) {
         console.error(err);
       }
+    }
+  };
+
+  const handleOpenReport = async (product: Product) => {
+    setReportProduct(product);
+    setReportLoading(true);
+    setReportOriginFilter('all');
+    setReportStatusFilter('all');
+    try {
+      const snap = await getDocs(collection(db, 'orders'));
+      const matching: (Order & { itemQty: number; itemTotal: number })[] = [];
+      snap.docs.forEach(d => {
+        const order = { id: d.id, ...d.data() } as Order;
+        const item = order.items.find(i => i.productId === product.id);
+        if (item) {
+          matching.push({
+            ...order,
+            itemQty: item.quantity,
+            itemTotal: item.quantity * item.unitPrice,
+          });
+        }
+      });
+      // Sort newest first
+      matching.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+      setReportOrders(matching);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -300,103 +300,20 @@ export default function AdminProducts() {
     doc.save(`Etiquetas_5x5_${reportProduct.name.replace(/\s+/g, '_')}.pdf`);
   };
 
-  // Open product report
-  const handleOpenReport = async (product: Product) => {
-    setReportProduct(product);
-    setReportLoading(true);
-    setReportOriginFilter('all');
-    setReportStatusFilter('all');
-    try {
-      const snap = await getDocs(collection(db, 'orders'));
-      const matching: (Order & { itemQty: number; itemTotal: number })[] = [];
-      snap.docs.forEach(d => {
-        const order = { id: d.id, ...d.data() } as Order;
-        const item = order.items.find(i => i.productId === product.id);
-        if (item) {
-          matching.push({
-            ...order,
-            itemQty: item.quantity,
-            itemTotal: item.quantity * item.unitPrice,
-          });
-        }
-      });
-      // Sort newest first
-      matching.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
-      setReportOrders(matching);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setReportLoading(false);
-    }
-  };
-
-  const handleHitGoal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!hitGoalProduct) return;
-
-    setIsProcessingGoal(true);
-    try {
-      const historyEntry: ProductHistoryEntry = {
-        type: 'goal_hit',
-        message: `Meta atingida! Entrada de ${hitGoalStock} unidades no estoque. Processo resetado para novo lote.`,
-        date: new Date().toISOString(),
-        user: 'Admin'
-      };
-
-      // 1. Update Product
-      const productRef = doc(db, 'products', hitGoalProduct.id);
-      await updateDoc(productRef, {
-        // Increment stock, reset progress
-        availableQuantity: (hitGoalProduct.availableQuantity || 0) + hitGoalStock,
-        currentGoalProgress: 0,
-        goalReached: false, // Reset for next batch
-        history: arrayUnion(historyEntry),
-        updatedAt: new Date().toISOString()
-      });
-
-      // 2. Charge Clients (if selected)
-      if (shouldChargeClients) {
-        const ordersSnap = await getDocs(collection(db, 'orders'));
-        const pendingOrders = ordersSnap.docs
-          .map(d => ({ id: d.id, ...d.data() } as Order))
-          .filter(o => o.items.some(i => i.productId === hitGoalProduct.id && i.stockType === 'previsao_meta' && o.status !== 'cancelado'));
-
-        for (const order of pendingOrders) {
-          const updateEntry: StatusUpdate = {
-            status: 'aguardando_comprovante',
-            comment: `Meta atingida: ${hitGoalProduct.name}. Aguardando pagamento do saldo referente a este item.`,
-            isInternal: false,
-            updatedAt: new Date().toISOString(),
-            updatedBy: 'Sistema Admin'
-          };
-
-          await updateDoc(doc(db, 'orders', order.id), {
-            status: 'aguardando_comprovante',
-            statusHistory: arrayUnion(updateEntry)
-          });
-        }
-      }
-
-      setIsHitGoalModalOpen(false);
-      setHitGoalProduct(null);
-      alert('Ação realizada com sucesso! O estoque foi atualizado e as metas reiniciadas.');
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao processar meta.');
-    } finally {
-      setIsProcessingGoal(false);
-    }
-  };
-
   const shareGoalWhatsApp = (product: Product) => {
     const message = `🎉 *ÓTIMAS NOTÍCIAS DA SALDO DA KRICIA!* 🛍️\n\nOlá! Passando para informar que a meta de produção do produto *${product.name.toUpperCase()}* acaba de ser atingida! ✨\n\nEle já está disponível para envio. Caso você tenha este item em um pedido pendente, o pagamento do saldo já pode ser realizado diretamente pelo nosso site. Após o pagamento, não esqueça de anexar o comprovante na área do pedido para agilizarmos sua entrega! 🚚💨\n\nConfira seus pedidos aqui: ${window.location.origin}/my-orders\n\nAgradecemos pela confiança! 💖`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (p.supplierName && p.supplierName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSupplier = supplierFilter === 'all' || p.supplierId === supplierFilter;
+    const matchesStatus = productStatusFilter === 'all' || p.status === productStatusFilter;
+    const matchesStockType = stockTypeFilter === 'all' || p.stockType === stockTypeFilter;
+    return matchesSearch && matchesSupplier && matchesStatus && matchesStockType;
+  });
 
   const filteredReportOrders = reportOrders.filter(o => {
     const matchOrigin = reportOriginFilter === 'all' || o.orderOrigin === reportOriginFilter;
@@ -409,6 +326,87 @@ export default function AdminProducts() {
   const totalUnits = kpiOrders.reduce((s, o) => s + o.itemQty, 0);
   const totalRevenue = kpiOrders.reduce((s, o) => s + o.itemTotal, 0);
   const uniqueClients = new Set(kpiOrders.map(o => o.clientId)).size;
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentProduct) return;
+    setLoading(true);
+    setIsUploading(true);
+
+    try {
+      let finalImageUrls = [...existingImageUrls];
+
+      // Upload new images
+      for (const file of newImageFiles) {
+        const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+        finalImageUrls.push(url);
+      }
+
+      const productData = {
+        ...currentProduct,
+        imageUrls: finalImageUrls,
+        imageUrl: finalImageUrls[0] || '',
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (currentProduct.id) {
+        await updateDoc(doc(db, 'products', currentProduct.id), productData);
+      } else {
+        await addDoc(collection(db, 'products'), {
+          ...productData,
+          createdAt: new Date().toISOString(),
+          currentGoalProgress: 0,
+        });
+      }
+
+      setIsModalOpen(false);
+      setNewImageFiles([]);
+    } catch (err) {
+      console.error('Erro ao salvar produto:', err);
+      alert('Erro ao salvar produto. Tente novamente.');
+    } finally {
+      setLoading(false);
+      setIsUploading(false);
+    }
+  };
+
+  const handleHitGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hitGoalProduct) return;
+    setIsProcessingGoal(true);
+
+    try {
+      const historyEntry: ProductHistoryEntry = {
+        date: new Date().toISOString(),
+        type: 'goal_hit',
+        message: `Meta atingida! Convertido para Pronta Entrega com ${hitGoalStock} unidades.`,
+        user: 'Sistema (Admin)'
+      };
+
+      await updateDoc(doc(db, 'products', hitGoalProduct.id), {
+        stockType: 'pronta_entrega',
+        availableQuantity: hitGoalStock,
+        requiredGoal: 0,
+        currentGoalProgress: 0,
+        history: arrayUnion(historyEntry)
+      });
+
+      // If we should charge clients, we could potentially update orders here
+      // But for now, we follow the logic that clients are notified to pay manually
+      
+      setIsHitGoalModalOpen(false);
+      setHitGoalProduct(null);
+      setHitGoalStock(0);
+      alert('Meta atingida com sucesso! O produto agora está em Pronta Entrega.');
+    } catch (err) {
+      console.error('Erro ao processar meta:', err);
+      alert('Erro ao processar meta. Verifique os logs.');
+    } finally {
+      setIsProcessingGoal(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -443,21 +441,109 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-        <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar por nome ou categoria..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          />
+      {/* --- MOBILE FILTERS TOGGLE --- */}
+      <button 
+        onClick={() => setShowMobileFilters(!showMobileFilters)}
+        className="md:hidden w-full flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm mb-4"
+      >
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-brand-pink" />
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-700">Filtrar Produtos</span>
+        </div>
+        {showMobileFilters ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+      </button>
+
+      <div className={cn(
+        "bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3 mb-6",
+        !showMobileFilters && "hidden md:block"
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar por nome, categoria ou fornecedor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          <button
+            onClick={() => {
+              const doc2 = new jsPDF();
+              doc2.setFontSize(16); doc2.text('Listagem de Produtos', 14, 18);
+              doc2.setFontSize(8); doc2.setTextColor(150);
+              doc2.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}  |  Total: ${filteredProducts.length} produtos`, 14, 24);
+              autoTable(doc2, {
+                startY: 30,
+                head: [['Produto', 'Categoria', 'Tipo', 'Preço', 'Estoque/Meta', 'Fornecedor', 'Status']],
+                body: filteredProducts.map(p => [
+                  p.name,
+                  p.category,
+                  p.stockType === 'pronta_entrega' ? 'Pronta Entrega' : 'Meta',
+                  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.unitPrice),
+                  p.stockType === 'pronta_entrega' ? `${p.availableQuantity} un` : `${p.currentGoalProgress || 0}/${p.requiredGoal}`,
+                  p.supplierName || '-',
+                  p.status === 'active' ? 'Ativo' : 'Inativo',
+                ]),
+                headStyles: { fillColor: [247, 37, 133], textColor: 255, fontSize: 8 },
+                styles: { fontSize: 7, cellPadding: 2 },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+              });
+              doc2.save(`produtos_${format(new Date(), 'ddMMyy')}.pdf`);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-100 transition-all whitespace-nowrap shrink-0"
+          >
+            <Download className="w-4 h-4" /> Exportar
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-400 shrink-0" />
+          <select
+            value={supplierFilter}
+            onChange={(e) => setSupplierFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">Todos Fornecedores</option>
+            {suppliers.map(s => (
+              <option key={s.uid} value={s.uid}>{s.tradingName || s.name}</option>
+            ))}
+          </select>
+          <select
+            value={productStatusFilter}
+            onChange={(e) => setProductStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">Todos Status</option>
+            <option value="active">Ativo</option>
+            <option value="inactive">Inativo</option>
+          </select>
+          <select
+            value={stockTypeFilter}
+            onChange={(e) => setStockTypeFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">Todos os Tipos</option>
+            <option value="pronta_entrega">Pronta Entrega</option>
+            <option value="previsao_meta">Previsão / Meta</option>
+          </select>
+          {(supplierFilter !== 'all' || productStatusFilter !== 'all' || stockTypeFilter !== 'all') && (
+            <button
+              onClick={() => { setSupplierFilter('all'); setProductStatusFilter('all'); setStockTypeFilter('all'); }}
+              className="px-3 py-2 border border-red-100 bg-red-50 text-red-500 rounded-xl text-xs font-bold hover:bg-red-100 transition-all"
+            >
+              Limpar
+            </button>
+          )}
+          <span className="ml-auto text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''}
+          </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="md:bg-white md:rounded-xl md:border md:border-gray-100 md:shadow-sm overflow-hidden">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
@@ -483,12 +569,20 @@ export default function AdminProducts() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">{product.name}</p>
-                        <p className={cn(
-                          "text-[10px] font-bold uppercase",
-                          product.status === 'active' ? 'text-green-600' : 'text-red-600'
-                        )}>
-                          {product.status === 'active' ? 'Ativo' : 'Inativo'}
-                        </p>
+                        <div className="flex items-center gap-2">
+                           <p className={cn(
+                             "text-[10px] font-bold uppercase",
+                             product.status === 'active' ? 'text-green-600' : 'text-red-600'
+                           )}>
+                             {product.status === 'active' ? 'Ativo' : 'Inativo'}
+                           </p>
+                           {product.supplierName && (
+                             <>
+                               <span className="text-[10px] text-gray-300">•</span>
+                               <span className="text-[10px] font-bold text-orange-500 uppercase">{product.supplierName}</span>
+                             </>
+                           )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -497,86 +591,67 @@ export default function AdminProducts() {
                         <div className="w-6 h-6 rounded-md overflow-hidden bg-gray-50 flex-shrink-0">
                            <img 
                               src={getCategoryImg(product.category)} 
-                              alt={product.category} 
-                              className="w-full h-full object-contain" 
+                              alt="" 
+                              className="w-full h-full object-cover opacity-60"
                            />
                         </div>
-                        <span className="text-sm text-gray-500 font-medium">{product.category}</span>
+                        <span className="text-xs font-medium text-gray-700">{product.category}</span>
                      </div>
                    </td>
                   <td className="px-6 py-4">
                     <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border",
-                      product.stockType === 'pronta_entrega' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'
+                      "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
+                      product.stockType === 'pronta_entrega' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
                     )}>
-                      {product.stockType === 'pronta_entrega' ? 'Pronta' : 'Meta'}
+                      {product.stockType === 'pronta_entrega' ? 'Pronta Entrega' : 'Previsão / Meta'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                    {fmt(product.unitPrice)}
+                  <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.unitPrice)}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-col gap-2">
-                       {/* Stock Display */}
-                       {product.availableQuantity > 0 && (
-                         <div className="flex items-center gap-1.5">
-                            <Cube className="w-3 h-3 text-gray-400" weight="light" />
-                            <span className="text-sm font-bold text-gray-900">{product.availableQuantity} un <span className="text-[10px] text-gray-400 font-medium">em estoque</span></span>
-                         </div>
-                       )}
-                       
-                       {/* Meta Display */}
-                       {(product.requiredGoal || 0) > 0 && (
-                         <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className="bg-orange-500 h-full"
-                                  style={{ width: `${Math.min(100, ((product.currentGoalProgress || 0) / (product.requiredGoal || 1)) * 100)}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-[10px] font-bold text-orange-600">{product.currentGoalProgress || 0}/{product.requiredGoal}</span>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setHitGoalProduct(product);
-                                setHitGoalStock(0);
-                                setIsHitGoalModalOpen(true);
-                              }}
-                              className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
-                            >
-                              <Lightning className="w-3 h-3 fill-emerald-600" weight="fill" /> Atingir Meta
-                            </button>
-                         </div>
-                       )}
-                       
-                       {product.availableQuantity === 0 && (!product.requiredGoal || product.requiredGoal === 0) && (
-                         <span className="text-xs text-gray-300 italic font-medium">Sem estoque ou meta</span>
-                       )}
-                    </div>
+                    {product.stockType === 'pronta_entrega' ? (
+                      <div className="text-center">
+                        <span className="text-sm font-bold text-gray-900">{product.availableQuantity}</span>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">unidades</p>
+                      </div>
+                    ) : (
+                      <div className="max-w-[120px] mx-auto space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-bold">
+                           <span className="text-gray-400">Progresso</span>
+                           <span className="text-gray-900">{product.currentGoalProgress || 0} / {product.requiredGoal}</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                           <div 
+                              className="bg-brand-pink h-full transition-all duration-500" 
+                              style={{ width: `${Math.min(100, ((product.currentGoalProgress || 0) / (product.requiredGoal || 1)) * 100)}%` }}
+                           />
+                        </div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => handleOpenReport(product)}
+                        onClick={() => navigate(`/admin/product-performance/${product.id}`)}
                         className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                        title="Relatório do produto"
+                        title="Ver Performance"
                       >
-                        <ChartLineUp className="w-4 h-4" weight="light" />
+                        <BarChart2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleOpenModal(product)}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        title="Editar produto"
+                        title="Editar"
                       >
-                        <NotePencil className="w-4 h-4" weight="light" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDeleteProduct(product.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Excluir produto"
+                        title="Excluir"
                       >
-                        <Trash className="w-4 h-4" weight="light" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -584,6 +659,98 @@ export default function AdminProducts() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View: Product Cards */}
+        <div className="md:hidden space-y-4">
+          {filteredProducts.map((product) => (
+            <div key={product.id} className="mobile-card">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border border-gray-100">
+                  {product.imageUrls?.length || product.imageUrl ? (
+                    <img src={product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <Cube className="w-8 h-8" weight="light" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <p className="text-base font-bold text-gray-900 truncate">{product.name}</p>
+                    <span className={cn(
+                      "px-1.5 py-0.5 rounded text-[8px] font-black uppercase border shrink-0",
+                      product.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'
+                    )}>
+                      {product.status === 'active' ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <img src={getCategoryImg(product.category)} alt="" className="w-4 h-4 rounded-full opacity-60" />
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{product.category}</p>
+                  </div>
+                  <p className="text-[10px] font-black text-orange-500 uppercase mt-1 truncate">{product.supplierName || 'Sem fornecedor'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4 pt-4 border-t border-gray-50">
+                <div>
+                  <span className="mobile-label">Tipo</span>
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
+                    product.stockType === 'pronta_entrega' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-orange-50 text-orange-700 border-orange-100'
+                  )}>
+                    {product.stockType === 'pronta_entrega' ? 'Pronta Entrega' : 'Meta'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="mobile-label">Preço Unitário</span>
+                  <p className="text-base font-black text-gray-900">{fmt(product.unitPrice)}</p>
+                </div>
+              </div>
+
+              <div className="mb-4 pt-4 border-t border-gray-50">
+                {product.stockType === 'pronta_entrega' ? (
+                  <div className="flex items-center justify-between">
+                    <span className="mobile-label">Estoque Disponível</span>
+                    <p className="text-sm font-black text-gray-900">{product.availableQuantity} un</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="mobile-label">Progresso da Meta</span>
+                      <p className="text-xs font-black text-gray-900">{product.currentGoalProgress || 0} / {product.requiredGoal}</p>
+                    </div>
+                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-brand-pink h-full transition-all duration-500" 
+                        style={{ width: `${Math.min(100, ((product.currentGoalProgress || 0) / (product.requiredGoal || 1)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-50">
+                <button
+                  onClick={() => navigate(`/admin/product-performance/${product.id}`)}
+                  className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl border border-emerald-100 touch-action"
+                >
+                  <BarChart2 className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => handleOpenModal(product)}
+                  className="bg-blue-50 text-blue-600 p-2.5 rounded-xl border border-blue-100 touch-action"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteProduct(product.id)}
+                  className="bg-red-50 text-red-600 p-2.5 rounded-xl border border-red-100 touch-action"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -805,7 +972,7 @@ export default function AdminProducts() {
                 onClick={() => setIsModalOpen(false)} 
                 className="p-3 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-full transition-all active:scale-90"
               >
-                <X className="w-7 h-7" weight="light" />
+                <XIcon className="w-7 h-7" weight="light" />
               </button>
             </div>
 
@@ -864,6 +1031,26 @@ export default function AdminProducts() {
                                 className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                 placeholder="Festa, Casual, Praia..."
                               />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Fornecedor Responsável</label>
+                              <select
+                                value={currentProduct.supplierId || ''}
+                                onChange={e => {
+                                  const s = suppliers.find(sup => sup.uid === e.target.value);
+                                  setCurrentProduct({ 
+                                    ...currentProduct, 
+                                    supplierId: e.target.value,
+                                    supplierName: s ? (s.tradingName || s.name) : ''
+                                  });
+                                }}
+                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold appearance-none cursor-pointer"
+                              >
+                                <option value="">Sem Fornecedor</option>
+                                {suppliers.map(s => (
+                                  <option key={s.uid} value={s.uid}>{s.tradingName || s.name}</option>
+                                ))}
+                              </select>
                             </div>
                          </div>
                          <div className="space-y-6">
