@@ -136,8 +136,12 @@
   @apply bg-white rounded-xl h-12 px-6 flex items-center justify-center shadow-sm border border-gray-50 hover:scale-105 transition-transform cursor-pointer;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* LiquidGlass navigation — floating pill, all corners rounded */
