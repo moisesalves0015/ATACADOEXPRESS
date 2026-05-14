@@ -1,22 +1,26 @@
 import { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../../firebase';
-import { Order, Product, UserProfile } from '../../types';
+import { collection, onSnapshot, query, orderBy, limit, where, updateDoc, doc, arrayUnion, getDoc, runTransaction } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType, auth } from '../../firebase';
+import { Order, Product, UserProfile, OrderStatus, StatusUpdate } from '../../types';
 import { 
   BarChart3, TrendingUp, Users, Package, ClipboardList, 
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, 
-  AlertCircle, Trophy, ShoppingBag, UserCircle
+  AlertCircle, Trophy, ShoppingBag, UserCircle, ExternalLink, ChevronRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { format, subDays, startOfDay, endOfDay, startOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { statusConfig, fmt, canTransitionTo } from '../../lib/order-utils';
+import OrderDetailsModal from '../../components/admin/OrderDetailsModal';
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('orderDate', 'desc')), (snapshot) => {
@@ -216,6 +220,69 @@ export default function AdminDashboard() {
       .slice(0, 5);
   }, [orders]);
 
+  const handleUpdateItemStatus = async (orderId: string, itemIdx: number, newStatus: OrderStatus, currentStatus: OrderStatus) => {
+    if (!auth.currentUser) return;
+
+    if (!canTransitionTo(currentStatus, newStatus)) {
+      alert(`Ação não permitida. Não é possível mudar de "${statusConfig[currentStatus]?.label}" para "${statusConfig[newStatus]?.label}". Para cancelamentos com devolução de estoque, use a página de pedidos.`);
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      const orderSnap = await getDoc(orderRef);
+      if (!orderSnap.exists()) return;
+
+      const orderData = orderSnap.data() as Order;
+      const updatedItems = [...orderData.items];
+      const item = updatedItems[itemIdx];
+      const itemName = item.productName;
+
+      const adminDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const adminName = adminDoc.data()?.name || auth.currentUser.email || 'Admin';
+
+      const newHistoryEntry = {
+        timestamp: new Date().toISOString(),
+        actionType: 'STATUS_CHANGE',
+        description: `Status alterado de "${statusConfig[item.status]?.label}" para "${statusConfig[newStatus]?.label}" via Dashboard.`,
+        userEmail: adminName,
+      };
+
+      updatedItems[itemIdx] = {
+        ...item,
+        status: newStatus,
+        history: [...(item.history || []), newHistoryEntry],
+      };
+
+      const updateEntry: StatusUpdate = {
+        status: newStatus,
+        comment: `Item [${itemName}]: Status alterado para ${statusConfig[newStatus]?.label} via Dashboard`,
+        isInternal: true,
+        updatedAt: new Date().toISOString(),
+        updatedBy: adminName,
+      };
+
+      await updateDoc(orderRef, {
+        items: updatedItems,
+        statusHistory: arrayUnion(updateEntry),
+      });
+
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({
+          ...selectedOrder,
+          items: updatedItems,
+          statusHistory: [...(selectedOrder.statusHistory || []), updateEntry],
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao atualizar status do item.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const stats = [
     { 
       label: 'Vendas Totais', 
@@ -281,16 +348,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stats Grid - Professional Clean */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:border-brand-pink/20 transition-all flex flex-col justify-between h-32 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-gray-50 rounded-bl-full -mr-10 -mt-10 group-hover:bg-brand-pink/5 transition-colors" />
-            
-            <div className="flex items-center justify-between relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center text-white shadow-lg shadow-gray-200">
-                <stat.icon className="w-5 h-5" strokeWidth={2.5} />
+          <div key={idx} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative group flex flex-col justify-between h-32 transition-all hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                  <stat.icon className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">{stat.label}</span>
               </div>
+              
               {stat.trendText && (
                 <span className={cn(
                   "text-[9px] font-black px-2 py-1 rounded-lg border uppercase tracking-widest",
@@ -303,9 +371,8 @@ export default function AdminDashboard() {
               )}
             </div>
             
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{stat.label}</p>
-              <h3 className="text-xl font-black text-gray-900 tracking-tight leading-tight">{stat.value}</h3>
+            <div className="mt-auto">
+              <h3 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight leading-tight">{stat.value}</h3>
             </div>
           </div>
         ))}
@@ -324,24 +391,27 @@ export default function AdminDashboard() {
           </div>
           <div className="divide-y divide-gray-50">
             {orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="px-5 py-5 flex items-center justify-between hover:bg-gray-50/50 transition-all">
+              <div 
+                key={order.id} 
+                onClick={() => setSelectedOrder(order)}
+                className="px-5 py-5 flex items-center justify-between hover:bg-gray-50/50 transition-all cursor-pointer group"
+              >
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-11 h-11 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 font-black text-xs shrink-0">
+                  <div className="w-11 h-11 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 font-black text-xs shrink-0 group-hover:border-brand-pink transition-colors">
                     {order.clientName.charAt(0)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-black text-gray-900 truncate">{order.clientName}</p>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">#{order.id.slice(-6).toUpperCase()} · {format(new Date(order.orderDate), 'HH:mm')}</p>
+                    <p className="text-sm font-black text-gray-900 truncate group-hover:text-brand-pink transition-colors">{order.clientName}</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                      #{order.id.slice(-6).toUpperCase()} · {format(new Date(order.orderDate), 'HH:mm')}
+                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </p>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-black text-gray-900">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                       order.items.reduce((s, i) => s + (i.quantity * i.unitPrice), 0)
-                    )}
-                  </p>
+                  <p className="text-sm font-black text-gray-900">{fmt(order.totalValue)}</p>
                   <span className="inline-block mt-1 text-[8px] font-black uppercase px-2 py-0.5 rounded-md border tracking-widest bg-emerald-50 text-emerald-600 border-emerald-100">
-                    {order.items.length} itens
+                    {order.items.reduce((sum, item) => sum + item.quantity, 0)} produtos
                   </span>
                 </div>
               </div>
@@ -426,6 +496,87 @@ export default function AdminDashboard() {
                 Nenhuma meta ativa
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        {/* Top Products */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
+            <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-widest">
+              <ShoppingBag className="w-4 h-4 text-brand-pink" /> Produtos em Destaque
+            </h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {topProducts.map((product, i) => (
+              <div key={product.id} className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100 overflow-hidden relative group-hover:border-brand-pink transition-all">
+                    {products.find(p => p.id === product.id)?.imageUrl ? (
+                      <img src={products.find(p => p.id === product.id)?.imageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Package className="w-5 h-5 text-gray-300" />
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <ExternalLink className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <Link 
+                      to={`/admin/products?search=${encodeURIComponent(product.name)}`}
+                      className="text-xs font-black text-gray-900 uppercase tracking-tight hover:text-brand-pink transition-colors block"
+                    >
+                      {product.name}
+                    </Link>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.qty} unidades vendidas</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-black text-gray-900">{fmt(product.revenue)}</p>
+                  <div className="flex items-center justify-end gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md mt-1">
+                    <TrendingUp className="w-2.5 h-2.5" />
+                    TOP {i + 1}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Clients */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
+            <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-widest">
+              <Trophy className="w-4 h-4 text-amber-500" /> Melhores Clientes
+            </h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {topClients.map((client, i) => (
+              <div key={client.id} className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center border border-gray-100 group-hover:from-brand-pink/5 group-hover:to-brand-pink/10 transition-all">
+                    <UserCircle className="w-7 h-7 text-gray-400 group-hover:text-brand-pink/50 transition-all" />
+                  </div>
+                  <div>
+                    <Link 
+                      to={`/admin/pessoas/${client.id}`}
+                      className="text-xs font-black text-gray-900 uppercase tracking-tight hover:text-brand-pink transition-colors block"
+                    >
+                      {client.name}
+                    </Link>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{client.qty} pedidos realizados</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-black text-gray-900">{fmt(client.revenue)}</p>
+                  <div className="flex items-center justify-end gap-1 text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md mt-1">
+                    <Trophy className="w-2.5 h-2.5" />
+                    TOP {i + 1}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -516,6 +667,14 @@ export default function AdminDashboard() {
             Verificar Agora
           </Link>
         </div>
+      )}
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <OrderDetailsModal 
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          onUpdateItemStatus={handleUpdateItemStatus}
+        />
       )}
     </div>
   );

@@ -37,7 +37,8 @@ import {
   Files
 } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
-import html2pdf from 'html2pdf.js';
+import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
@@ -163,26 +164,49 @@ export default function CatalogPage() {
   const handleDownloadPDF = async () => {
     if (!catalogRef.current) return;
     setGenerating(true);
-    const styleElements = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'));
-    const styleBackups = styleElements.map(el => ({ el, parent: el.parentNode, next: el.nextSibling }));
-    styleElements.forEach(el => el.remove());
 
     try {
-      const opt = {
-        margin: 0,
-        filename: `CATALOGO_${format(new Date(), 'ddMMyy')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: dims[0], windowWidth: dims[0] },
-        jsPDF: { unit: 'mm', format: config.paperSize, orientation: config.orientation, compress: true },
-        pagebreak: { mode: ['css', 'legacy'] },
-        enableLinks: true
-      };
-      await new Promise(r => setTimeout(r, 800));
-      await html2pdf().from(catalogRef.current).set(opt).save();
+      // Create PDF instance
+      const pdf = new jsPDF({
+        orientation: config.orientation,
+        unit: 'mm',
+        format: config.paperSize,
+        compress: true
+      });
+
+      const pages = catalogRef.current.querySelectorAll('section');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+        
+        // Use html-to-image which handles modern CSS (oklch) much better via SVG foreignObject
+        const dataUrl = await toPng(page, {
+          width: dims[0],
+          height: dims[1],
+          pixelRatio: 2, // High quality
+          skipFonts: false,
+          cacheBust: true,
+        });
+
+        if (i > 0) pdf.addPage(config.paperSize, config.orientation);
+        
+        pdf.addImage(
+          dataUrl, 
+          'PNG', 
+          0, 
+          0, 
+          pdf.internal.pageSize.getWidth(), 
+          pdf.internal.pageSize.getHeight(),
+          undefined,
+          'FAST'
+        );
+      }
+
+      pdf.save(`CATALOGO_${format(new Date(), 'ddMMyy')}.pdf`);
     } catch (err) {
-      console.error(err);
+      console.error('Erro na geração do PDF:', err);
+      alert('Erro ao gerar o PDF. Tente novamente ou use um navegador mais moderno.');
     } finally {
-      styleBackups.forEach(({ el, parent, next }) => { parent?.insertBefore(el, next); });
       setGenerating(false);
     }
   };
@@ -402,16 +426,18 @@ export default function CatalogPage() {
           </div>
 
           <div className="bg-gray-200/50 rounded-xl p-10 flex justify-center overflow-auto min-h-[600px] custom-scrollbar border border-gray-200">
-            <AnimatePresence>
-              {isPreviewVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0, scale: zoom }}
-                  exit={{ opacity: 0 }}
-                  className="origin-top"
-                  style={{ width: `${dims[0]}px` }}
-                >
-                  <div ref={catalogRef} className="bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-sm">
+            <div
+              className={cn(
+                "origin-top transition-all duration-300",
+                isPreviewVisible ? "opacity-100 translate-y-0 scale-[var(--zoom)]" : "opacity-0 pointer-events-none absolute -z-50"
+              )}
+              style={{ 
+                width: `${dims[0]}px`,
+                // @ts-ignore
+                "--zoom": zoom 
+              }}
+            >
+              <div ref={catalogRef} className="bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-sm">
                     {/* --- COVER PAGE --- */}
                     {(() => {
                       const coverTitleSize = dims[0] < 600 ? '60px' : (dims[0] < 850 ? '80px' : '100px');
@@ -607,9 +633,7 @@ export default function CatalogPage() {
                       );
                     })}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>

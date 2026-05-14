@@ -7,10 +7,13 @@ import { db, auth } from '../../firebase';
 import { Product, UserProfile, OrderItem, OrderStatus } from '../../types';
 import {
   UserSearch, Package, Plus, Minus, ArrowLeft, CheckCircle2,
-  X, Search, ShoppingBag, AlertCircle, Info, User
+  X, Search, ShoppingBag, AlertCircle, Info, User, Image as ImageIcon, Share2, Download as DownloadIcon, Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import OrderReceiptTemplate from '../../components/admin/OrderReceiptTemplate';
+import { captureReceiptImage, shareReceiptImage } from '../../lib/receipt-image-utils';
+import { Order } from '../../types';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -33,6 +36,8 @@ export default function AdminNewOrder() {
   const [observations, setObservations] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [successOrder, setSuccessOrder] = useState<Order | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState('');
   
   const [sellers, setSellers] = useState<UserProfile[]>([]);
@@ -254,7 +259,7 @@ export default function AdminNewOrder() {
         }
       }
 
-      const orderDoc = await addDoc(collection(db, 'orders'), {
+      const newOrderData = {
         clientId: selectedClient.uid,
         clientName: selectedClient.name,
         clientEmail: selectedClient.email,
@@ -263,7 +268,7 @@ export default function AdminNewOrder() {
         totalValue,
         totalReady: initialPaymentTotal,
         totalPending: totalPendingValue,
-        status: 'aguardando_pagamento' as OrderStatus, // always start here — never use removed statuses
+        status: 'aguardando_pagamento' as OrderStatus,
         items: itemsWithStatus,
         observations,
         orderOrigin: 'admin' as const,
@@ -275,9 +280,12 @@ export default function AdminNewOrder() {
         commissionRate: commissionRate,
         commissionType: commissionType,
         commissionValue: commissionValue,
-      });
+      };
+
+      const orderDoc = await addDoc(collection(db, 'orders'), newOrderData);
 
       setSuccess(orderDoc.id);
+      setSuccessOrder({ id: orderDoc.id, ...newOrderData } as Order);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Erro ao registrar pedido. Tente novamente.');
@@ -286,37 +294,96 @@ export default function AdminNewOrder() {
     }
   };
 
-  if (success) {
+  if (success && successOrder) {
+    const handleGenerateImage = async () => {
+      setIsGeneratingImage(true);
+      try {
+        await captureReceiptImage('receipt-capture-area', `recibo_pedido_${success.slice(-6)}`);
+      } finally {
+        setIsGeneratingImage(false);
+      }
+    };
+
+    const handleShareWhatsApp = async () => {
+      setIsGeneratingImage(true);
+      try {
+        const dataUrl = await captureReceiptImage('receipt-capture-area');
+        if (dataUrl) {
+          await shareReceiptImage(dataUrl, success);
+        }
+      } finally {
+        setIsGeneratingImage(false);
+      }
+    };
+
     return (
-      <div className="max-w-xl mx-auto text-center py-16 space-y-6">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle2 className="w-10 h-10 text-green-500" />
+      <div className="max-w-2xl mx-auto text-center py-12 px-4 space-y-8">
+        <div className="space-y-4">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-100 animate-in zoom-in duration-500">
+            <CheckCircle2 className="w-10 h-10 text-green-500" />
+          </div>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight">Pedido Registrado!</h2>
+          <p className="text-gray-500 max-w-md mx-auto">
+            O pedido <span className="font-black text-gray-900">#{success.slice(-6).toUpperCase()}</span> foi criado com sucesso para <span className="font-black text-gray-900">{selectedClient?.name}</span>.
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Pedido Registrado!</h2>
-        <p className="text-gray-500">
-          Pedido <span className="font-bold text-gray-900">#{success.slice(-6).toUpperCase()}</span> criado para{' '}
-          <span className="font-bold text-gray-900">{selectedClient?.name}</span>.
-        </p>
-        <div className="flex gap-4 justify-center">
+
+        {/* Receipt Action Card */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-8 space-y-6 animate-in slide-in-from-bottom duration-700">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-500 mb-2">
+              <ImageIcon className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-black text-gray-900">Gerar Recibo Profissional</h3>
+            <p className="text-xs text-gray-400">Gere agora o recibo em imagem para enviar ao cliente.</p>
+          </div>
+
+          <div className="flex justify-center gap-6">
+            <button
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage}
+              className="w-16 h-16 flex items-center justify-center bg-gray-50 text-gray-900 rounded-2xl hover:bg-gray-100 transition-all border border-gray-100 disabled:opacity-50 shadow-sm"
+              title="Baixar Imagem do Recibo"
+            >
+              {isGeneratingImage ? <Loader2 className="w-6 h-6 animate-spin" /> : <DownloadIcon className="w-6 h-6" />}
+            </button>
+            <button
+              onClick={handleShareWhatsApp}
+              disabled={isGeneratingImage}
+              className="w-16 h-16 flex items-center justify-center bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 disabled:opacity-50"
+              title="Compartilhar no WhatsApp"
+            >
+              {isGeneratingImage ? <Loader2 className="w-6 h-6 animate-spin" /> : <Share2 className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
           <button
             onClick={() => navigate('/admin/orders')}
-            className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all"
+            className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg shadow-gray-200"
           >
-            Ver Pedidos
+            Ver Todos Pedidos
           </button>
           <button
             onClick={() => {
               setSuccess(null);
+              setSuccessOrder(null);
               setSelectedClient(null);
               setCartItems([]);
               setObservations('');
               setClientSearch('');
               setProductSearch('');
             }}
-            className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-all"
+            className="px-8 py-4 border border-gray-200 text-gray-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
           >
-            Novo Pedido
+            Novo Registro
           </button>
+        </div>
+
+        {/* Hidden area for receipt capture */}
+        <div className="fixed -left-[2000px] top-0 pointer-events-none opacity-0 overflow-hidden">
+           <OrderReceiptTemplate order={successOrder} />
         </div>
       </div>
     );
