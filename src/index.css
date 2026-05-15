@@ -168,6 +168,21 @@
   border-radius: 99em;
 }
 
+@media (max-width: 767px) {
+  .nav-dock {
+    max-width: 92vw;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-left: 12px;
+    padding-right: 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .nav-dock::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (min-width: 768px) {
   .nav-dock {
     /* Desktop: floating on the left, vertically centered */

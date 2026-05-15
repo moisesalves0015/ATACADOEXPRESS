@@ -37,11 +37,13 @@ import { CartProvider } from './context/CartContext';
 
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
+import WelcomeModal from './components/WelcomeModal';
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -66,9 +68,18 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const handleFinishSplash = () => {
+    setShowSplash(false);
+    // Aguarda alguns segundos antes de mostrar o banner de boas-vindas
+    setTimeout(() => {
+      setShowWelcome(true);
+    }, 2000); // 2 segundos de delay após o splash sumir
+  };
+
   return (
     <ErrorBoundary>
-      {showSplash && <SplashScreen finishLoading={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen finishLoading={handleFinishSplash} />}
+      <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
       <CartProvider>
         <BrowserRouter>
           <GlobalNav user={authLoading ? null : user} />
