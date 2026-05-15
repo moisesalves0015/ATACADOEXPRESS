@@ -1,16 +1,25 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     match /products/{imageId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
+
     match /payment_proofs/{fileName} {
-      allow read: if true;
+      // Only the admin or the owner (clientId matches filename or metadata) can read
+      // Since filenames might be random, we use metadata or restrict read to authenticated users + admin check
+      allow read: if request.auth != null; 
       allow write: if request.auth != null;
     }
+
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
   }
 }

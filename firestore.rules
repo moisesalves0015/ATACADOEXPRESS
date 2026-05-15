@@ -90,16 +90,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Products collection — public read, admin-only write for metadata, client update for stock
+    // Products collection — public read, admin-only write
     match /products/{productId} {
       allow read: if true;
-      allow create, delete: if isAdmin();
-      allow update: if isAdmin() || (
-        isAuthenticated() &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['availableQuantity', 'currentGoalProgress', 'goalReached'])
-      );
+      allow write: if isAdmin();
     }
-
+    
     // Orders collection
     match /orders/{orderId} {
       // Admin sees all; client sees only their own
@@ -110,21 +106,24 @@ service cloud.firestore {
                        isValidOrder(request.resource.data) &&
                        (isAdmin() || request.resource.data.clientId == request.auth.uid);
 
-      // Client can update paymentProofUrl/status/statusHistory/observations
-      // Admin can update any field
+      // Admin can update everything.
+      // Client can ONLY update paymentProofUrl, observations, status and statusHistory 
+      // AND the status must be changed to 'confirmando_pagamento' (or stay as is)
+      // AND they cannot set it to 'pagamento_confirmado' or other admin-only statuses.
       allow update: if isAdmin() ||
                     (isAuthenticated() &&
                      resource.data.clientId == request.auth.uid &&
                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentProofUrl', 'observations', 'status', 'statusHistory']) &&
-                     (resource.data.status == 'aguardando_pagamento' || resource.data.status == 'aguardando_comprovante'));
+                     (resource.data.status == 'aguardando_pagamento' || resource.data.status == 'aguardando_comprovante') &&
+                     (request.resource.data.status == 'confirmando_pagamento' || request.resource.data.status == resource.data.status));
 
       allow delete: if isAdmin();
     }
 
-    // Phone Mappings collection - used for login lookups
+    // Phone Mappings collection - restricted read/write
     match /phoneMappings/{phone} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phone == phone);
+      allow write: if isAdmin() || (isAuthenticated() && request.resource.data.uid == request.auth.uid);
     }
 
     // Finances collection

@@ -36,10 +36,12 @@ import GlobalNav from './components/GlobalNav';
 import { CartProvider } from './context/CartContext';
 
 import ErrorBoundary from './components/ErrorBoundary';
+import SplashScreen from './components/SplashScreen';
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -66,6 +68,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      {showSplash && <SplashScreen finishLoading={() => setShowSplash(false)} />}
       <CartProvider>
         <BrowserRouter>
           <GlobalNav user={authLoading ? null : user} />

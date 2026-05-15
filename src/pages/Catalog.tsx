@@ -110,11 +110,15 @@ export default function Catalog() {
             src="/assets/bannes/fixos/frete_esp.svg" 
             alt="Frete Especial" 
             className="w-1/2 h-auto rounded-md sm:rounded-lg"
+            loading="lazy"
+            decoding="async"
           />
           <img 
             src="/assets/bannes/fixos/desc_progre.svg" 
             alt="Desconto Progressivo" 
             className="w-1/2 h-auto rounded-md sm:rounded-lg"
+            loading="lazy"
+            decoding="async"
           />
         </div>
 
@@ -128,6 +132,8 @@ export default function Catalog() {
               src="/assets/bannes/fixos/Selo_pronta_entrega.png" 
               alt="Selo Pronta Entrega" 
               className="h-10 sm:h-14 w-auto object-contain flex-shrink-0"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <Link 
@@ -165,6 +171,8 @@ export default function Catalog() {
                   src="/assets/bannes/fixos/faixa_desc.svg" 
                   alt="Destaque" 
                   className="w-full h-auto object-contain"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             )}
@@ -190,6 +198,8 @@ export default function Catalog() {
           src="/assets/bannes/fixos/banner_categorias.svg" 
           alt="Categorias" 
           className="w-full h-auto object-contain shadow-sm"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 

@@ -11,6 +11,8 @@ export default function Hero() {
         src="/assets/bannes/fixos/hero.svg" 
         alt="Atacado Express Hero" 
         className="w-full h-auto rounded-md shadow-sm"
+        fetchPriority="high"
+        decoding="async"
       />
     </motion.section>
   );

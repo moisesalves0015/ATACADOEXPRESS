@@ -54,6 +54,8 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
             referrerPolicy="no-referrer"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-200">
