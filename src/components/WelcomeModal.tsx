@@ -75,18 +75,18 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
             .shiny-border-container {
               position: relative;
-              padding: 3px; 
+              padding: 4px; 
               background: transparent;
-              border-radius: 1.2rem;
+              border-radius: 1.5rem;
               animation: rotate 3s linear infinite;
-              display: inline-block;
-              width: 100%;
-              max-width: 600px; 
+              display: block; /* Mudar para block para respeitar a largura */
+              width: 800px; /* Forçar largura no computador */
+              max-width: 100%;
             }
 
-            @media (max-width: 640px) {
+            @media (max-width: 800px) {
               .shiny-border-container {
-                max-width: 95vw; 
+                width: 98vw; /* Forçar largura no celular */
               }
             }
 
@@ -124,7 +124,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
               );
               filter: blur(35px); 
             }
-
+            
             .inner-banner-content {
               display: block;
               position: relative;
@@ -138,13 +138,20 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                 radial-gradient(at 0% 100%, hsla(22,0%,44%,.9) 0px, transparent 50%),
                 radial-gradient(at 80% 100%, hsla(240,0%,21%,.65) 0px, transparent 50%),
                 radial-gradient(at 2% 3%, hsla(19,43%,77%,.9) 0px, transparent 50%);
-              border-radius: calc(1.2rem - 3px);
+              border-radius: calc(1.5rem - 4px);
               border-color: hsla(338,0%,62%,.005);
               border-top-style: groove;
               border-right-style: groove;
               transition: color 0.9s, background-color 0.9s;
               isolation: isolate;
               overflow: hidden;
+            }
+
+            .inner-banner-content img {
+               width: 100%;
+               max-width: 800px;
+               height: auto;
+               display: block;
             }
 
             .inner-banner-content::after {

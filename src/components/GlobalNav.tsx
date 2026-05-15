@@ -15,7 +15,8 @@ export default function GlobalNav({ user }: GlobalNavProps) {
   const isAdmin = user?.role === 'admin';
 
   const navLinks = isAdmin ? [
-    { to: '/admin', label: 'Home', icon: Graph },
+    { to: '/', label: 'Home Site', icon: HouseLine },
+    { to: '/admin', label: 'Dashboard', icon: Graph },
     { to: '/admin/products', label: 'Produtos', icon: Cube },
     { to: '/admin/orders', label: 'Pedidos', icon: Receipt },
     { to: '/admin/catalog', label: 'Catálogo PDF', icon: BookOpenText },
