@@ -127,28 +127,36 @@ exports.onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => 
 async function sendPushToAll(payload) {
   try {
     const tokensSnapshot = await admin.firestore().collection("users_push_tokens").get();
-    if (tokensSnapshot.empty) return null;
+    if (tokensSnapshot.empty) {
+      console.log("Nenhum token encontrado no banco.");
+      return null;
+    }
 
     const tokens = tokensSnapshot.docs.map(doc => doc.id);
-    const response = await admin.messaging().sendEachForMulticast({
-      tokens: tokens,
-      notification: payload.notification,
-      data: payload.data,
-      webpush: payload.webpush,
-    });
+    console.log(`Iniciando envio para ${tokens.length} dispositivos...`);
 
-    console.log(`FCM Result: ${response.successCount} sucessos, ${response.failureCount} falhas.`);
+    const results = await Promise.all(tokens.map(async (token) => {
+      try {
+        const message = {
+          token: token,
+          notification: payload.notification,
+          data: payload.data,
+          webpush: payload.webpush,
+        };
+        const res = await admin.messaging().send(message);
+        return { success: true, token: token.substring(0, 10), res };
+      } catch (err) {
+        return { success: false, token: token.substring(0, 10), error: err.code };
+      }
+    }));
+
+    const successes = results.filter(r => r.success).length;
+    const failures = results.filter(r => !r.success).length;
+    console.log(`Resultado Final: ${successes} sucessos, ${failures} falhas.`);
     
-    if (response.failureCount > 0) {
-      response.responses.forEach((res, idx) => {
-        if (!res.success) {
-          console.error(`Falha no token ${tokens[idx].substring(0, 10)}... : ${res.error.code} - ${res.error.message}`);
-        }
-      });
-    }
     return null;
   } catch (error) {
-    console.error("Erro FCM:", error);
+    console.error("Erro crítico no sendPushToAll:", error);
     return null;
   }
 }
