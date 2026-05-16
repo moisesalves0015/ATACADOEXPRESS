@@ -37,7 +37,7 @@ import {
   Files
 } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
@@ -51,6 +51,7 @@ interface Product {
   availableQuantity: number;
   category: string;
   imageUrl: string;
+  imageUrls?: string[];
   status: 'active' | 'inactive';
   supplierId?: string;
   supplierName?: string;
@@ -183,11 +184,12 @@ export default function CatalogPage() {
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i] as HTMLElement;
         
-        // Use html-to-image which handles modern CSS (oklch) much better via SVG foreignObject
-        const dataUrl = await toPng(page, {
+        // Use toJpeg for significantly smaller file size
+        const dataUrl = await toJpeg(page, {
           width: dims[0],
           height: dims[1],
-          pixelRatio: 2, // High quality
+          pixelRatio: 1.5, // Balanced quality/size for mobile
+          quality: 0.8,    // 80% compression
           skipFonts: false,
           cacheBust: true,
         });
@@ -196,7 +198,7 @@ export default function CatalogPage() {
         
         pdf.addImage(
           dataUrl, 
-          'PNG', 
+          'JPEG', 
           0, 
           0, 
           pdf.internal.pageSize.getWidth(), 
@@ -573,10 +575,16 @@ export default function CatalogPage() {
                                   height: isHorizontalPremium ? '100%' : imageFlexHeight, 
                                   borderRadius: '8px', backgroundColor: '#f8fafc', overflow: 'hidden', flexShrink: 0, border: '1px solid #f1f5f9' 
                                 }}>
-                                  {product.imageUrl ? (
-                                    <img src={getImageUrl(product.imageUrl)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  {product.imageUrls?.length || product.imageUrl ? (
+                                    <img 
+                                      src={getImageUrl(product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl)} 
+                                      alt={product.name} 
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    />
                                   ) : (
-                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}><ImageIcon size={mode === 'premium' ? 80 : 40} /></div>
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>
+                                      <ImageIcon size={mode === 'premium' ? 80 : 40} />
+                                    </div>
                                   )}
                                 </div>
 
