@@ -48,9 +48,10 @@ export default function PushDiagnostics() {
     let reg = null;
 
     try {
-      reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        swStatus = `Ativo (Scope: ${reg.scope})`;
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      if (registrations.length > 0) {
+        reg = registrations.find(r => r.scope.includes('push-scope')) || registrations[0];
+        swStatus = `Ativo (${registrations.length} workers encontrados. Principal: ${reg.scope})`;
       }
     } catch (e: any) {
       swStatus = `Erro: ${e.message}`;
