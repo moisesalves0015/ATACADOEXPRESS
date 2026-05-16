@@ -58,7 +58,10 @@ export default function ProductDetail() {
 
   const outOfStock = product.stockType === 'pronta_entrega' && product.availableQuantity <= 0;
   
-  // Disable adding if hitting stock limits
+  // Check how many of this product are already in the cart
+  const inCartItem = items.find(i => i.productId === id);
+  const inCartQty = inCartItem ? inCartItem.quantity : 0;
+
   const maxCanAdd = product.stockType === 'pronta_entrega' 
     ? product.availableQuantity - inCartQty 
     : 999;
