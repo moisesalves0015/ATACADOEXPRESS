@@ -143,10 +143,14 @@ service cloud.firestore {
 
     // Push Tokens collection
     match /users_push_tokens/{token} {
-      // Permite que qualquer um registre ou atualize seu token
       allow create, update: if true;
-      // Apenas administradores podem ler (para enviar notificações) ou deletar
       allow read, delete: if isAdmin();
+    }
+
+    // Design Vault Assets collection
+    match /design_assets/{assetId} {
+      // Apenas administradores podem gerenciar os ativos de design
+      allow read, write: if isAdmin();
     }
   }
 }
