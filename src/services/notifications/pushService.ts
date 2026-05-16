@@ -35,15 +35,18 @@ export const pushService = {
     }
 
     try {
+      console.log("Solicitando token FCM...");
       const token = await getToken(messaging, {
         vapidKey: VAPID_KEY,
         serviceWorkerRegistration: await navigator.serviceWorker.getRegistration()
       });
 
       if (token) {
+        console.log("Token FCM obtido com sucesso:", token.substring(0, 10) + "...");
         await this.saveTokenToFirestore(token, userId);
         return token;
       }
+      console.warn("Nenhum token retornado pelo FCM.");
       return null;
     } catch (error) {
       console.error('Erro ao obter token FCM:', error);

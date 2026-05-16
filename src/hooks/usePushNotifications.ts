@@ -16,13 +16,18 @@ export function usePushNotifications() {
       const supported = await pushService.isSupported();
       setIsSupported(supported);
       
+      // Se já tiver permissão, garante que o token esteja salvo no Firestore
+      if (supported && Notification.permission === 'granted') {
+        console.log("Permissão já concedida. Garantindo registro do token...");
+        pushService.getAndSaveToken(auth.currentUser?.uid);
+      }
+
       // Lógica para iOS (PWA instalado)
       const isIOS = pushService.getPlatform() === 'ios';
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
                          || (window.navigator as any).standalone;
 
       if (isIOS && !isStandalone) {
-        // Opcional: mostrar guia de instalação apenas se relevante
         // setShowIOSGuide(true);
       }
     };
