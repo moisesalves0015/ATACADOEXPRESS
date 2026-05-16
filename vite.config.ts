@@ -14,9 +14,9 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg', 'firebase-messaging-sw.js'],
         manifest: {
-          name: 'Atacado Express Boutique',
-          short_name: 'Atacado Ex',
-          description: 'Marketplace atacadista de moda premium.',
+          name: 'Saldo da Kricia',
+          short_name: 'Saldo Kricia',
+          description: 'A boutique favorita de moda premium online.',
           theme_color: '#F72585',
           background_color: '#ffffff',
           display: 'standalone',
@@ -25,21 +25,21 @@ export default defineConfig(({mode}) => {
           start_url: '/',
           icons: [
             {
-              src: '/icon.svg',
+              src: '/pwa-192x192.png',
               sizes: '192x192',
-              type: 'image/svg+xml',
+              type: 'image/png',
               purpose: 'any'
             },
             {
-              src: '/icon.svg',
+              src: '/pwa-512x512.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
+              type: 'image/png',
               purpose: 'any'
             },
             {
-              src: '/icon.svg',
+              src: '/pwa-512x512.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
+              type: 'image/png',
               purpose: 'maskable'
             }
           ]
