@@ -1067,8 +1067,8 @@ export default function AdminProducts() {
                                     type="number"
                                     step="0.01"
                                     required
-                                    value={currentProduct.unitPrice}
-                                    onChange={e => setCurrentProduct({ ...currentProduct, unitPrice: parseFloat(e.target.value) })}
+                                    value={currentProduct.unitPrice || 0}
+                                    onChange={e => setCurrentProduct({ ...currentProduct, unitPrice: parseFloat(e.target.value) || 0 })}
                                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                   />
                                 </div>
@@ -1082,7 +1082,7 @@ export default function AdminProducts() {
                                     step="0.01"
                                     required
                                     value={currentProduct.costPrice || 0}
-                                    onChange={e => setCurrentProduct({ ...currentProduct, costPrice: parseFloat(e.target.value) })}
+                                    onChange={e => setCurrentProduct({ ...currentProduct, costPrice: parseFloat(e.target.value) || 0 })}
                                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
                                   />
                                 </div>
@@ -1150,8 +1150,8 @@ export default function AdminProducts() {
                           <div className={cn("transition-all", currentProduct.stockType !== 'pronta_entrega' ? "opacity-30 pointer-events-none" : "")}>
                             <input
                               type="number"
-                              value={currentProduct.availableQuantity}
-                              onChange={e => setCurrentProduct({ ...currentProduct, availableQuantity: parseInt(e.target.value) })}
+                              value={currentProduct.availableQuantity || 0}
+                              onChange={e => setCurrentProduct({ ...currentProduct, availableQuantity: parseInt(e.target.value) || 0 })}
                               className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-xl outline-none text-sm font-bold focus:border-blue-500"
                               placeholder="Qtd em estoque"
                             />
@@ -1184,7 +1184,7 @@ export default function AdminProducts() {
                             <input
                               type="number"
                               value={currentProduct.requiredGoal || 0}
-                              onChange={e => setCurrentProduct({ ...currentProduct, requiredGoal: parseInt(e.target.value) })}
+                              onChange={e => setCurrentProduct({ ...currentProduct, requiredGoal: parseInt(e.target.value) || 0 })}
                               className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-xl outline-none text-sm font-bold focus:border-orange-500"
                               placeholder="Meta de unidades"
                             />
