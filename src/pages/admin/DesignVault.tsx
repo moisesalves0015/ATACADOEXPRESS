@@ -187,17 +187,26 @@ export default function DesignVault() {
     if (!notifData.title || !notifData.body) return;
     setIsSendingNotif(true);
     try {
+      console.log("Iniciando busca de tokens na coleção 'users_push_tokens'...");
       const tokensSnap = await getDocs(collection(db, 'users_push_tokens'));
       const tokens = tokensSnap.docs.map(doc => doc.id);
 
+      console.log(`Busca finalizada. Encontrados ${tokens.length} tokens.`);
+
       if (tokens.length === 0) {
-        alert("Nenhum dispositivo registrado para receber notificações.");
+        alert("Nenhum dispositivo registrado para receber notificações na coleção 'users_push_tokens'. Tente registrar este dispositivo primeiro.");
         return;
       }
 
-      alert(`Simulando envio para ${tokens.length} dispositivos...\n\nNota: Para o envio real, utilize a Cloud Function fornecida ou uma API de backend configurada com as chaves do Firebase.`);
-    } catch (error) {
-      console.error("Erro ao testar notificação:", error);
+      alert(`Sucesso! Encontrados ${tokens.length} dispositivos prontos para receber o teste.\n\nNota: O envio real requer a configuração da Cloud Function.`);
+      
+    } catch (error: any) {
+      console.error("Erro ao buscar tokens:", error);
+      if (error.code === 'permission-denied') {
+        alert("Erro de Permissão: Seu usuário não tem autorização para ler os tokens. Verifique se você tem a role 'admin' no Firestore.");
+      } else {
+        alert("Erro inesperado ao buscar tokens: " + error.message);
+      }
     } finally {
       setIsSendingNotif(false);
     }
