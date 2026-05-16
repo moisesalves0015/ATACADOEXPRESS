@@ -56,35 +56,43 @@ exports.debugSendPush = onRequestV2({ cors: true }, async (req, res) => {
  * Trigger: Novo Produto
  */
 exports.onProductCreated = onDocumentCreated("products/{productId}", async (event) => {
+  console.log(`[TRIGGER] Função onProductCreated disparada para o produto: ${event.params.productId}`);
   const product = event.data.data();
-  if (!product) return null;
+  if (!product) {
+    console.error("[ERROR] Nenhum dado de produto encontrado no evento.");
+    return null;
+  }
+  console.log(`[INFO] Processando push para: ${product.name}`);
 
   const payload = {
     notification: {
-      title: "🛍️ Novo produto disponível!",
-      body: `${product.name} acaba de chegar! Confira agora as novidades.`,
-      imageUrl: product.imageUrl || "",
+      title: "Novo Produto! 🆕",
+      body: `${product.name} - ${product.category}\nPreço: R$ ${product.unitPrice}`,
     },
     webpush: {
       headers: {
         Urgency: "high",
       },
       notification: {
-        title: "🛍️ Novo produto disponível!",
-        body: `${product.name} acaba de chegar! Confira agora as novidades.`,
-        icon: "https://atacado-express-boutique.web.app/icon.svg", // URL Absoluta é melhor para iOS
-        image: product.imageUrl || "",
-        badge: "https://atacado-express-boutique.web.app/icon.svg",
-      },
-      fcmOptions: {
-        link: `https://atacado-express-boutique.web.app/product/${event.params.productId}`,
+        title: "Novo Produto! 🆕",
+        body: `${product.name} - ${product.category}\nPreço: R$ ${product.unitPrice}`,
+        icon: "https://atacadoexpress.vercel.app/pwa-192x192.png",
+        badge: "https://atacadoexpress.vercel.app/pwa-192x192.png",
+        click_action: `https://atacado-express-boutique.web.app/product/${event.params.productId}`,
       },
     },
     data: {
-      url: `/product/${event.params.productId}`,
-      type: "new_product",
+      productId: event.params.productId,
+      type: "NEW_PRODUCT",
     },
   };
+
+  // Adiciona imagem apenas se existir e for válida
+  const img = product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl;
+  if (img && img.startsWith('http')) {
+    payload.notification.imageUrl = img;
+    payload.webpush.notification.image = img;
+  }
 
   return sendPushToAll(payload);
 });
@@ -146,6 +154,7 @@ async function sendPushToAll(payload) {
         const res = await admin.messaging().send(message);
         return { success: true, token: token.substring(0, 10), res };
       } catch (err) {
+        console.error(`[FCM ERROR] Falha no token ${token.substring(0, 15)}...:`, err.code, err.message);
         return { success: false, token: token.substring(0, 10), error: err.code };
       }
     }));
