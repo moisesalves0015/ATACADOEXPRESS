@@ -14,7 +14,7 @@ import {
   XCircle,
   RefreshCw,
   Send
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 
 export default function PushDiagnostics() {
   const [diag, setDiag] = useState<any>({
