@@ -18,7 +18,7 @@ import {
   Bell,
   NavigationArrow
 } from "@phosphor-icons/react";
-import { getAndSaveToken } from "../../services/notifications/pushService";
+import { pushService } from "../../services/notifications/pushService";
 
 export default function PushDiagnostics() {
   const [diag, setDiag] = useState<any>({
@@ -92,7 +92,7 @@ export default function PushDiagnostics() {
     if (pushSupported && permission === 'granted') {
       try {
         addLog("Tentando recuperar FCM Token...");
-        token = await getAndSaveToken();
+        token = await pushService.getAndSaveToken();
         addLog("Token FCM recuperado com sucesso!", 'success');
       } catch (e: any) {
         addLog(`Falha ao obter Token: ${e.message}`, 'error');
@@ -246,7 +246,7 @@ export default function PushDiagnostics() {
                 >
                   <PaperPlaneTilt size={24} className="text-pink-500 mb-2" />
                   <span className="font-bold text-pink-700">Push Direto (FCM)</span>
-                  <span className="text-[10px] text-pink-400">Testa o fluxo completo Google -> iPhone</span>
+                  <span className="text-[10px] text-pink-400">Testa o fluxo completo Google → iPhone</span>
                 </button>
               </div>
 

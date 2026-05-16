@@ -438,6 +438,12 @@ export default function AdminProducts() {
             <WhatsappLogo className="w-4 h-4" weight="fill" /> Catálogo WhatsApp
           </button>
           <button
+            onClick={() => navigate('/admin/push-diagnostics')}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 uppercase tracking-widest"
+          >
+            <Pulse className="w-4 h-4" weight="bold" /> Diagnóstico Push
+          </button>
+          <button
             onClick={() => handleOpenModal()}
             className="btn-action-premium"
           >
