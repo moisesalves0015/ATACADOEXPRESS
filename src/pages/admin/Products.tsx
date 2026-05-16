@@ -79,6 +79,11 @@ export default function AdminProducts() {
   const [productStatusFilter, setProductStatusFilter] = useState('all'); // all | active | inactive
   const [stockTypeFilter, setStockTypeFilter] = useState('all'); // all | pronta_entrega | previsao_meta
 
+  // Delete States
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     const q = query(collection(db, 'products'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -127,13 +132,25 @@ export default function AdminProducts() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteProduct = async (postId: string) => {
-    if (window.confirm('Excluir este produto permanentemente?')) {
-      try {
-        await deleteDoc(doc(db, 'products', postId));
-      } catch (err) {
-        console.error(err);
-      }
+  const handleDeleteProduct = (id: string) => {
+    console.log('Solicitando exclusão do produto:', id);
+    setProductToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
+    try {
+      console.log('Executando exclusão no Firestore:', productToDelete);
+      await deleteDoc(doc(db, 'products', productToDelete));
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (err) {
+      console.error('Erro ao excluir produto:', err);
+      alert('Erro ao excluir produto. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1597,6 +1614,40 @@ export default function AdminProducts() {
                   </button>
                </div>
             </form>
+          </div>
+        </div>
+      {/* ============================================================
+          DELETE CONFIRMATION MODAL
+      ============================================================ */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash className="w-10 h-10" weight="fill" />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2">Excluir Produto?</h3>
+              <p className="text-sm font-medium text-gray-500 leading-relaxed">
+                Esta ação é irreversível. O produto e todo o seu histórico serão removidos permanentemente.
+              </p>
+            </div>
+            <div className="p-6 bg-gray-50 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setIsDeleteModalOpen(false); setProductToDelete(null); }}
+                className="flex-1 py-4 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 py-4 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-red-700 shadow-lg shadow-red-100 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isDeleting ? 'Excluindo...' : 'Sim, Excluir'}
+              </button>
+            </div>
           </div>
         </div>
       )}

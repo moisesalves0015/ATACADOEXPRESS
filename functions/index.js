@@ -66,16 +66,16 @@ exports.onProductCreated = onDocumentCreated("products/{productId}", async (even
 
   const payload = {
     notification: {
-      title: "Novo Produto! 🆕",
-      body: `${product.name} - ${product.category}\nPreço: R$ ${product.unitPrice}`,
+      title: `🛍️ NOVIDADE: ${product.name.toUpperCase()}`,
+      body: `Acabamos de cadastrar ${product.name} na categoria ${product.category}! 😱 Preço: R$ ${product.unitPrice}. Confira antes que acabe! 🚀`,
     },
     webpush: {
       headers: {
         Urgency: "high",
       },
       notification: {
-        title: "Novo Produto! 🆕",
-        body: `${product.name} - ${product.category}\nPreço: R$ ${product.unitPrice}`,
+        title: `🛍️ NOVIDADE: ${product.name.toUpperCase()}`,
+        body: `Acabamos de cadastrar ${product.name} na categoria ${product.category}! 😱 Preço: R$ ${product.unitPrice}. Confira antes que acabe! 🚀`,
         icon: "https://atacadoexpress.vercel.app/pwa-192x192.png",
         badge: "https://atacadoexpress.vercel.app/pwa-192x192.png",
         click_action: `https://atacado-express-boutique.web.app/product/${event.params.productId}`,
