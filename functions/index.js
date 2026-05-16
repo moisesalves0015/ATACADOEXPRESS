@@ -4,13 +4,10 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 /**
- * Trigger: Sempre que um novo produto é criado no Firestore (V2).
+ * Trigger: Novo Produto
  */
 exports.onProductCreated = onDocumentCreated("products/{productId}", async (event) => {
-  // No v2, o dado está em event.data
   const product = event.data.data();
-  const productId = event.params.productId;
-  
   if (!product) return null;
 
   const payload = {
@@ -20,48 +17,51 @@ exports.onProductCreated = onDocumentCreated("products/{productId}", async (even
       image: product.imageUrl || "",
     },
     data: {
-      url: `/product/${productId}`,
+      url: `/product/${event.params.productId}`,
+      type: "new_product"
     }
   };
 
-  try {
-    const tokensSnapshot = await admin.firestore()
-      .collection("users_push_tokens")
-      .get();
+  return sendPushToAll(payload);
+});
 
-    if (tokensSnapshot.empty) {
-      console.log("Nenhum token encontrado.");
-      return null;
+/**
+ * Trigger: Novo Pedido
+ */
+exports.onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => {
+  const order = event.data.data();
+  if (!order) return null;
+
+  const payload = {
+    notification: {
+      title: "💰 Nova Venda Realizada!",
+      body: `Pedido #${event.params.orderId.substring(0, 5)} de R$ ${order.totalValue}`,
+    },
+    data: {
+      url: `/orders/${event.params.orderId}`,
+      type: "new_order"
     }
+  };
+
+  return sendPushToAll(payload);
+});
+
+async function sendPushToAll(payload) {
+  try {
+    const tokensSnapshot = await admin.firestore().collection("users_push_tokens").get();
+    if (tokensSnapshot.empty) return null;
 
     const tokens = tokensSnapshot.docs.map(doc => doc.id);
-    console.log(`Enviando para ${tokens.length} dispositivos...`);
-
     const response = await admin.messaging().sendEachForMulticast({
       tokens: tokens,
       notification: payload.notification,
       data: payload.data,
     });
 
-    console.log(`${response.successCount} mensagens enviadas com sucesso.`);
-
-    if (response.failureCount > 0) {
-      const failedTokens = [];
-      response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          const error = resp.error.code;
-          if (error === "messaging/registration-token-not-registered" || 
-              error === "messaging/invalid-registration-token") {
-            failedTokens.push(tokensSnapshot.docs[idx].ref.delete());
-          }
-        }
-      });
-      await Promise.all(failedTokens);
-    }
-
+    console.log(`FCM: ${response.successCount} enviados, ${response.failureCount} falhas.`);
     return null;
   } catch (error) {
-    console.error("Erro ao enviar notificações:", error);
+    console.error("Erro FCM:", error);
     return null;
   }
-});
+}
