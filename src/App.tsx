@@ -39,11 +39,48 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import WelcomeModal from './components/WelcomeModal';
 
+// Notifications
+import { usePushNotifications } from './hooks/usePushNotifications';
+import { pushService } from './services/notifications/pushService';
+import { PermissionModal } from './components/Notifications/PermissionModal';
+import { IOSInstallGuide } from './components/Notifications/IOSInstallGuide';
+import { ForegroundNotification } from './components/Notifications/ForegroundNotification';
+
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [foregroundMessage, setForegroundMessage] = useState<any>(null);
+
+  const {
+    permission,
+    showPermissionModal,
+    setShowPermissionModal,
+    showIOSGuide,
+    setShowIOSGuide,
+    handleRequestPermission
+  } = usePushNotifications();
+
+  useEffect(() => {
+    // Configura o listener de mensagens em foreground
+    const unsubscribe = pushService.onForegroundMessage((payload) => {
+      setForegroundMessage(payload);
+    });
+
+    // Mostra o modal de permissão após 8 segundos se for a primeira vez
+    if (permission === 'default') {
+      const timer = setTimeout(() => {
+        setShowPermissionModal(true);
+      }, 8000);
+      return () => {
+        clearTimeout(timer);
+        unsubscribe();
+      };
+    }
+
+    return () => unsubscribe();
+  }, [permission, setShowPermissionModal]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -80,6 +117,22 @@ export default function App() {
     <ErrorBoundary>
       {showSplash && <SplashScreen finishLoading={handleFinishSplash} />}
       <WelcomeModal isOpen={showWelcome} onClose={() => setShowWelcome(false)} />
+      
+      {/* Notifications UI */}
+      <PermissionModal 
+        isOpen={showPermissionModal} 
+        onClose={() => setShowPermissionModal(false)} 
+        onAccept={handleRequestPermission} 
+      />
+      <IOSInstallGuide 
+        isOpen={showIOSGuide} 
+        onClose={() => setShowIOSGuide(false)} 
+      />
+      <ForegroundNotification 
+        payload={foregroundMessage} 
+        onClose={() => setForegroundMessage(null)} 
+      />
+
       <CartProvider>
         <BrowserRouter>
           <GlobalNav user={authLoading ? null : user} />

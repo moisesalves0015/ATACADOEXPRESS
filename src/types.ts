@@ -195,3 +195,11 @@ export interface SystemLog {
   timestamp: string;
   metadata?: any;
 }
+
+export interface PushToken {
+  userId: string | null;
+  token: string;
+  platform: 'android' | 'ios' | 'desktop';
+  createdAt: string;
+  updatedAt: string;
+}

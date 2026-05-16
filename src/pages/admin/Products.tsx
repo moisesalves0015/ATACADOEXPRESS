@@ -354,11 +354,16 @@ export default function AdminProducts() {
       if (currentProduct.id) {
         await updateDoc(doc(db, 'products', currentProduct.id), productData);
       } else {
-        await addDoc(collection(db, 'products'), {
+        const newProductRef = await addDoc(collection(db, 'products'), {
           ...productData,
           createdAt: new Date().toISOString(),
           currentGoalProgress: 0,
         });
+
+        // DISPARO DE NOTIFICAÇÃO PUSH
+        // Nota: O envio real deve ser feito via Cloud Functions para segurança e escalabilidade.
+        // O gatilho 'onCreate' no Firestore detectará este novo documento automaticamente.
+        console.log('Novo produto criado, notificação push será disparada via Cloud Function.');
       }
 
       setIsModalOpen(false);

@@ -54,6 +54,7 @@ interface Product {
   status: 'active' | 'inactive';
   supplierId?: string;
   supplierName?: string;
+  stockType?: 'pronta_entrega' | 'previsao_meta';
 }
 
 interface Supplier {
@@ -107,6 +108,7 @@ export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
+  const [stockTypeFilter, setStockTypeFilter] = useState<'all' | 'previsao_meta' | 'pronta_entrega'>('all');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   
@@ -152,9 +154,11 @@ export default function CatalogPage() {
     };
   }, []);
 
-  const filteredProducts = supplierFilter === 'all' 
-    ? products 
-    : products.filter(p => p.supplierId === supplierFilter);
+  const filteredProducts = products.filter(p => {
+    const matchesSupplier = supplierFilter === 'all' || p.supplierId === supplierFilter;
+    const matchesStockType = stockTypeFilter === 'all' || p.stockType === stockTypeFilter;
+    return matchesSupplier && matchesStockType;
+  });
 
   const pages = [];
   for (let i = 0; i < filteredProducts.length; i += config.productsPerPage) {
@@ -257,9 +261,6 @@ export default function CatalogPage() {
       </div>
 
       <div className="max-w-[1400px] mx-auto px-8 space-y-8">
-        
-
-
         {/* --- Config Toolbar (Refined Tabs Style) --- */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
@@ -283,16 +284,7 @@ export default function CatalogPage() {
               </div>
             </div>
             
-            <button
-              onClick={() => setIsPreviewVisible(!isPreviewVisible)}
-              className={cn(
-                "flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all",
-                isPreviewVisible ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-              )}
-            >
-              {isPreviewVisible ? <><EyeSlash size={16}/> Ocultar Preview</> : <><Eye size={16}/> Ver Preview</>}
-            </button>
-          </div>
+            </div>
 
           <div className="p-8">
             <AnimatePresence mode="wait">
@@ -385,24 +377,53 @@ export default function CatalogPage() {
                       <span className="text-[8px] font-bold uppercase tracking-widest text-center">{item.label}</span>
                     </button>
                   ))}
+
                   <div className="col-span-2 md:col-span-7 mt-4 border-t border-gray-100 pt-6">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-3"><Files size={14}/> Filtrar por Fornecedor</label>
-                    <div className="flex flex-wrap gap-2">
-                      <button 
-                        onClick={() => setSupplierFilter('all')}
-                        className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", supplierFilter === 'all' ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300")}
-                      >
-                        Todos
-                      </button>
-                      {suppliers.map(s => (
-                        <button 
-                          key={s.uid}
-                          onClick={() => setSupplierFilter(s.uid)}
-                          className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", supplierFilter === s.uid ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300")}
-                        >
-                          {s.tradingName || s.name}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Filter by Supplier */}
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><Files size={14}/> Filtrar por Fornecedor</label>
+                        <div className="flex flex-wrap gap-2">
+                          <button 
+                            onClick={() => setSupplierFilter('all')}
+                            className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", supplierFilter === 'all' ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300")}
+                          >
+                            Todos
+                          </button>
+                          {suppliers.map(s => (
+                            <button 
+                              key={s.uid}
+                              onClick={() => setSupplierFilter(s.uid)}
+                              className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", supplierFilter === s.uid ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300")}
+                            >
+                              {s.tradingName || s.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Filter by Product Type */}
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2"><Tag size={14}/> Tipo de Produto</label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { id: 'all', label: 'Todos' },
+                            { id: 'previsao_meta', label: 'Meta (Listas)' },
+                            { id: 'pronta_entrega', label: 'Pronta Entrega' }
+                          ].map(type => (
+                            <button 
+                              key={type.id}
+                              onClick={() => setStockTypeFilter(type.id as any)}
+                              className={cn(
+                                "px-4 py-2 rounded-xl text-[10px] font-bold uppercase border transition-all", 
+                                stockTypeFilter === type.id ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                              )}
+                            >
+                              {type.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -414,10 +435,21 @@ export default function CatalogPage() {
 
         {/* --- Canvas Preview Area --- */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-              <Eye size={16} /> Visualização do Canvas
-            </h2>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xs font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                <Eye size={16} /> Visualização do Canvas
+              </h2>
+              <button
+                onClick={() => setIsPreviewVisible(!isPreviewVisible)}
+                className={cn(
+                  "flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm",
+                  isPreviewVisible ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                )}
+              >
+                {isPreviewVisible ? <><EyeSlash size={16}/> Ocultar Preview</> : <><Eye size={16}/> Ver Preview</>}
+              </button>
+            </div>
             <div className="flex bg-gray-100 p-1 rounded-xl items-center">
                <button onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all"><ArrowsIn size={14}/></button>
                <span className="text-[10px] font-black text-gray-500 w-12 text-center">{Math.round(zoom * 100)}%</span>
