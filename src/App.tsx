@@ -27,6 +27,7 @@ import AdminClients from './pages/admin/AdminClients';
 import PersonProfile from './pages/admin/PersonProfile';
 import CatalogPageAdmin from './pages/admin/CatalogPage';
 import DesignVault from './pages/admin/DesignVault';
+import PushDiagnostics from './pages/admin/PushDiagnostics';
 
 // Components
 import Layout from './components/Layout';
@@ -166,6 +167,7 @@ export default function App() {
                 <Route path="/admin/catalog" element={<CatalogPageAdmin />} />
                 <Route path="/admin/product-performance/:id" element={<AdminDashboard />} />
                 <Route path="/admin/design-vault" element={<DesignVault />} />
+                <Route path="/admin/push-diagnostics" element={<PushDiagnostics />} />
               </Route>
             </Route>
           </Routes>

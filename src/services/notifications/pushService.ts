@@ -35,10 +35,15 @@ export const pushService = {
     }
 
     try {
+      console.log("Garantindo registro do Service Worker para FCM...");
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/firebase-cloud-messaging-push-scope', // Usamos um escopo dedicado para evitar conflito com o sw.js principal
+      });
+
       console.log("Solicitando token FCM...");
       const token = await getToken(messaging, {
         vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: await navigator.serviceWorker.getRegistration()
+        serviceWorkerRegistration: registration
       });
 
       if (token) {
