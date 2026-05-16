@@ -3,17 +3,17 @@ import { auth, db } from '../../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { pushService } from '../../services/notifications/pushService';
 import { 
-  Activity, 
+  Pulse, 
   ShieldCheck, 
-  Smartphone, 
-  Wifi, 
+  DeviceMobile, 
+  WifiHigh, 
   Bell, 
   Key,
-  AlertTriangle,
+  Warning,
   CheckCircle,
   XCircle,
-  RefreshCw,
-  Send
+  ArrowsClockwise,
+  PaperPlaneTilt
 } from '@phosphor-icons/react';
 
 export default function PushDiagnostics() {
@@ -104,7 +104,7 @@ export default function PushDiagnostics() {
         <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-8 text-white">
           <div className="flex items-center gap-4">
             <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
-              <Activity size={32} weight="bold" />
+              <Pulse size={32} weight="bold" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Push Diagnostics</h1>
@@ -117,7 +117,7 @@ export default function PushDiagnostics() {
           {/* Status Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatCard 
-              icon={<Smartphone />} 
+              icon={<DeviceMobile />} 
               label="Standalone Mode" 
               value={diag.standalone ? "SIM" : "NÃO"} 
               status={diag.standalone ? 'success' : 'warning'}
@@ -129,7 +129,7 @@ export default function PushDiagnostics() {
               status={diag.permission === 'granted' ? 'success' : 'error'}
             />
             <StatCard 
-              icon={<Wifi />} 
+              icon={<WifiHigh />} 
               label="Push Suportado" 
               value={diag.supported ? "SIM" : "NÃO"} 
               status={diag.supported ? 'success' : 'error'}
@@ -157,7 +157,7 @@ export default function PushDiagnostics() {
               onClick={runDiagnostics}
               className="w-full flex items-center justify-center gap-2 bg-slate-800 text-white py-4 rounded-2xl font-bold hover:bg-slate-700 transition-all"
             >
-              <RefreshCw size={20} className={diag.loading ? "animate-spin" : ""} />
+              <ArrowsClockwise size={20} className={diag.loading ? "animate-spin" : ""} />
               Atualizar Diagnóstico
             </button>
             <button 
@@ -165,7 +165,7 @@ export default function PushDiagnostics() {
               disabled={!diag.token}
               className="w-full flex items-center justify-center gap-2 bg-pink-500 text-white py-4 rounded-2xl font-bold hover:bg-pink-600 disabled:opacity-50 transition-all"
             >
-              <Send size={20} />
+              <PaperPlaneTilt size={20} />
               Copiar Token para Teste Manual
             </button>
           </div>
@@ -187,7 +187,7 @@ export default function PushDiagnostics() {
       {/* iOS Warning */}
       {diag.isIOS && !diag.standalone && (
         <div className="max-w-2xl mx-auto mt-6 bg-amber-50 border border-amber-100 p-6 rounded-3xl flex gap-4 items-start">
-          <AlertTriangle size={24} className="text-amber-500 flex-shrink-0" weight="fill" />
+          <Warning size={24} className="text-amber-500 flex-shrink-0" weight="fill" />
           <div>
             <h4 className="font-bold text-amber-900">Atenção (Usuário iOS)</h4>
             <p className="text-sm text-amber-800 leading-relaxed">
@@ -210,7 +210,7 @@ function StatCard({ icon, label, value, status }: any) {
 
   const icons = {
     success: <CheckCircle size={16} weight="fill" />,
-    warning: <AlertTriangle size={16} weight="fill" />,
+    warning: <Warning size={16} weight="fill" />,
     error: <XCircle size={16} weight="fill" />
   };
 
