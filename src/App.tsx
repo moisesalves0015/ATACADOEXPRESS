@@ -146,6 +146,7 @@ export default function App() {
               <Route path="/produtos" element={<AllProducts />} />
               <Route path="/descobrir" element={<MatchDiscovery />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/admin/push-diagnostics" element={<PushDiagnostics />} />
 
               {/* Client Routes */}
               <Route element={<AuthGuard user={authLoading ? null : user} requiredRole="client" />}>
@@ -167,7 +168,6 @@ export default function App() {
                 <Route path="/admin/catalog" element={<CatalogPageAdmin />} />
                 <Route path="/admin/product-performance/:id" element={<AdminDashboard />} />
                 <Route path="/admin/design-vault" element={<DesignVault />} />
-                <Route path="/admin/push-diagnostics" element={<PushDiagnostics />} />
               </Route>
             </Route>
           </Routes>
