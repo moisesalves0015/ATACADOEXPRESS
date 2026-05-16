@@ -4,7 +4,7 @@ import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, getDo
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../firebase';
 import { Package, Plus, Search, Edit2, Trash2, X, Upload, BarChart2, TrendingUp, ShoppingBag, DollarSign, Users, Filter, ShieldCheck, User, Clock, CheckCircle2, Zap, MessageCircle, Loader2, History, Image as ImageIcon, Layers, Settings, Check, ChevronRight, MousePointer2, Download, ChevronUp, ChevronDown } from 'lucide-react';
-import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, Cube, Lightning, ChartLineUp, NotePencil, Trash, Export, SealCheck, UsersThree, ChartBar, Receipt, HouseLine, UserCircle, WhatsappLogo, Gear, Image, Stack, MagnifyingGlass, Plus as PlusIcon, X as XIcon, TrendUp, CurrencyDollar, Clock as ClockIcon, CaretRight, Tag } from '@phosphor-icons/react';
+import { SquaresFour, Dress, TShirt, Suitcase, Watch, Handbag, Sparkle, Cube, Lightning, ChartLineUp, NotePencil, Trash, Export, SealCheck, UsersThree, ChartBar, Receipt, HouseLine, UserCircle, WhatsappLogo, Gear, Image, Stack, MagnifyingGlass, Plus as PlusIcon, X as XIcon, TrendUp, CurrencyDollar, Clock as ClockIcon, CaretRight, Tag, Pulse } from '@phosphor-icons/react';
 import { Product, Order, OrderStatus, StatusUpdate, ProductHistoryEntry, ProductVariation, UserProfile } from '../../types';
 import { cn } from '../../lib/utils';
 import { format } from 'date-fns';
