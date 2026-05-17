@@ -25,7 +25,12 @@ export default function Checkout() {
       const userData = userDoc.data();
 
       const itemsWithStatus = items.map(item => ({
-        ...item,
+        productId: item.productId ?? '',
+        productName: item.productName ?? '',
+        quantity: item.quantity ?? 1,
+        unitPrice: item.unitPrice ?? 0,
+        stockType: item.stockType ?? 'pronta_entrega',
+        imageUrl: item.imageUrl ?? '',
         status: 'aguardando_aprovacao' as const,
         discount: 0,
         amountPaid: 0,
@@ -35,15 +40,15 @@ export default function Checkout() {
           timestamp: new Date().toISOString(),
           actionType: 'CREATE',
           description: 'Item adicionado ao pedido.',
-          userEmail: userData?.email || auth.currentUser.email || 'Cliente',
-        }]
+          userEmail: userData?.email ?? auth.currentUser?.email ?? 'Cliente',
+        }],
       }));
 
       const orderData = {
         clientId: auth.currentUser.uid,
-        clientName: userData?.name || 'Cliente',
-        clientEmail: userData?.email || auth.currentUser.email || '',
-        clientPhone: userData?.phone || '',
+        clientName: userData?.name ?? 'Cliente',
+        clientEmail: userData?.email ?? auth.currentUser?.email ?? '',
+        clientPhone: userData?.phone ?? '',
         orderDate: new Date().toISOString(),
         totalValue: totalValue + deliveryFee,
         totalReady: initialPaymentTotal,
@@ -52,6 +57,8 @@ export default function Checkout() {
         items: itemsWithStatus,
         observations: '',
         orderOrigin: 'cliente' as const,
+        sellerId: '',
+        sellerName: '',
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
