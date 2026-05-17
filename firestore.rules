@@ -56,7 +56,7 @@ service cloud.firestore {
 
     function isValidOrder(data) {
       return data.keys().hasAll(['clientId', 'orderDate', 'totalValue', 'status']) &&
-             data.status in ['aguardando_pagamento', 'aguardando_comprovante', 'confirmando_pagamento', 'pagamento_confirmado', 'separacao', 'entregue', 'cancelado'] &&
+             data.status in ['aguardando_aprovacao', 'aguardando_pagamento', 'aguardando_comprovante', 'confirmando_pagamento', 'pagamento_confirmado', 'separacao', 'entregue', 'cancelado'] &&
              data.totalValue is number && data.totalValue >= 0 &&
              data.clientId is string && data.clientId.size() > 0;
     }
@@ -93,7 +93,14 @@ service cloud.firestore {
     // Products collection — public read, admin-only write
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || 
+                    (isAuthenticated() && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['availableQuantity', 'currentGoalProgress', 'goalReached']) &&
+                     (!request.resource.data.keys().hasAll(['availableQuantity']) || request.resource.data.availableQuantity is number) &&
+                     (!request.resource.data.keys().hasAll(['currentGoalProgress']) || request.resource.data.currentGoalProgress is number) &&
+                     (!request.resource.data.keys().hasAll(['goalReached']) || request.resource.data.goalReached is bool)
+                    );
     }
     
     // Orders collection

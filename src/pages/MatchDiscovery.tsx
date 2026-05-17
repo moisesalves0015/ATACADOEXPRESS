@@ -30,13 +30,16 @@ export default function MatchDiscovery() {
 
   const handleSwipeAt = (direction: 'left' | 'right', product: Product) => {
     if (direction === 'right') {
+      const qty = product.allowQty1 ? 1 : (product.allowQty2 ? 2 : 3);
       addToCart({
         productId: product.id,
         productName: product.name,
-        quantity: 3,
+        quantity: qty,
         unitPrice: product.unitPrice,
         imageUrl: product.imageUrl || (product.imageUrls?.[0]),
-        stockType: product.stockType
+        stockType: product.stockType,
+        allowQty1: product.allowQty1,
+        allowQty2: product.allowQty2
       });
     }
     

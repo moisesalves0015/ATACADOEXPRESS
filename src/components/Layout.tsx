@@ -87,19 +87,22 @@ export default function Layout({ user }: LayoutProps) {
             {/* User Profile Block — Moved to Right */}
             {user && (
               <div className="hidden sm:flex items-center gap-3 pr-4 mr-4 border-r border-gray-200/60">
-                <div className="text-right flex flex-col">
+                <Link to="/profile" className="text-right flex flex-col hover:opacity-85 transition-opacity">
                   <span className="text-[12px] font-bold text-gray-900 leading-tight truncate max-w-[120px]">{user.name}</span>
                   <span className="text-[10px] text-pink-500 font-black uppercase tracking-wider opacity-70">
                     {isAdmin ? 'Administrador' : 'Membro Premium'}
                   </span>
-                </div>
-                <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-lg shadow-gray-200/30 group cursor-pointer hover:scale-105 transition-all">
+                </Link>
+                <Link 
+                  to="/profile" 
+                  className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-lg shadow-gray-200/30 group cursor-pointer hover:scale-105 transition-all shrink-0"
+                >
                   <img 
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+                    src={(user as any).avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
                     alt={user.name} 
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover bg-gray-50"
                   />
-                </div>
+                </Link>
               </div>
             )}
 

@@ -128,6 +128,63 @@ export default function AdminOrders() {
     }
   };
 
+  const handleAssumeAndApproveOrder = async (order: Order) => {
+    if (!auth.currentUser) return;
+    const confirm = window.confirm("Deseja assumir e aprovar este pedido? O status passará para 'Aguardando Pagamento'.");
+    if (!confirm) return;
+
+    try {
+      const sellerDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const sellerName = sellerDoc.data()?.name || auth.currentUser.email || 'Vendedor';
+
+      const updateEntry: StatusUpdate = {
+        status: 'aguardando_pagamento',
+        isInternal: false,
+        comment: `Pedido assumido e aprovado pelo vendedor ${sellerName}`,
+        updatedAt: new Date().toISOString(),
+        updatedBy: sellerName,
+      };
+
+      const updatedItems = order.items.map(item => ({
+        ...item,
+        status: 'aguardando_pagamento' as const,
+        history: [
+          ...(item.history || []),
+          {
+            timestamp: new Date().toISOString(),
+            actionType: 'STATUS_CHANGE',
+            description: `Pedido aprovado pelo vendedor ${sellerName}.`,
+            userEmail: sellerName,
+          }
+        ]
+      }));
+
+      const orderRef = doc(db, 'orders', order.id);
+      await updateDoc(orderRef, {
+        status: 'aguardando_pagamento',
+        sellerId: auth.currentUser.uid,
+        sellerName: sellerName,
+        items: updatedItems,
+        statusHistory: arrayUnion(updateEntry)
+      });
+
+      alert("Pedido assumido e aprovado com sucesso!");
+      if (selectedOrder?.id === order.id) {
+        setSelectedOrder({
+          ...selectedOrder,
+          status: 'aguardando_pagamento',
+          sellerId: auth.currentUser.uid,
+          sellerName: sellerName,
+          items: updatedItems,
+          statusHistory: [...(selectedOrder.statusHistory || []), updateEntry]
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao assumir pedido:", err);
+      alert("Erro ao assumir e aprovar o pedido.");
+    }
+  };
+
   const handleUpdateItemStatus = async (orderId: string, itemIdx: number, newStatus: OrderStatus, currentStatus: OrderStatus) => {
     if (!auth.currentUser) return;
 
@@ -683,16 +740,18 @@ export default function AdminOrders() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {(() => {
-                           const config = statusConfig[order.status] || statusConfig.aguardando_pagamento;
-                           const IconComp = config.icon;
-                           return (
-                            <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border", config.bg, config.border, config.color)}>
-                              <IconComp className="w-3.5 h-3.5" />
-                              <span className="text-[10px] font-bold uppercase tracking-wider">{config.label}</span>
-                            </div>
-                           )
-                        })()}
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {Array.from(new Set(order.items.map(i => i.status || 'aguardando_pagamento'))).map(st => {
+                            const config = statusConfig[st as OrderStatus] || statusConfig.aguardando_pagamento;
+                            const IconComp = config.icon;
+                            return (
+                              <div key={st} className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full border", config.bg, config.border, config.color)}>
+                                <IconComp className="w-2.5 h-2.5" />
+                                <span className="text-[8px] font-bold uppercase tracking-wider">{config.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         {order.orderOrigin === 'admin' ? (
@@ -706,17 +765,26 @@ export default function AdminOrders() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-3">
+                          {order.status === 'aguardando_aprovacao' && (
+                            <button
+                              onClick={() => handleAssumeAndApproveOrder(order)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-blue-700 transition-all shadow-md shadow-blue-100 shrink-0"
+                              title="Assumir e Aprovar Pedido"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" /> Assumir & Aprovar
+                            </button>
+                          )}
                           <button
                             onClick={() => setSelectedOrder(order)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all shrink-0"
                             title="Ver Detalhes"
                           >
                             <Eye className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteOrder(order)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
                             title="Excluir Pedido"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -733,7 +801,6 @@ export default function AdminOrders() {
           {/* Mobile View: Order Cards */}
           <div className="md:hidden space-y-4">
             {filteredOrders.map((order) => {
-              const config = statusConfig[order.status] || statusConfig.aguardando_pagamento;
               const totalVal = order.items
                                 .filter(i => i.status !== 'cancelado')
                                 .reduce((s, i) => s + i.quantity * i.unitPrice, 0);
@@ -750,8 +817,15 @@ export default function AdminOrders() {
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{format(new Date(order.orderDate), 'dd/MM/yyyy HH:mm')}</p>
                       </div>
                     </div>
-                    <div className={cn("px-2.5 py-1 rounded-lg border", config.bg, config.border, config.color)}>
-                      <span className="text-[9px] font-black uppercase tracking-wider">{config.label}</span>
+                    <div className="flex flex-wrap justify-end gap-1 max-w-[50%]">
+                      {Array.from(new Set(order.items.map(i => i.status || 'aguardando_pagamento'))).map(st => {
+                        const config = statusConfig[st as OrderStatus] || statusConfig.aguardando_pagamento;
+                        return (
+                          <div key={st} className={cn("px-1.5 py-0.5 rounded border leading-none", config.bg, config.border, config.color)}>
+                            <span className="text-[8px] font-black uppercase tracking-wider">{config.label}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -773,7 +847,15 @@ export default function AdminOrders() {
                          {order.sellerName || 'Sem vendedor'}
                        </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
+                      {order.status === 'aguardando_aprovacao' && (
+                        <button
+                          onClick={() => handleAssumeAndApproveOrder(order)}
+                          className="bg-blue-600 text-white px-3 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-blue-700 transition-all shadow-md shadow-blue-100 active:scale-95 flex items-center gap-1 shrink-0"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5" /> Assumir
+                        </button>
+                      )}
                       <button
                         onClick={() => setSelectedOrder(order)}
                         className="bg-gray-900 text-white p-2.5 rounded-xl shadow-lg shadow-gray-200 active:scale-95 transition-all"
@@ -1075,6 +1157,7 @@ export default function AdminOrders() {
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
           onUpdateItemStatus={handleUpdateItemStatus}
+          onAssumeAndApprove={handleAssumeAndApproveOrder}
         />
       )}
       {/* ============================================================

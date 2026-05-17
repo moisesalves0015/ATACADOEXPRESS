@@ -80,7 +80,14 @@ export default function Cart() {
             <div className="flex justify-between items-end mt-2">
               <div className="flex items-center bg-gray-50/80 border border-gray-100 rounded-lg p-0.5">
                 <button
-                  onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                  onClick={() => {
+                    const minQty = item.allowQty1 ? 1 : (item.allowQty2 ? 2 : 3);
+                    if (item.quantity <= minQty) {
+                      removeFromCart(item.productId);
+                    } else {
+                      updateQuantity(item.productId, item.quantity - 1);
+                    }
+                  }}
                   className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-500"
                 >
                   <Minus className="w-4 h-4" />

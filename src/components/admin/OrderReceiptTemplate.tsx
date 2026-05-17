@@ -10,11 +10,16 @@ interface OrderReceiptTemplateProps {
   brandName?: string;
 }
 
+const getImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('data:') || url.includes('images.weserv.nl')) return url;
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=200&h=200&fit=cover&output=jpg`;
+};
+
 const OrderReceiptTemplate: React.FC<OrderReceiptTemplateProps> = ({ 
   order, 
   brandName = "Saldo da Kricia" 
 }) => {
-  const status = statusConfig[order.status] || statusConfig.aguardando_pagamento;
   const totalItems = order.items.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -65,21 +70,6 @@ const OrderReceiptTemplate: React.FC<OrderReceiptTemplateProps> = ({
       {/* Divider */}
       <div className="border-t-2 border-dashed border-gray-200 my-3 w-full" />
 
-      {/* Status & Deadline Header */}
-      <div className="bg-gray-100/50 p-3 rounded-xl mb-4 text-center space-y-1">
-        <p className={`text-sm font-black uppercase tracking-widest ${status.color}`}>
-          {status.label}
-        </p>
-        {order.status === 'aguardando_pagamento' && (
-           <div className="flex items-center justify-center gap-2 text-orange-600">
-             <Timer size={14} className="animate-pulse" />
-             <p className="text-[10px] font-black uppercase tracking-tight">
-               PRAZO: 5 HORAS PARA PAGAMENTO
-             </p>
-           </div>
-        )}
-      </div>
-
       {/* Items Table - Classic Receipt Style */}
       <div className="space-y-3 mb-4">
         <div className="flex justify-between text-[11px] font-black text-gray-400 uppercase tracking-widest pb-1 border-b border-gray-100">
@@ -87,20 +77,54 @@ const OrderReceiptTemplate: React.FC<OrderReceiptTemplateProps> = ({
           <span>VALOR</span>
         </div>
         
-        {order.items.map((item, idx) => (
-          <div key={idx} className="space-y-0.5">
-            <div className="flex justify-between text-base font-bold text-gray-900 leading-none">
-              <span className="truncate pr-4">{item.productName.toUpperCase()}</span>
-              <span>{fmt(item.unitPrice * item.quantity)}</span>
+        {order.items.map((item, idx) => {
+          const itemStatus = item.status || 'aguardando_pagamento';
+          const itemStatusConf = statusConfig[itemStatus] || statusConfig.aguardando_pagamento;
+          const imageUrl = item.imageUrl || (item.imageUrls && item.imageUrls[0]);
+
+          return (
+            <div key={idx} className="flex gap-3 items-center py-2 border-b border-gray-100/50">
+              {/* Product Image Thumbnail */}
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200/50 flex items-center justify-center">
+                {imageUrl ? (
+                  <img 
+                    src={getImageUrl(imageUrl)} 
+                    alt="" 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest text-center leading-none">FOTO</div>
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0 space-y-0.5">
+                <div className="flex justify-between text-base font-bold text-gray-900 leading-none gap-2">
+                  <span className="truncate">{item.productName.toUpperCase()}</span>
+                  <span className="shrink-0 font-mono">{fmt(item.unitPrice * item.quantity)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 italic items-center gap-1">
+                   <span className="shrink-0">{item.quantity} un x {fmt(item.unitPrice)}</span>
+                   <div className="flex gap-1 items-center overflow-hidden">
+                      <span className={`text-[8px] font-black uppercase px-1 py-0.5 rounded leading-none shrink-0 border ${
+                        itemStatusConf.bg
+                      } ${itemStatusConf.color} ${itemStatusConf.border}`}>
+                        {itemStatusConf.label}
+                      </span>
+                      <span className={`text-[8px] font-black uppercase px-1 py-0.5 rounded leading-none shrink-0 border ${
+                        item.stockType === 'previsao_meta' 
+                          ? 'bg-orange-50 text-orange-700 border-orange-100' 
+                          : 'bg-blue-50 text-blue-700 border-blue-100'
+                      }`}>
+                        {item.stockType === 'previsao_meta' ? 'LISTA ABERTA' : 'PRONTA ENTREGA'}
+                      </span>
+                   </div>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between text-xs text-gray-400 italic">
-               <span>{item.quantity} un x {fmt(item.unitPrice)}</span>
-               <span className="text-[9px] font-black uppercase bg-gray-50 px-1.5 py-0.5 rounded">
-                 {item.stockType === 'previsao_meta' ? 'VARIADO' : 'PRONTA'}
-               </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Divider */}
@@ -108,13 +132,13 @@ const OrderReceiptTemplate: React.FC<OrderReceiptTemplateProps> = ({
 
       {/* Totals Section */}
       <div className="space-y-1.5">
-        {order.totalReady && order.totalReady > 0 && (
+        {typeof order.totalReady === 'number' && order.totalReady > 0 && (
           <div className="flex justify-between text-base font-bold text-blue-700">
             <span className="text-[13px]">SUBTOTAL PRONTA:</span>
             <span>{fmt(order.totalReady)}</span>
           </div>
         )}
-        {order.totalPending && order.totalPending > 0 && (
+        {typeof order.totalPending === 'number' && order.totalPending > 0 && (
           <div className="flex justify-between text-base font-bold text-orange-700">
             <span className="text-[13px]">SUBTOTAL META:</span>
             <span>{fmt(order.totalPending)}</span>

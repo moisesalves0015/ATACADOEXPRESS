@@ -9,7 +9,10 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const statusConfig = {
+  aguardando_aprovacao: { label: 'Aguardando Aprovação', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
   aguardando_pagamento: { label: 'Aguardando Pagamento', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
+  aguardando_comprovante: { label: 'Aguardando Comprovante', icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+  confirmando_pagamento: { label: 'Confirmando Pagamento', icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-100' },
   pagamento_confirmado: { label: 'Pagamento Confirmado', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
   separacao: { label: 'Em Separação', icon: Package, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100' },
   entregue: { label: 'Entregue', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' },
@@ -73,14 +76,14 @@ export default function OrderDetails() {
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-xl overflow-hidden">
         {/* Status Banner */}
-        <div className={cn("p-8 flex items-center justify-between border-b", config.bg, config.border)}>
+        <div className="p-8 flex items-center justify-between border-b bg-gray-50 border-gray-100">
           <div className="flex items-center gap-6">
-            <div className={cn("p-4 rounded-xl bg-white shadow-lg", config.color)}>
-              <config.icon className="w-8 h-8" />
+            <div className="p-4 rounded-xl bg-white shadow-lg text-blue-600 border border-gray-100">
+              <Package className="w-8 h-8" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] opacity-50 mb-1">Status do seu pedido</p>
-              <h2 className={cn("text-2xl font-black", config.color)}>{config.label}</h2>
+              <p className="text-xs font-black uppercase tracking-[0.2em] opacity-50 mb-1">Acompanhamento dos itens</p>
+              <h2 className="text-2xl font-black text-gray-900">Itens Monitorados Individualmente</h2>
             </div>
           </div>
         </div>
@@ -95,38 +98,48 @@ export default function OrderDetails() {
                 <Package className="w-4 h-4 text-blue-500" /> Itens Adquiridos
               </h3>
               <div className="bg-gray-50/50 rounded-xl p-6 border border-gray-100 space-y-4">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:scale-105 transition-all relative">
-                        {item.imageUrl ? (
-                          <img src={item.imageUrl} alt="" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" />
-                        ) : (
-                          <Package className="w-6 h-6 opacity-30" />
-                        )}
-                        {item.stockType === 'previsao_meta' && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white" title="Sob Encomenda">
-                            <Clock className="w-2 h-2 text-white" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-gray-900">{item.productName}</p>
+                {order.items.map((item, idx) => {
+                  const itemStatus = item.status || 'aguardando_pagamento';
+                  const itemConf = statusConfig[itemStatus as keyof typeof statusConfig] || statusConfig.aguardando_pagamento;
+                  return (
+                    <div key={idx} className="flex justify-between items-center group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:scale-105 transition-all relative shrink-0">
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt="" className="w-full h-full object-cover rounded-xl" referrerPolicy="no-referrer" />
+                          ) : (
+                            <Package className="w-6 h-6 opacity-30" />
+                          )}
                           {item.stockType === 'previsao_meta' && (
-                            <span className="text-[8px] bg-orange-50 text-orange-600 border border-orange-100 px-1.5 py-0.5 rounded-full font-black uppercase">
-                              Meta
-                            </span>
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white" title="Sob Encomenda">
+                              <Clock className="w-2 h-2 text-white" />
+                            </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 font-medium">{item.quantity}x {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}</p>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-bold text-gray-900 leading-tight">{item.productName}</p>
+                            <span className={cn(
+                              "text-[8px] border px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider leading-none shrink-0",
+                              itemConf.color, itemConf.bg, itemConf.border
+                            )}>
+                              {itemConf.label}
+                            </span>
+                            {item.stockType === 'previsao_meta' && (
+                              <span className="text-[8px] bg-orange-50 text-orange-600 border border-orange-100 px-1.5 py-0.5 rounded-full font-black uppercase shrink-0 leading-none">
+                                Meta
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 font-medium mt-1">{item.quantity}x {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice)}</p>
+                        </div>
                       </div>
+                      <span className="font-black text-gray-900 ml-4 shrink-0">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice * item.quantity)}
+                      </span>
                     </div>
-                    <span className="font-black text-gray-900">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitPrice * item.quantity)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
                 
                  <div className="pt-6 border-t border-gray-200 mt-4 space-y-4">
                     {/* Breakdown section */}

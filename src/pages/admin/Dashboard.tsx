@@ -323,7 +323,7 @@ export default function AdminDashboard() {
     },
   ];
 
-  const pendingOrders = orders.filter(o => o.status === 'aguardando_pagamento');
+  const pendingOrders = orders.filter(o => o.items.some(item => (item.status || o.status || 'aguardando_pagamento') === 'aguardando_pagamento'));
 
   if (loading) {
     return (

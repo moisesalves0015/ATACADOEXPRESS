@@ -26,7 +26,7 @@ export default function Checkout() {
 
       const itemsWithStatus = items.map(item => ({
         ...item,
-        status: 'aguardando_pagamento' as const,
+        status: 'aguardando_aprovacao' as const,
         discount: 0,
         amountPaid: 0,
         paymentDate: '',
@@ -48,7 +48,7 @@ export default function Checkout() {
         totalValue: totalValue + deliveryFee,
         totalReady: initialPaymentTotal,
         totalPending: totalPendingValue,
-        status: 'aguardando_pagamento',
+        status: 'aguardando_aprovacao',
         items: itemsWithStatus,
         observations: '',
         orderOrigin: 'cliente' as const,
@@ -163,55 +163,38 @@ export default function Checkout() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-100 rounded-xl p-8 text-center">
-            <div className="bg-green-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-100">
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-8 text-center shadow-lg">
+            <div className="bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-100">
               <CheckCircle2 className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-green-900">Pedido Realizado!</h2>
-            <p className="text-green-700 mt-2">Seu pedido #{orderId.slice(-6).toUpperCase()} foi registrado com sucesso.</p>
+            <h2 className="text-2xl font-black text-blue-900 tracking-tight">Pedido Enviado para Análise!</h2>
+            <p className="text-blue-700 text-sm mt-2 font-medium">Seu pedido #{orderId.slice(-6).toUpperCase()} foi recebido com sucesso pela nossa equipe.</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 shadow-xl p-8">
-            <div className="flex flex-col md:flex-row gap-8 items-center">
-              <div className="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-200">
-                <QrCode className="w-48 h-48 text-gray-900" />
-                <p className="text-center text-xs text-gray-400 mt-4 font-mono">PIX_SALDOMANAGER_MOCK_CODE</p>
-              </div>
-              
-              <div className="flex-grow space-y-6">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Pague com PIX</h3>
-                  <p className="text-gray-500 text-sm">
-                    Escaneie o QR Code ao lado ou utilize a chave abaixo para realizar o pagamento.
-                  </p>
-                </div>
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-8 text-center space-y-6">
+            <div className="max-w-md mx-auto">
+              <h3 className="text-lg font-black text-gray-900 mb-2">Aguardando Aprovação</h3>
+              <p className="text-gray-500 text-sm leading-relaxed font-medium">
+                Para garantir a disponibilidade das peças e validar a grade com os fornecedores do Brás, um vendedor irá assumir e aprovar o seu pedido em instantes.
+              </p>
+            </div>
 
-                <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-between border border-gray-100">
-                  <code className="text-sm font-mono text-blue-600">pix@saldomanager.com.br</code>
-                  <button className="p-2 hover:bg-white rounded-lg transition-colors text-gray-400 hover:text-blue-600" title="Copiar Chave">
-                    <Copy className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded-xl flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="text-xs text-blue-700 leading-relaxed font-bold">
-                      Valor a pagar agora: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(confirmedTotal)}
-                    </p>
-                  </div>
-                </div>
+            <div className="bg-blue-50/50 p-5 rounded-2xl flex items-start gap-3 max-w-md mx-auto text-left border border-blue-100/50">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs text-blue-800 leading-relaxed font-bold">
+                  Você receberá uma notificação em tempo real assim que o seu pedido for aprovado, liberando o PIX para pagamento e reserva imediata do lote.
+                </p>
               </div>
             </div>
 
-            <div className="mt-10 pt-10 border-t border-gray-100 flex justify-center">
-                <button
-                  onClick={() => navigate('/my-orders')}
-                  disabled={loading}
-                  className="w-full max-w-sm px-6 py-4 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
-                >
-                  Ir para Meus Pedidos
-                </button>
+            <div className="pt-6 flex justify-center">
+              <button
+                onClick={() => navigate('/my-orders')}
+                className="w-full max-w-sm px-6 py-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+              >
+                Acompanhar Meus Pedidos
+              </button>
             </div>
           </div>
         </div>

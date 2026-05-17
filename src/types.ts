@@ -31,6 +31,7 @@ export type StockType = 'pronta_entrega' | 'previsao_meta';
 export interface Product {
   id: string;
   name: string;
+  ref?: string;
   description: string;
   category: string;
   stockType: StockType;
@@ -51,6 +52,8 @@ export interface Product {
   allowVariationSelection?: boolean;
   supplierId?: string;
   supplierName?: string;
+  allowQty1?: boolean;
+  allowQty2?: boolean;
 }
 
 export interface ProductVariation {
@@ -66,7 +69,10 @@ export interface ProductHistoryEntry {
 }
 
 export type OrderStatus = 
+  | 'aguardando_aprovacao'
   | 'aguardando_pagamento' 
+  | 'aguardando_comprovante'
+  | 'confirmando_pagamento'
   | 'pagamento_confirmado' 
   | 'separacao' 
   | 'entregue' 
@@ -108,6 +114,8 @@ export interface OrderItem {
   commissionValue?: number;
   commissionRate?: number;
   commissionType?: 'percentage' | 'fixed';
+  allowQty1?: boolean;
+  allowQty2?: boolean;
 }
 
 export type OrderOrigin = 'cliente' | 'admin';

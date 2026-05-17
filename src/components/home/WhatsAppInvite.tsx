@@ -23,7 +23,7 @@ export default function WhatsAppInvite() {
           </div>
 
           <motion.a
-            href="https://wa.me/your-number"
+            href="https://chat.whatsapp.com/LI5bA7Xy9HC0fX7nUZrCJd?mode=gi_t"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}

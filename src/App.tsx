@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile } from './types';
 
@@ -16,6 +16,10 @@ import MyOrders from './pages/MyOrders';
 import OrderDetails from './pages/OrderDetails';
 import MatchDiscovery from './pages/MatchDiscovery';
 import AllProducts from './pages/AllProducts';
+import HowItWorks from './pages/HowItWorks';
+import ReturnPolicy from './pages/ReturnPolicy';
+import TermsOfUse from './pages/TermsOfUse';
+import Profile from './pages/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -46,6 +50,16 @@ import { pushService } from './services/notifications/pushService';
 import { PermissionModal } from './components/Notifications/PermissionModal';
 import { IOSInstallGuide } from './components/Notifications/IOSInstallGuide';
 import { ForegroundNotification } from './components/Notifications/ForegroundNotification';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -84,26 +98,42 @@ export default function App() {
   }, [permission, setShowPermissionModal]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeDoc: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (userDoc.exists()) {
-            setUser(userDoc.data() as UserProfile);
-          } else {
-            // Auth account exists but no Firestore profile — treat as logged out
+        // Start real-time Firestore listener for the user profile
+        unsubscribeDoc = onSnapshot(
+          doc(db, 'users', firebaseUser.uid),
+          (userDoc) => {
+            if (userDoc.exists()) {
+              setUser({ uid: userDoc.id, ...userDoc.data() } as UserProfile);
+            } else {
+              setUser(null);
+            }
+            setAuthLoading(false);
+          },
+          (error) => {
             setUser(null);
+            setAuthLoading(false);
           }
-        } catch {
-          setUser(null);
-        }
+        );
       } else {
+        if (unsubscribeDoc) {
+          unsubscribeDoc();
+          unsubscribeDoc = null;
+        }
         setUser(null);
+        setAuthLoading(false);
       }
-      setAuthLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+      }
+    };
   }, []);
 
   const handleFinishSplash = () => {
@@ -136,6 +166,7 @@ export default function App() {
 
       <CartProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <GlobalNav user={authLoading ? null : user} />
           <Routes>
             <Route path="/login" element={!authLoading && user ? <Navigate to="/" /> : <Login />} />
@@ -146,7 +177,15 @@ export default function App() {
               <Route path="/produtos" element={<AllProducts />} />
               <Route path="/descobrir" element={<MatchDiscovery />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/como-funciona" element={<HowItWorks />} />
+              <Route path="/politica-de-trocas" element={<ReturnPolicy />} />
+              <Route path="/termos-de-uso" element={<TermsOfUse />} />
               <Route path="/admin/push-diagnostics" element={<PushDiagnostics />} />
+
+              {/* Authenticated Routes */}
+              <Route element={<AuthGuard user={authLoading ? null : user} />}>
+                <Route path="/profile" element={<Profile />} />
+              </Route>
 
               {/* Client Routes */}
               <Route element={<AuthGuard user={authLoading ? null : user} requiredRole="client" />}>

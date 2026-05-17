@@ -26,7 +26,10 @@ export default function ProductDetail() {
     if (!id) return;
     const unsubscribe = onSnapshot(doc(db, 'products', id), (docObj) => {
       if (docObj.exists()) {
-        setProduct({ id: docObj.id, ...docObj.data() } as Product);
+        const prod = { id: docObj.id, ...docObj.data() } as Product;
+        setProduct(prod);
+        const defaultQty = prod.allowQty1 ? 1 : (prod.allowQty2 ? 2 : 3);
+        setQuantity(defaultQty);
       }
       setLoading(false);
     }, (error) => {
@@ -87,11 +90,14 @@ export default function ProductDetail() {
       unitPrice: product.unitPrice,
       imageUrl: product.imageUrls?.length ? product.imageUrls[0] : product.imageUrl,
       stockType: product.stockType,
-      variations: selectedVariations
+      variations: selectedVariations,
+      allowQty1: product.allowQty1,
+      allowQty2: product.allowQty2
     });
     
     alert('Adicionado à sacola!');
-    setQuantity(1);
+    const defaultQty = product.allowQty1 ? 1 : (product.allowQty2 ? 2 : 3);
+    setQuantity(defaultQty);
     setSelectedVariations({});
   };
 
@@ -230,7 +236,7 @@ export default function ProductDetail() {
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantidade</span>
                   <div className="flex items-center gap-4 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
                     <button 
-                      disabled={quantity <= 1 || outOfStock}
+                      disabled={quantity <= (product.allowQty1 ? 1 : (product.allowQty2 ? 2 : 3)) || outOfStock}
                       onClick={() => setQuantity(q => q - 1)}
                       className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-30 transition-all shadow-sm"
                     >

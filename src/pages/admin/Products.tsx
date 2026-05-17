@@ -108,6 +108,7 @@ export default function AdminProducts() {
   const handleOpenModal = (product?: Product) => {
     setCurrentProduct(product || {
       name: '',
+      ref: '',
       description: '',
       category: '',
       stockType: 'pronta_entrega',
@@ -125,6 +126,8 @@ export default function AdminProducts() {
       currentGoalProgress: 0,
       supplierId: product?.supplierId || '',
       supplierName: product?.supplierName || '',
+      allowQty1: false,
+      allowQty2: false,
     });
     setExistingImageUrls(product?.imageUrls || (product?.imageUrl ? [product.imageUrl] : []));
     setNewImageFiles([]);
@@ -325,6 +328,7 @@ export default function AdminProducts() {
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (p.ref && p.ref.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (p.supplierName && p.supplierName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesSupplier = supplierFilter === 'all' || p.supplierId === supplierFilter;
     const matchesStatus = productStatusFilter === 'all' || p.status === productStatusFilter;
@@ -596,7 +600,14 @@ export default function AdminProducts() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">{product.name}</p>
+                        <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                          <span>{product.name}</span>
+                          {product.ref && (
+                            <span className="text-[10px] font-mono text-gray-400 font-bold bg-gray-50 border border-gray-100 px-1 py-0.5 rounded-md">
+                              #{product.ref}
+                            </span>
+                          )}
+                        </p>
                         <div className="flex items-center gap-2">
                            <p className={cn(
                              "text-[10px] font-bold uppercase",
@@ -702,7 +713,14 @@ export default function AdminProducts() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="text-base font-black text-gray-900 truncate">{product.name}</p>
+                    <p className="text-base font-black text-gray-900 truncate flex items-center gap-1.5">
+                      <span>{product.name}</span>
+                      {product.ref && (
+                        <span className="text-[9px] font-mono text-gray-400 font-bold bg-gray-50 border border-gray-100 px-1 py-0.5 rounded">
+                          #{product.ref}
+                        </span>
+                      )}
+                    </p>
                     <span className={cn(
                       "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase border shrink-0",
                       product.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'
@@ -1049,6 +1067,16 @@ export default function AdminProducts() {
                               />
                             </div>
                             <div>
+                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Ref (Código de Referência)</label>
+                              <input
+                                type="text"
+                                value={currentProduct.ref || ''}
+                                onChange={e => setCurrentProduct({ ...currentProduct, ref: e.target.value })}
+                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-bold"
+                                placeholder="Ex: REF-1020"
+                              />
+                            </div>
+                            <div>
                               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Categoria Principal</label>
                               <input
                                 type="text"
@@ -1142,6 +1170,41 @@ export default function AdminProducts() {
                           className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500 transition-all outline-none text-sm font-medium leading-relaxed"
                           placeholder="Descreva o tecido, caimento e detalhes especiais..."
                         ></textarea>
+                      </div>
+
+                      {/* Configuração de Quantidades Mínimas */}
+                      <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+                        <div>
+                          <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider">Quantidade Mínima de Compra</h4>
+                          <p className="text-[10px] text-gray-400 font-bold mt-1">Por padrão, os produtos são adicionados ao carrinho sempre com 3 unidades. Marque as opções abaixo se desejar permitir quantidades menores.</p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <label className="flex-1 flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-100 hover:border-blue-300 transition-all cursor-pointer shadow-sm">
+                            <input 
+                              type="checkbox"
+                              checked={currentProduct.allowQty1 || false}
+                              onChange={e => setCurrentProduct({ ...currentProduct, allowQty1: e.target.checked })}
+                              className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 border-gray-300"
+                            />
+                            <div>
+                              <span className="text-xs font-black text-gray-700 block">Permitir 1 unidade</span>
+                              <span className="text-[9px] text-gray-400 font-bold block mt-0.5">Lojista poderá comprar apenas 1 un.</span>
+                            </div>
+                          </label>
+
+                          <label className="flex-1 flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-100 hover:border-blue-300 transition-all cursor-pointer shadow-sm">
+                            <input 
+                              type="checkbox"
+                              checked={currentProduct.allowQty2 || false}
+                              onChange={e => setCurrentProduct({ ...currentProduct, allowQty2: e.target.checked })}
+                              className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 border-gray-300"
+                            />
+                            <div>
+                              <span className="text-xs font-black text-gray-700 block">Permitir 2 unidades</span>
+                              <span className="text-[9px] text-gray-400 font-bold block mt-0.5">Lojista poderá comprar apenas 2 un.</span>
+                            </div>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   )}

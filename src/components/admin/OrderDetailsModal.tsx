@@ -13,9 +13,10 @@ interface OrderDetailsModalProps {
   order: Order;
   onClose: () => void;
   onUpdateItemStatus: (orderId: string, itemIdx: number, newStatus: OrderStatus, currentStatus: OrderStatus) => void;
+  onAssumeAndApprove?: (order: Order) => void;
 }
 
-const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose, onUpdateItemStatus }) => {
+const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose, onUpdateItemStatus, onAssumeAndApprove }) => {
   const [isGeneratingImage, setIsGeneratingImage] = React.useState(false);
 
   const handleGenerateImage = async () => {
@@ -38,6 +39,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose, o
       setIsGeneratingImage(false);
     }
   };
+
   return (
     <div className="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[95vh] animate-in slide-in-from-bottom duration-300 overflow-hidden">
@@ -220,6 +222,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ order, onClose, o
                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Valor Total</span>
                            <span className="text-2xl font-black text-brand-pink">{fmt(order.totalValue)}</span>
                          </div>
+
+                         {order.status === 'aguardando_aprovacao' && onAssumeAndApprove && (
+                           <button
+                             onClick={() => onAssumeAndApprove(order)}
+                             className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-xs tracking-widest rounded-xl transition-all shadow-lg shadow-blue-100 active:scale-95 cursor-pointer"
+                           >
+                             <ShieldCheck className="w-4 h-4" /> Assumir &amp; Aprovar Pedido
+                           </button>
+                         )}
                        </div>
                     </div>
                 </div>

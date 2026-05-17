@@ -20,13 +20,16 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const qty = product.allowQty1 ? 1 : (product.allowQty2 ? 2 : 3);
     addToCart({
       productId: product.id,
       productName: product.name,
-      quantity: 1,
+      quantity: qty,
       unitPrice: product.unitPrice,
       imageUrl: (product.imageUrls && product.imageUrls.length > 0) ? product.imageUrls[0] : product.imageUrl,
-      stockType: product.stockType
+      stockType: product.stockType,
+      allowQty1: product.allowQty1,
+      allowQty2: product.allowQty2
     });
   };
 

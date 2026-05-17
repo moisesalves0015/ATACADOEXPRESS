@@ -19,6 +19,8 @@ export const captureReceiptImage = async (elementId: string, fileName?: string):
       quality: 1,
       pixelRatio: 2, // High resolution
       backgroundColor: '#f9fafb', // Match gray-50
+      imagePlaceholder: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mN88B8AAugB+t/e3q8AAAAASUVORK5CYII=', // Gray fallback for CORS/broken images
+      cacheBust: true,
     });
 
     if (fileName) {

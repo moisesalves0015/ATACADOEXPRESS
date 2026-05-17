@@ -26,7 +26,12 @@ export default function Footer() {
             <a href="#" className="p-2 bg-gray-50 rounded-xl text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-all">
               <FacebookLogo size={24} weight="fill" />
             </a>
-            <a href="#" className="p-2 bg-gray-50 rounded-xl text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-all">
+            <a 
+              href="https://wa.me/5521980214244" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="p-2 bg-gray-50 rounded-xl text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-all"
+            >
               <WhatsappLogo size={24} weight="fill" />
             </a>
           </div>
@@ -47,10 +52,10 @@ export default function Footer() {
         <div>
           <h4 className="font-display font-black text-gray-900 uppercase tracking-widest text-xs mb-8">Ajuda & Suporte</h4>
           <ul className="space-y-4">
-            <li><a href="#" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Política de Trocas</a></li>
-            <li><a href="#" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Termos de Uso</a></li>
-            <li><a href="#" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Dúvidas Frequentes</a></li>
-            <li><a href="#" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Seja um Revendedor</a></li>
+            <li><Link to="/politica-de-trocas" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Política de Trocas</Link></li>
+            <li><Link to="/termos-de-uso" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Termos de Uso</Link></li>
+            <li><Link to="/como-funciona" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Dúvidas Frequentes</Link></li>
+            <li><Link to="/register" className="text-gray-500 hover:text-brand-pink text-sm font-bold transition-colors">Seja um Revendedor</Link></li>
           </ul>
         </div>
 
@@ -60,11 +65,18 @@ export default function Footer() {
           <ul className="space-y-4">
             <li className="flex items-start gap-3">
               <MapPin size={20} className="text-brand-pink flex-shrink-0" weight="bold" />
-              <span className="text-gray-500 text-sm font-bold leading-snug">Rua da Moda, 123 - Brás, São Paulo - SP</span>
+              <span className="text-gray-500 text-sm font-bold leading-snug">Feirinha da Madrugada, 1º Andar - Brás, São Paulo - SP</span>
             </li>
             <li className="flex items-center gap-3">
               <Phone size={20} className="text-brand-pink flex-shrink-0" weight="bold" />
-              <span className="text-gray-500 text-sm font-bold leading-snug">(11) 99999-9999</span>
+              <a 
+                href="https://wa.me/5521980214244" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-500 hover:text-brand-pink text-sm font-bold leading-snug transition-colors"
+              >
+                (21) 98021-4244
+              </a>
             </li>
             <li className="flex items-center gap-3">
               <Envelope size={20} className="text-brand-pink flex-shrink-0" weight="bold" />

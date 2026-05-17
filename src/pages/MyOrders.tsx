@@ -77,7 +77,6 @@ export default function MyOrders() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const config = statusConfig[order.status] || statusConfig.aguardando_pagamento;
             return (
               <Link
                 key={order.id}
@@ -86,20 +85,25 @@ export default function MyOrders() {
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-start gap-4">
-                    <div className={cn("p-3 rounded-xl", config.bg)}>
-                      <config.icon className={cn("w-6 h-6", config.color)} />
+                    <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+                      <ClipboardList className="w-6 h-6" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                           Pedido #{order.id.slice(-6).toUpperCase()}
                         </span>
-                        <span className={cn(
-                          "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border",
-                          config.color, config.bg, config.border
-                        )}>
-                          {config.label}
-                        </span>
+                        {Array.from(new Set(order.items.map(i => i.status || 'aguardando_pagamento'))).map(st => {
+                          const config = statusConfig[st as keyof typeof statusConfig] || statusConfig.aguardando_pagamento;
+                          return (
+                            <span key={st} className={cn(
+                              "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border leading-none",
+                              config.color, config.bg, config.border
+                            )}>
+                              {config.label}
+                            </span>
+                          );
+                        })}
                       </div>
                       <h3 className="font-bold text-gray-900">
                         {order.items.length} {order.items.length === 1 ? 'item' : 'itens'} • {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.totalValue)}

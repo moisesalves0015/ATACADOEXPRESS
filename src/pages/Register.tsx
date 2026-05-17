@@ -71,6 +71,7 @@ export default function Register() {
         email: formData.email.trim(),
         phone: cleanPhone,
         role: 'client',
+        status: 'active',
         totalPurchases: 0,
         createdAt: new Date().toISOString(),
       };
